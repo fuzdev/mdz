@@ -1,0 +1,28 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "**bold ",
+				"start": 0,
+				"end": 7
+			},
+			{
+				"type": "Italic",
+				"children": [
+					{
+						"type": "Text",
+						"content": "italic",
+						"start": 8,
+						"end": 14
+					}
+				],
+				"start": 7,
+				"end": 15
+			}
+		],
+		"start": 0,
+		"end": 15
+	}
+]

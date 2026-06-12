@@ -1,0 +1,36 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Search at ",
+				"start": 0,
+				"end": 10
+			},
+			{
+				"type": "Link",
+				"reference": "/docs/api?q=test",
+				"children": [
+					{
+						"type": "Text",
+						"content": "/docs/api?q=test",
+						"start": 10,
+						"end": 26
+					}
+				],
+				"link_type": "internal",
+				"start": 10,
+				"end": 26
+			},
+			{
+				"type": "Text",
+				"content": " for results.",
+				"start": 26,
+				"end": 39
+			}
+		],
+		"start": 0,
+		"end": 39
+	}
+]

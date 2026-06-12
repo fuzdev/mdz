@@ -1,0 +1,57 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Visit ",
+				"start": 0,
+				"end": 6
+			},
+			{
+				"type": "Link",
+				"reference": "https://fuz.dev",
+				"children": [
+					{
+						"type": "Text",
+						"content": "Example",
+						"start": 7,
+						"end": 14
+					}
+				],
+				"link_type": "external",
+				"start": 6,
+				"end": 32
+			},
+			{
+				"type": "Text",
+				"content": " and ",
+				"start": 32,
+				"end": 37
+			},
+			{
+				"type": "Link",
+				"reference": "/docs/api",
+				"children": [
+					{
+						"type": "Text",
+						"content": "Docs",
+						"start": 38,
+						"end": 42
+					}
+				],
+				"link_type": "internal",
+				"start": 37,
+				"end": 54
+			},
+			{
+				"type": "Text",
+				"content": " today.",
+				"start": 54,
+				"end": 61
+			}
+		],
+		"start": 0,
+		"end": 61
+	}
+]

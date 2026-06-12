@@ -1,0 +1,9 @@
+[
+	{
+		"type": "Codeblock",
+		"lang": "ts",
+		"content": "const x: number = 42;",
+		"start": 0,
+		"end": 31
+	}
+]

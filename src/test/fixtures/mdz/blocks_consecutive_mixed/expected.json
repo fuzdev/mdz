@@ -1,0 +1,42 @@
+[
+	{
+		"type": "Heading",
+		"level": 1,
+		"id": "heading",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Heading",
+				"start": 2,
+				"end": 9
+			}
+		],
+		"start": 0,
+		"end": 9
+	},
+	{
+		"type": "Hr",
+		"start": 10,
+		"end": 13
+	},
+	{
+		"type": "Codeblock",
+		"lang": null,
+		"content": "code",
+		"start": 14,
+		"end": 26
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "More text.",
+				"start": 27,
+				"end": 37
+			}
+		],
+		"start": 27,
+		"end": 37
+	}
+]

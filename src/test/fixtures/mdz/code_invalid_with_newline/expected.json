@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "`invalid with no closing backtick",
+				"start": 0,
+				"end": 33
+			}
+		],
+		"start": 0,
+		"end": 33
+	}
+]

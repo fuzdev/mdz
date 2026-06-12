@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "See [broken link]() here.",
+				"start": 0,
+				"end": 25
+			}
+		],
+		"start": 0,
+		"end": 25
+	}
+]

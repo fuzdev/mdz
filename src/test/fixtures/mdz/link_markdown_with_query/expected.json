@@ -1,0 +1,36 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Try ",
+				"start": 0,
+				"end": 4
+			},
+			{
+				"type": "Link",
+				"reference": "https://fuz.dev?q=test",
+				"children": [
+					{
+						"type": "Text",
+						"content": "Search",
+						"start": 5,
+						"end": 11
+					}
+				],
+				"link_type": "external",
+				"start": 4,
+				"end": 36
+			},
+			{
+				"type": "Text",
+				"content": " for results.",
+				"start": 36,
+				"end": 49
+			}
+		],
+		"start": 0,
+		"end": 49
+	}
+]

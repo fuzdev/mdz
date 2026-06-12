@@ -1,0 +1,20 @@
+[
+	{
+		"type": "Hr",
+		"start": 0,
+		"end": 3
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Some text.",
+				"start": 4,
+				"end": 14
+			}
+		],
+		"start": 4,
+		"end": 14
+	}
+]

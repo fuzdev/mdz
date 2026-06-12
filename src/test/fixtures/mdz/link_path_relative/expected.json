@@ -1,0 +1,57 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "See ",
+				"start": 0,
+				"end": 4
+			},
+			{
+				"type": "Link",
+				"reference": "./grammar",
+				"children": [
+					{
+						"type": "Text",
+						"content": "./grammar",
+						"start": 4,
+						"end": 13
+					}
+				],
+				"link_type": "internal",
+				"start": 4,
+				"end": 13
+			},
+			{
+				"type": "Text",
+				"content": " and ",
+				"start": 13,
+				"end": 18
+			},
+			{
+				"type": "Link",
+				"reference": "../usage",
+				"children": [
+					{
+						"type": "Text",
+						"content": "../usage",
+						"start": 18,
+						"end": 26
+					}
+				],
+				"link_type": "internal",
+				"start": 18,
+				"end": 26
+			},
+			{
+				"type": "Text",
+				"content": " for details.",
+				"start": 26,
+				"end": 39
+			}
+		],
+		"start": 0,
+		"end": 39
+	}
+]

@@ -1,0 +1,36 @@
+[
+	{
+		"type": "List",
+		"ordered": false,
+		"children": [
+			{
+				"type": "ListItem",
+				"children": [
+					{
+						"type": "Text",
+						"content": "a\r",
+						"start": 2,
+						"end": 4
+					}
+				],
+				"start": 0,
+				"end": 4
+			},
+			{
+				"type": "ListItem",
+				"children": [
+					{
+						"type": "Text",
+						"content": "b\r",
+						"start": 7,
+						"end": 9
+					}
+				],
+				"start": 5,
+				"end": 9
+			}
+		],
+		"start": 0,
+		"end": 9
+	}
+]

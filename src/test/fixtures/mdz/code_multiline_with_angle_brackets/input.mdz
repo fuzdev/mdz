@@ -1,0 +1,3 @@
+Plumbing: `create_zzz_app` gained an
+`extra_rpc_actions_factory?: (deps, backend) =>
+ReadonlyArray<RpcAction>` hook so the core plumbs the reset action.

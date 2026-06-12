@@ -1,0 +1,64 @@
+[
+	{
+		"type": "List",
+		"ordered": false,
+		"children": [
+			{
+				"type": "ListItem",
+				"children": [
+					{
+						"type": "Text",
+						"content": "a",
+						"start": 2,
+						"end": 3
+					},
+					{
+						"type": "Blockquote",
+						"children": [
+							{
+								"type": "List",
+								"ordered": false,
+								"children": [
+									{
+										"type": "ListItem",
+										"children": [
+											{
+												"type": "Text",
+												"content": "x",
+												"start": 10,
+												"end": 11
+											}
+										],
+										"start": 8,
+										"end": 11
+									},
+									{
+										"type": "ListItem",
+										"children": [
+											{
+												"type": "Text",
+												"content": "y",
+												"start": 18,
+												"end": 19
+											}
+										],
+										"start": 16,
+										"end": 19
+									}
+								],
+								"start": 8,
+								"end": 19
+							}
+						],
+						"start": 6,
+						"end": 19
+					}
+				],
+				"start": 0,
+				"end": 19
+			}
+		],
+		"start": 0,
+		"end": 19
+	}
+]

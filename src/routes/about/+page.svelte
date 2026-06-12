@@ -1,5 +1,4 @@
 <script lang="ts">
-	// import LibraryDetail from '@fuzdev/fuz_ui/LibraryDetail.svelte';
 	import DocsFooter from '@fuzdev/fuz_ui/DocsFooter.svelte';
 	import {site_context} from '@fuzdev/fuz_ui/site.svelte.js';
 	import {FUZ_DEV_URL} from '@fuzdev/fuz_ui/constants.js';
@@ -17,17 +16,12 @@
 	<section class="box">
 		<header class="box pt_xl">
 			<Svg data={logo_fuz} size="var(--icon_size_xl)" />
-			<h1 class="mt_xl2">fuz_template</h1>
+			<h1 class="mt_xl2">mdz</h1>
 		</header>
 		<div style:--font_size="var(--font_size_xl)">
 			<Breadcrumb />
 		</div>
 	</section>
-	<!-- <section class="box width:100% mb_lg">
-		<div class="panel p_lg width_atmost_md">
-			<LibraryDetail {library} />
-		</div>
-	</section> -->
 	<EcosystemLinksPanel />
 	<section class="box">
 		<DocsFooter repo_url={site.repo_url} root_url={FUZ_DEV_URL} />

@@ -1,0 +1,78 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "See ",
+				"start": 0,
+				"end": 4
+			},
+			{
+				"type": "Link",
+				"reference": "/docs/usage",
+				"children": [
+					{
+						"type": "Text",
+						"content": "/docs/usage",
+						"start": 4,
+						"end": 15
+					}
+				],
+				"link_type": "internal",
+				"start": 4,
+				"end": 15
+			},
+			{
+				"type": "Text",
+				"content": " and ",
+				"start": 15,
+				"end": 20
+			},
+			{
+				"type": "Link",
+				"reference": "https://external.com",
+				"children": [
+					{
+						"type": "Text",
+						"content": "https://external.com",
+						"start": 20,
+						"end": 40
+					}
+				],
+				"link_type": "external",
+				"start": 20,
+				"end": 40
+			},
+			{
+				"type": "Text",
+				"content": " and ",
+				"start": 40,
+				"end": 45
+			},
+			{
+				"type": "Link",
+				"reference": "https://fuz.dev",
+				"children": [
+					{
+						"type": "Text",
+						"content": "markdown",
+						"start": 46,
+						"end": 54
+					}
+				],
+				"link_type": "external",
+				"start": 45,
+				"end": 72
+			},
+			{
+				"type": "Text",
+				"content": " links.",
+				"start": 72,
+				"end": 79
+			}
+		],
+		"start": 0,
+		"end": 79
+	}
+]

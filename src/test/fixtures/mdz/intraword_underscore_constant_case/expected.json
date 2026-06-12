@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "CONSTANT_CASE_NAME",
+				"start": 0,
+				"end": 18
+			}
+		],
+		"start": 0,
+		"end": 18
+	}
+]

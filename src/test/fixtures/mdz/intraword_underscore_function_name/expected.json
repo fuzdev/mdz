@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "function_name_with_underscores",
+				"start": 0,
+				"end": 30
+			}
+		],
+		"start": 0,
+		"end": 30
+	}
+]

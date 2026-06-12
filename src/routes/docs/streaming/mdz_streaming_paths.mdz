@@ -1,0 +1,58 @@
+mdz ships three ways to turn `.mdz` text into a rendered tree. Pick based on whether content is static, available all-at-once, or streaming.
+
+### Path 1: `Mdz` component (default)
+
+For inline use in a Svelte template, with content known up front:
+
+```svelte
+<Mdz content="**bold** text" />
+```
+
+Internally calls `mdz_parse` and renders via `MdzNodeView`. Best for: documentation pages, alerts, tooltips — anything where you have the full string before render. With /docs/svelte_preprocess_mdz this also compiles away at build time for static strings.
+
+### Path 2: `mdz_parse` + `MdzNodeView` (one-shot, manual)
+
+For control over wrapper markup, custom whitespace handling, or non-default CSS:
+
+```ts
+import {mdz_parse} from '@fuzdev/mdz/mdz.js';
+import MdzNodeView from '@fuzdev/mdz/MdzNodeView.svelte';
+
+const nodes = mdz_parse(content);
+```
+
+```svelte
+<div class="custom white-space:pre">
+	{#each nodes as node}
+		<MdzNodeView {node} />
+	{/each}
+</div>
+```
+
+Same input, same tree as path 1, but you own the surrounding container. `mdz_parse` is the canonical reference parser — fixture tests pin its output as the source of truth.
+
+### Path 3: `MdzStreamParser` + `MdzStreamState` + `MdzStream`
+
+For content that arrives in chunks:
+
+```ts
+import {MdzStreamParser} from '@fuzdev/mdz/mdz_stream_parser.js';
+import {MdzStreamState} from '@fuzdev/mdz/mdz_stream_state.svelte.js';
+
+const parser = new MdzStreamParser();
+const stream = new MdzStreamState();
+
+// feed chunks as they arrive
+parser.feed(chunk);
+stream.apply_batch(parser.take_opcodes());
+
+// when done
+parser.finish();
+stream.apply_batch(parser.take_opcodes());
+```
+
+```svelte
+<MdzStream {stream} />
+```
+
+`MdzStreamParser` emits opcodes — small, serializable rendering instructions — as bytes arrive. `MdzStreamState` applies them to a reactive Svelte 5 tree. `MdzStream` walks that tree and produces DOM. Each layer is replaceable; opcodes are target-agnostic.

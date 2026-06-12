@@ -1,0 +1,47 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Text",
+						"content": "bold ",
+						"start": 2,
+						"end": 7
+					},
+					{
+						"type": "Strikethrough",
+						"children": [
+							{
+								"type": "Text",
+								"content": "strikethrough ",
+								"start": 9,
+								"end": 23
+							},
+							{
+								"type": "Code",
+								"content": "code",
+								"start": 23,
+								"end": 29
+							}
+						],
+						"start": 7,
+						"end": 31
+					},
+					{
+						"type": "Text",
+						"content": " text",
+						"start": 31,
+						"end": 36
+					}
+				],
+				"start": 0,
+				"end": 38
+			}
+		],
+		"start": 0,
+		"end": 38
+	}
+]

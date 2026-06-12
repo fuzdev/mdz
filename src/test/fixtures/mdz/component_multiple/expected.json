@@ -1,0 +1,30 @@
+[
+	{
+		"type": "Component",
+		"name": "Alert",
+		"children": [
+			{
+				"type": "Text",
+				"content": "First alert.",
+				"start": 7,
+				"end": 19
+			}
+		],
+		"start": 0,
+		"end": 27
+	},
+	{
+		"type": "Component",
+		"name": "Card",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Second card.",
+				"start": 35,
+				"end": 47
+			}
+		],
+		"start": 29,
+		"end": 54
+	}
+]

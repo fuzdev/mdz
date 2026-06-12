@@ -1,0 +1,22 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Text",
+						"content": " text",
+						"start": 2,
+						"end": 7
+					}
+				],
+				"start": 0,
+				"end": 9
+			}
+		],
+		"start": 0,
+		"end": 9
+	}
+]

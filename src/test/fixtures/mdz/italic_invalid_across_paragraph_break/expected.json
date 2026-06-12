@@ -1,0 +1,28 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "_unclosed italic",
+				"start": 0,
+				"end": 16
+			}
+		],
+		"start": 0,
+		"end": 16
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "unopened italic_",
+				"start": 18,
+				"end": 34
+			}
+		],
+		"start": 18,
+		"end": 34
+	}
+]

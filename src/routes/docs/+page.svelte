@@ -11,5 +11,7 @@
 </script>
 
 <div class="pt_xl3">
-	<DocsContent {tomes} {library}></DocsContent>
+	<DocsContent {tomes} {library}>
+		{#snippet header()}{/snippet}
+	</DocsContent>
 </div>

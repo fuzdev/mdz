@@ -1,0 +1,34 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "foo",
+				"start": 0,
+				"end": 3
+			},
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Text",
+						"content": "bar",
+						"start": 5,
+						"end": 8
+					}
+				],
+				"start": 3,
+				"end": 10
+			},
+			{
+				"type": "Text",
+				"content": "baz",
+				"start": 10,
+				"end": 13
+			}
+		],
+		"start": 0,
+		"end": 13
+	}
+]

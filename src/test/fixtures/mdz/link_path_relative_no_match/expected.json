@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "No match: x./foo or ./ alone or .. alone or ..",
+				"start": 0,
+				"end": 46
+			}
+		],
+		"start": 0,
+		"end": 46
+	}
+]

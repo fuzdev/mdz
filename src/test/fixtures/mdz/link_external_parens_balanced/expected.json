@@ -1,0 +1,36 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "See ",
+				"start": 0,
+				"end": 4
+			},
+			{
+				"type": "Link",
+				"reference": "https://fuz.dev/wiki/Foo_(bar)",
+				"children": [
+					{
+						"type": "Text",
+						"content": "https://fuz.dev/wiki/Foo_(bar)",
+						"start": 4,
+						"end": 34
+					}
+				],
+				"link_type": "external",
+				"start": 4,
+				"end": 34
+			},
+			{
+				"type": "Text",
+				"content": " for context.",
+				"start": 34,
+				"end": 47
+			}
+		],
+		"start": 0,
+		"end": 47
+	}
+]

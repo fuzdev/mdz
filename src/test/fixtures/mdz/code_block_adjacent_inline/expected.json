@@ -1,0 +1,22 @@
+[
+	{
+		"type": "Codeblock",
+		"lang": null,
+		"content": "block",
+		"start": 0,
+		"end": 13
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Code",
+				"content": "inline",
+				"start": 15,
+				"end": 23
+			}
+		],
+		"start": 15,
+		"end": 23
+	}
+]

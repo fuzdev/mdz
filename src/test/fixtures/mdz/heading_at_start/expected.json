@@ -1,0 +1,30 @@
+[
+	{
+		"type": "Heading",
+		"level": 1,
+		"id": "heading-at-document-start",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Heading at document start",
+				"start": 2,
+				"end": 27
+			}
+		],
+		"start": 0,
+		"end": 27
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "First paragraph after heading.",
+				"start": 29,
+				"end": 59
+			}
+		],
+		"start": 29,
+		"end": 59
+	}
+]

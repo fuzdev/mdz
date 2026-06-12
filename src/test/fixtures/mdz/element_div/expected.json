@@ -1,0 +1,16 @@
+[
+	{
+		"type": "Element",
+		"name": "div",
+		"children": [
+			{
+				"type": "Text",
+				"content": "This is a div element.",
+				"start": 5,
+				"end": 27
+			}
+		],
+		"start": 0,
+		"end": 33
+	}
+]

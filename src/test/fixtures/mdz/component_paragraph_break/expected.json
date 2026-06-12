@@ -1,0 +1,28 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "<Alert>First paragraph.",
+				"start": 0,
+				"end": 23
+			}
+		],
+		"start": 0,
+		"end": 23
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Second paragraph.</Alert>",
+				"start": 25,
+				"end": 50
+			}
+		],
+		"start": 25,
+		"end": 50
+	}
+]

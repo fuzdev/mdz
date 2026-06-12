@@ -1,0 +1,28 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "paragraph 1",
+				"start": 0,
+				"end": 11
+			}
+		],
+		"start": 0,
+		"end": 11
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "paragraph 2",
+				"start": 13,
+				"end": 24
+			}
+		],
+		"start": 13,
+		"end": 24
+	}
+]

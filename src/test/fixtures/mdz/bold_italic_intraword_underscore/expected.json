@@ -1,0 +1,35 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "snake",
+				"start": 0,
+				"end": 5
+			},
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Italic",
+						"children": [
+							{
+								"type": "Text",
+								"content": "case",
+								"start": 8,
+								"end": 12
+							}
+						],
+						"start": 7,
+						"end": 13
+					}
+				],
+				"start": 5,
+				"end": 15
+			}
+		],
+		"start": 0,
+		"end": 15
+	}
+]

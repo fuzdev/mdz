@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "__init__ and __repr__ are dunders",
+				"start": 0,
+				"end": 33
+			}
+		],
+		"start": 0,
+		"end": 33
+	}
+]

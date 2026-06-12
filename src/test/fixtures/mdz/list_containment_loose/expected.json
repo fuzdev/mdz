@@ -1,0 +1,73 @@
+[
+	{
+		"type": "List",
+		"ordered": true,
+		"start_number": 1,
+		"children": [
+			{
+				"type": "ListItem",
+				"number": 1,
+				"children": [
+					{
+						"type": "Bold",
+						"children": [
+							{
+								"type": "Text",
+								"content": "Setup",
+								"start": 5,
+								"end": 10
+							}
+						],
+						"start": 3,
+						"end": 12
+					},
+					{
+						"type": "Paragraph",
+						"children": [
+							{
+								"type": "Text",
+								"content": "Install the thing.",
+								"start": 17,
+								"end": 35
+							}
+						],
+						"start": 17,
+						"end": 35
+					},
+					{
+						"type": "Codeblock",
+						"lang": "sh",
+						"content": "npm install",
+						"start": 40,
+						"end": 67
+					}
+				],
+				"start": 0,
+				"end": 67
+			},
+			{
+				"type": "ListItem",
+				"number": 2,
+				"children": [
+					{
+						"type": "Bold",
+						"children": [
+							{
+								"type": "Text",
+								"content": "Run",
+								"start": 74,
+								"end": 77
+							}
+						],
+						"start": 72,
+						"end": 79
+					}
+				],
+				"start": 69,
+				"end": 79
+			}
+		],
+		"start": 0,
+		"end": 79
+	}
+]

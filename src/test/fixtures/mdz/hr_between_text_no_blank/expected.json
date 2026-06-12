@@ -1,0 +1,33 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Some text.",
+				"start": 0,
+				"end": 10
+			}
+		],
+		"start": 0,
+		"end": 10
+	},
+	{
+		"type": "Hr",
+		"start": 11,
+		"end": 14
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "More text.",
+				"start": 15,
+				"end": 25
+			}
+		],
+		"start": 15,
+		"end": 25
+	}
+]

@@ -1,0 +1,17 @@
+[
+	{
+		"type": "Heading",
+		"level": 6,
+		"id": "level-6-heading",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Level 6 Heading",
+				"start": 7,
+				"end": 22
+			}
+		],
+		"start": 0,
+		"end": 22
+	}
+]

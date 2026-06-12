@@ -1,0 +1,54 @@
+[
+	{
+		"type": "Component",
+		"name": "Alert",
+		"children": [
+			{
+				"type": "Text",
+				"content": "This has ",
+				"start": 7,
+				"end": 16
+			},
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Text",
+						"content": "bold",
+						"start": 18,
+						"end": 22
+					}
+				],
+				"start": 16,
+				"end": 24
+			},
+			{
+				"type": "Text",
+				"content": " and ",
+				"start": 24,
+				"end": 29
+			},
+			{
+				"type": "Italic",
+				"children": [
+					{
+						"type": "Text",
+						"content": "italic",
+						"start": 30,
+						"end": 36
+					}
+				],
+				"start": 29,
+				"end": 37
+			},
+			{
+				"type": "Text",
+				"content": " text.",
+				"start": 37,
+				"end": 43
+			}
+		],
+		"start": 0,
+		"end": 51
+	}
+]

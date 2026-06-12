@@ -1,0 +1,34 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "text",
+				"start": 0,
+				"end": 4
+			},
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Text",
+						"content": " _before ",
+						"start": 6,
+						"end": 15
+					}
+				],
+				"start": 4,
+				"end": 17
+			},
+			{
+				"type": "Text",
+				"content": "bold**_",
+				"start": 17,
+				"end": 24
+			}
+		],
+		"start": 0,
+		"end": 24
+	}
+]

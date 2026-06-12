@@ -1,0 +1,39 @@
+[
+	{
+		"type": "List",
+		"ordered": true,
+		"start_number": 0,
+		"children": [
+			{
+				"type": "ListItem",
+				"number": 0,
+				"children": [
+					{
+						"type": "Text",
+						"content": "zero",
+						"start": 3,
+						"end": 7
+					}
+				],
+				"start": 0,
+				"end": 7
+			},
+			{
+				"type": "ListItem",
+				"number": 1,
+				"children": [
+					{
+						"type": "Text",
+						"content": "one",
+						"start": 11,
+						"end": 14
+					}
+				],
+				"start": 8,
+				"end": 14
+			}
+		],
+		"start": 0,
+		"end": 14
+	}
+]

@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "This 🎉 has emoji and 中文 characters",
+				"start": 0,
+				"end": 35
+			}
+		],
+		"start": 0,
+		"end": 35
+	}
+]

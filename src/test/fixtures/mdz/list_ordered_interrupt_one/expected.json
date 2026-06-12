@@ -1,0 +1,52 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Steps:",
+				"start": 0,
+				"end": 6
+			}
+		],
+		"start": 0,
+		"end": 6
+	},
+	{
+		"type": "List",
+		"ordered": true,
+		"start_number": 1,
+		"children": [
+			{
+				"type": "ListItem",
+				"number": 1,
+				"children": [
+					{
+						"type": "Text",
+						"content": "go",
+						"start": 10,
+						"end": 12
+					}
+				],
+				"start": 7,
+				"end": 12
+			},
+			{
+				"type": "ListItem",
+				"number": 2,
+				"children": [
+					{
+						"type": "Text",
+						"content": "stop",
+						"start": 16,
+						"end": 20
+					}
+				],
+				"start": 13,
+				"end": 20
+			}
+		],
+		"start": 7,
+		"end": 20
+	}
+]

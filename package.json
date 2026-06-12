@@ -1,25 +1,59 @@
 {
-  "name": "@fuzdev/fuz_template",
-  "version": "0.0.1",
-  "description": "a static web app and Node library template with TypeScript, Svelte, SvelteKit, Vite, esbuild, Gro, and Fuz",
-  "glyph": "❄",
+  "name": "@fuzdev/mdz",
+  "version": "0.1.0",
+  "description": "a strict markdown dialect built for streaming, Svelte authoring, docs websites, and untrusted content",
+  "tagline": "markdown for fuz",
+  "glyph": "📝",
   "logo": "logo.svg",
   "logo_alt": "a friendly pixelated spider facing you",
-  "private": true,
-  "homepage": "https://template.fuz.dev/",
-  "repository": "https://github.com/fuzdev/fuz_template",
+  "license": "MIT",
+  "homepage": "https://mdz.fuz.dev/",
+  "author": {
+    "name": "Ryan Atkinson",
+    "email": "mail@ryanatkn.com",
+    "url": "https://www.ryanatkn.com/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fuzdev/mdz.git"
+  },
+  "bugs": "https://github.com/fuzdev/mdz/issues",
+  "funding": "https://www.ryanatkn.com/funding",
   "scripts": {
     "start": "gro dev",
     "dev": "gro dev",
     "build": "gro build",
     "check": "gro check",
     "test": "gro test",
+    "fixtures:update": "gro src/test/fixtures/update",
     "preview": "vite preview",
-    "deploy": "gro deploy"
+    "deploy": "gro deploy",
+    "benchmark": "gro run src/benchmarks/mdz.benchmark.ts",
+    "benchmark:save": "gro run src/benchmarks/mdz.benchmark.ts --save",
+    "benchmark:clean": "rm -f src/benchmarks/baseline.json"
   },
   "type": "module",
   "engines": {
     "node": ">=24.14"
+  },
+  "peerDependencies": {
+    "@fuzdev/fuz_util": ">=0.65.1",
+    "@sveltejs/kit": "^2.47.3",
+    "@types/estree": "^1",
+    "esm-env": "^1",
+    "svelte": "^5"
+  },
+  "peerDependenciesMeta": {
+    "@types/estree": {
+      "optional": true
+    },
+    "esm-env": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "magic-string": "^0.30.21",
+    "zimmerframe": "^1.1.4"
   },
   "devDependencies": {
     "@fuzdev/blake3_wasm": "^0.1.1",
@@ -32,6 +66,7 @@
     "@sveltejs/acorn-typescript": "^1.0.10",
     "@sveltejs/adapter-static": "^3.0.10",
     "@sveltejs/kit": "^2.65.0",
+    "@sveltejs/package": "^2.5.7",
     "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "@types/estree": "^1.0.8",
     "@types/node": "^24.12.4",
@@ -39,7 +74,6 @@
     "eslint": "^9.39.1",
     "eslint-plugin-svelte": "^3.13.1",
     "esm-env": "^1.2.2",
-    "magic-string": "^0.30.21",
     "prettier": "^3.7.4",
     "prettier-plugin-svelte": "^3.5.1",
     "svelte": "^5.56.3",
@@ -50,9 +84,7 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.1",
     "vite": "^7.3.1",
-    "vitest": "^4.0.15",
-    "zimmerframe": "^1.1.4",
-    "zod": "^4.3.6"
+    "vitest": "^4.0.15"
   },
   "prettier": {
     "plugins": [
@@ -75,6 +107,25 @@
     "**/*.css"
   ],
   "files": [
-    "dist"
-  ]
+    "dist",
+    "src/lib/**/*.ts",
+    "!src/lib/**/*.test.*",
+    "!dist/**/*.test.*"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    "./*.js": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./*.ts": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./*.svelte": {
+      "types": "./dist/*.svelte.d.ts",
+      "svelte": "./dist/*.svelte",
+      "default": "./dist/*.svelte"
+    }
+  }
 }

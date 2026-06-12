@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "hello `unclosed",
+				"start": 0,
+				"end": 15
+			}
+		],
+		"start": 0,
+		"end": 15
+	}
+]

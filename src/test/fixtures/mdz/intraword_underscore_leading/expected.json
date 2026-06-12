@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "_foo_bar",
+				"start": 0,
+				"end": 8
+			}
+		],
+		"start": 0,
+		"end": 8
+	}
+]

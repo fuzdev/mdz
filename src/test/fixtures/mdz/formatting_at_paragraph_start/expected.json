@@ -1,0 +1,35 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "paragraph 1",
+				"start": 0,
+				"end": 11
+			}
+		],
+		"start": 0,
+		"end": 11
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Text",
+						"content": "bold starts paragraph 2",
+						"start": 15,
+						"end": 38
+					}
+				],
+				"start": 13,
+				"end": 40
+			}
+		],
+		"start": 13,
+		"end": 40
+	}
+]

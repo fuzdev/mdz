@@ -1,0 +1,43 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "**Bold starts here",
+				"start": 0,
+				"end": 18
+			}
+		],
+		"start": 0,
+		"end": 18
+	},
+	{
+		"type": "Heading",
+		"level": 1,
+		"id": "heading-interrupts",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Heading interrupts",
+				"start": 22,
+				"end": 40
+			}
+		],
+		"start": 20,
+		"end": 40
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Bold ends here**",
+				"start": 42,
+				"end": 58
+			}
+		],
+		"start": 42,
+		"end": 58
+	}
+]

@@ -1,0 +1,57 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Visit ",
+				"start": 0,
+				"end": 6
+			},
+			{
+				"type": "Link",
+				"reference": "/docs/api",
+				"children": [
+					{
+						"type": "Text",
+						"content": "/docs/api",
+						"start": 6,
+						"end": 15
+					}
+				],
+				"link_type": "internal",
+				"start": 6,
+				"end": 15
+			},
+			{
+				"type": "Text",
+				"content": " and ",
+				"start": 15,
+				"end": 20
+			},
+			{
+				"type": "Link",
+				"reference": "/docs/introduction",
+				"children": [
+					{
+						"type": "Text",
+						"content": "/docs/introduction",
+						"start": 20,
+						"end": 38
+					}
+				],
+				"link_type": "internal",
+				"start": 20,
+				"end": 38
+			},
+			{
+				"type": "Text",
+				"content": " for information.",
+				"start": 38,
+				"end": 55
+			}
+		],
+		"start": 0,
+		"end": 55
+	}
+]

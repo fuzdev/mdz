@@ -1,0 +1,61 @@
+[
+	{
+		"type": "Heading",
+		"level": 2,
+		"id": "heading-with-bold-and-italic-and-code",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Heading with ",
+				"start": 3,
+				"end": 16
+			},
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Text",
+						"content": "bold",
+						"start": 18,
+						"end": 22
+					}
+				],
+				"start": 16,
+				"end": 24
+			},
+			{
+				"type": "Text",
+				"content": " and ",
+				"start": 24,
+				"end": 29
+			},
+			{
+				"type": "Italic",
+				"children": [
+					{
+						"type": "Text",
+						"content": "italic",
+						"start": 30,
+						"end": 36
+					}
+				],
+				"start": 29,
+				"end": 37
+			},
+			{
+				"type": "Text",
+				"content": " and ",
+				"start": 37,
+				"end": 42
+			},
+			{
+				"type": "Code",
+				"content": "code",
+				"start": 42,
+				"end": 48
+			}
+		],
+		"start": 0,
+		"end": 48
+	}
+]

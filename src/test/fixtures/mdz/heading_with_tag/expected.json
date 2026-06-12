@@ -1,0 +1,37 @@
+[
+	{
+		"type": "Heading",
+		"level": 2,
+		"id": "heading-with-tag-inside",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Heading with ",
+				"start": 3,
+				"end": 16
+			},
+			{
+				"type": "Component",
+				"name": "Alert",
+				"children": [
+					{
+						"type": "Text",
+						"content": "tag",
+						"start": 23,
+						"end": 26
+					}
+				],
+				"start": 16,
+				"end": 34
+			},
+			{
+				"type": "Text",
+				"content": " inside",
+				"start": 34,
+				"end": 41
+			}
+		],
+		"start": 0,
+		"end": 41
+	}
+]

@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "<Alert>Mismatched closing tag.</Card>",
+				"start": 0,
+				"end": 37
+			}
+		],
+		"start": 0,
+		"end": 37
+	}
+]

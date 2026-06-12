@@ -1,0 +1,28 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "**unclosed bold",
+				"start": 0,
+				"end": 15
+			}
+		],
+		"start": 0,
+		"end": 15
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "unopened bold**",
+				"start": 17,
+				"end": 32
+			}
+		],
+		"start": 17,
+		"end": 32
+	}
+]

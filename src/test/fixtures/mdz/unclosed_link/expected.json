@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "see {@link unclosed",
+				"start": 0,
+				"end": 19
+			}
+		],
+		"start": 0,
+		"end": 19
+	}
+]

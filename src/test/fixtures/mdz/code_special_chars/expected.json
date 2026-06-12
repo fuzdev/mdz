@@ -1,0 +1,39 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "use ",
+				"start": 0,
+				"end": 4
+			},
+			{
+				"type": "Code",
+				"content": "**bold**",
+				"start": 4,
+				"end": 14
+			},
+			{
+				"type": "Text",
+				"content": " syntax or ",
+				"start": 14,
+				"end": 25
+			},
+			{
+				"type": "Code",
+				"content": "~~tilde~~",
+				"start": 25,
+				"end": 36
+			},
+			{
+				"type": "Text",
+				"content": " for strikethrough",
+				"start": 36,
+				"end": 54
+			}
+		],
+		"start": 0,
+		"end": 54
+	}
+]

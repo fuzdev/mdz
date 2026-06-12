@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "   leading space",
+				"start": 0,
+				"end": 16
+			}
+		],
+		"start": 0,
+		"end": 16
+	}
+]

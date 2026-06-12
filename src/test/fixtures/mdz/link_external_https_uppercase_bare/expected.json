@@ -1,0 +1,24 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Link",
+				"reference": "HTTPS://fuz.dev",
+				"children": [
+					{
+						"type": "Text",
+						"content": "HTTPS://fuz.dev",
+						"start": 0,
+						"end": 15
+					}
+				],
+				"link_type": "external",
+				"start": 0,
+				"end": 15
+			}
+		],
+		"start": 0,
+		"end": 15
+	}
+]

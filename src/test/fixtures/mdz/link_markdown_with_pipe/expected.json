@@ -1,0 +1,36 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Link with ",
+				"start": 0,
+				"end": 10
+			},
+			{
+				"type": "Link",
+				"reference": "https://fuz.dev",
+				"children": [
+					{
+						"type": "Text",
+						"content": "text|more",
+						"start": 11,
+						"end": 20
+					}
+				],
+				"link_type": "external",
+				"start": 10,
+				"end": 38
+			},
+			{
+				"type": "Text",
+				"content": " pipe in display.",
+				"start": 38,
+				"end": 55
+			}
+		],
+		"start": 0,
+		"end": 55
+	}
+]

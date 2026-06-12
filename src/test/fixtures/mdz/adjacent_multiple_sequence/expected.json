@@ -1,0 +1,61 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Text",
+						"content": "b1",
+						"start": 2,
+						"end": 4
+					}
+				],
+				"start": 0,
+				"end": 6
+			},
+			{
+				"type": "Italic",
+				"children": [
+					{
+						"type": "Text",
+						"content": "i1",
+						"start": 7,
+						"end": 9
+					}
+				],
+				"start": 6,
+				"end": 10
+			},
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Text",
+						"content": "b2",
+						"start": 12,
+						"end": 14
+					}
+				],
+				"start": 10,
+				"end": 16
+			},
+			{
+				"type": "Italic",
+				"children": [
+					{
+						"type": "Text",
+						"content": "i2",
+						"start": 17,
+						"end": 19
+					}
+				],
+				"start": 16,
+				"end": 20
+			}
+		],
+		"start": 0,
+		"end": 20
+	}
+]
