@@ -1,0 +1,35 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "First paragraph.",
+				"start": 0,
+				"end": 16
+			}
+		],
+		"start": 0,
+		"end": 16
+	},
+	{
+		"type": "Codeblock",
+		"lang": null,
+		"content": "code block",
+		"start": 18,
+		"end": 36
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Second paragraph.",
+				"start": 38,
+				"end": 55
+			}
+		],
+		"start": 38,
+		"end": 55
+	}
+]

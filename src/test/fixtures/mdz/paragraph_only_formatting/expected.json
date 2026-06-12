@@ -1,0 +1,66 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Code",
+				"content": "code",
+				"start": 0,
+				"end": 6
+			},
+			{
+				"type": "Text",
+				"content": " ",
+				"start": 6,
+				"end": 7
+			},
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Text",
+						"content": "bold",
+						"start": 9,
+						"end": 13
+					}
+				],
+				"start": 7,
+				"end": 15
+			},
+			{
+				"type": "Text",
+				"content": " ",
+				"start": 15,
+				"end": 16
+			},
+			{
+				"type": "Italic",
+				"children": [
+					{
+						"type": "Text",
+						"content": "italic",
+						"start": 17,
+						"end": 23
+					}
+				],
+				"start": 16,
+				"end": 24
+			}
+		],
+		"start": 0,
+		"end": 24
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "next paragraph",
+				"start": 26,
+				"end": 40
+			}
+		],
+		"start": 26,
+		"end": 40
+	}
+]

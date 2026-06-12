@@ -1,0 +1,3 @@
+```
+indented closer stays content - fence consumes to EOF
+ ```

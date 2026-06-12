@@ -1,0 +1,28 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Text",
+						"content": "bold _italic both",
+						"start": 2,
+						"end": 19
+					}
+				],
+				"start": 0,
+				"end": 21
+			},
+			{
+				"type": "Text",
+				"content": " separate_",
+				"start": 21,
+				"end": 31
+			}
+		],
+		"start": 0,
+		"end": 31
+	}
+]

@@ -1,0 +1,49 @@
+[
+	{
+		"type": "List",
+		"ordered": false,
+		"children": [
+			{
+				"type": "ListItem",
+				"children": [
+					{
+						"type": "Text",
+						"content": "a",
+						"start": 2,
+						"end": 3
+					}
+				],
+				"start": 0,
+				"end": 3
+			},
+			{
+				"type": "ListItem",
+				"children": [
+					{
+						"type": "Text",
+						"content": "b",
+						"start": 6,
+						"end": 7
+					}
+				],
+				"start": 4,
+				"end": 7
+			},
+			{
+				"type": "ListItem",
+				"children": [
+					{
+						"type": "Text",
+						"content": "c",
+						"start": 10,
+						"end": 11
+					}
+				],
+				"start": 8,
+				"end": 11
+			}
+		],
+		"start": 0,
+		"end": 11
+	}
+]

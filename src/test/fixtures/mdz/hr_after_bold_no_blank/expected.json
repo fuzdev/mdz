@@ -1,0 +1,40 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Text",
+						"content": "bold",
+						"start": 2,
+						"end": 6
+					}
+				],
+				"start": 0,
+				"end": 8
+			}
+		],
+		"start": 0,
+		"end": 8
+	},
+	{
+		"type": "Hr",
+		"start": 9,
+		"end": 12
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "more text",
+				"start": 13,
+				"end": 22
+			}
+		],
+		"start": 13,
+		"end": 22
+	}
+]

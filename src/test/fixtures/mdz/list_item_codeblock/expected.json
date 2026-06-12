@@ -1,0 +1,46 @@
+[
+	{
+		"type": "List",
+		"ordered": true,
+		"start_number": 1,
+		"children": [
+			{
+				"type": "ListItem",
+				"number": 1,
+				"children": [
+					{
+						"type": "Text",
+						"content": "Install:",
+						"start": 3,
+						"end": 11
+					},
+					{
+						"type": "Codeblock",
+						"lang": "sh",
+						"content": "npm install",
+						"start": 15,
+						"end": 42
+					}
+				],
+				"start": 0,
+				"end": 42
+			},
+			{
+				"type": "ListItem",
+				"number": 2,
+				"children": [
+					{
+						"type": "Text",
+						"content": "Run it",
+						"start": 46,
+						"end": 52
+					}
+				],
+				"start": 43,
+				"end": 52
+			}
+		],
+		"start": 0,
+		"end": 52
+	}
+]

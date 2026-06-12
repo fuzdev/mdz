@@ -1,0 +1,3 @@
+{
+	"code": "<script lang=\"ts\">\n\timport MdzPrecompiled from '$lib/MdzPrecompiled.svelte';\n\timport Code from '@fuzdev/fuz_code/Code.svelte';\n</script>\n\n<MdzPrecompiled><p>intro:</p><ol start={2}><li>setup</li><li>run:<Code lang={'ts'} content={'const x = 1;'} /></li><li>done</li></ol></MdzPrecompiled>\n"
+}

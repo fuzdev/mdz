@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "[click](javascript:alert(1))",
+				"start": 0,
+				"end": 28
+			}
+		],
+		"start": 0,
+		"end": 28
+	}
+]

@@ -1,0 +1,6 @@
+<script lang="ts">
+	import Mdz from '@fuzdev/mdz/Mdz.svelte';
+</script>
+
+<Mdz content="**bold**" />
+<Mdz content="_italic_" />

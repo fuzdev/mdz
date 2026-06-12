@@ -1,0 +1,29 @@
+[
+	{
+		"type": "Component",
+		"name": "Alert",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Component at document start.",
+				"start": 7,
+				"end": 35
+			}
+		],
+		"start": 0,
+		"end": 43
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Text after.",
+				"start": 45,
+				"end": 56
+			}
+		],
+		"start": 45,
+		"end": 56
+	}
+]

@@ -1,0 +1,36 @@
+[
+	{
+		"type": "List",
+		"ordered": false,
+		"children": [
+			{
+				"type": "ListItem",
+				"children": [
+					{
+						"type": "Text",
+						"content": "item one",
+						"start": 2,
+						"end": 10
+					}
+				],
+				"start": 0,
+				"end": 10
+			}
+		],
+		"start": 0,
+		"end": 10
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "continues",
+				"start": 11,
+				"end": 20
+			}
+		],
+		"start": 11,
+		"end": 20
+	}
+]

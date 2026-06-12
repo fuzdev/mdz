@@ -1,0 +1,30 @@
+[
+	{
+		"type": "Heading",
+		"level": 1,
+		"id": "heading",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Heading",
+				"start": 2,
+				"end": 9
+			}
+		],
+		"start": 0,
+		"end": 9
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "This is a new paragraph, not part of heading.",
+				"start": 11,
+				"end": 56
+			}
+		],
+		"start": 11,
+		"end": 56
+	}
+]

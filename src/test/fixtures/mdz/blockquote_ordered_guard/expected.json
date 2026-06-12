@@ -1,0 +1,22 @@
+[
+	{
+		"type": "Blockquote",
+		"children": [
+			{
+				"type": "Paragraph",
+				"children": [
+					{
+						"type": "Text",
+						"content": "The year\n2024. was wild",
+						"start": 2,
+						"end": 27
+					}
+				],
+				"start": 2,
+				"end": 27
+			}
+		],
+		"start": 0,
+		"end": 27
+	}
+]

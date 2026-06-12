@@ -1,0 +1,47 @@
+[
+	{
+		"type": "Heading",
+		"level": 1,
+		"id": "level-1",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Level 1",
+				"start": 2,
+				"end": 9
+			}
+		],
+		"start": 0,
+		"end": 9
+	},
+	{
+		"type": "Heading",
+		"level": 2,
+		"id": "level-2",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Level 2",
+				"start": 14,
+				"end": 21
+			}
+		],
+		"start": 11,
+		"end": 21
+	},
+	{
+		"type": "Heading",
+		"level": 3,
+		"id": "level-3",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Level 3",
+				"start": 27,
+				"end": 34
+			}
+		],
+		"start": 23,
+		"end": 34
+	}
+]

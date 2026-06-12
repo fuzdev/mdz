@@ -1,0 +1,9 @@
+[
+	{
+		"type": "Codeblock",
+		"lang": "ts",
+		"content": "function foo() {\n// missing closing fence - consumes to EOF as a code block",
+		"start": 0,
+		"end": 82
+	}
+]

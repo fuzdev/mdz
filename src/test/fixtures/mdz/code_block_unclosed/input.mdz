@@ -1,0 +1,3 @@
+```ts
+function foo() {
+// missing closing fence - consumes to EOF as a code block

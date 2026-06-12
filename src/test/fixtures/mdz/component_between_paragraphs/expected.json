@@ -1,0 +1,42 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "First paragraph.",
+				"start": 0,
+				"end": 16
+			}
+		],
+		"start": 0,
+		"end": 16
+	},
+	{
+		"type": "Component",
+		"name": "Alert",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Component between paragraphs.",
+				"start": 25,
+				"end": 54
+			}
+		],
+		"start": 18,
+		"end": 62
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Second paragraph.",
+				"start": 64,
+				"end": 81
+			}
+		],
+		"start": 64,
+		"end": 81
+	}
+]

@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Just / alone should not link.",
+				"start": 0,
+				"end": 29
+			}
+		],
+		"start": 0,
+		"end": 29
+	}
+]

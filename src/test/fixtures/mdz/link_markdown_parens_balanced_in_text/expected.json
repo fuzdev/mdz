@@ -1,0 +1,45 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Link",
+				"reference": "/u",
+				"children": [
+					{
+						"type": "Text",
+						"content": "see (note)",
+						"start": 1,
+						"end": 11
+					}
+				],
+				"link_type": "internal",
+				"start": 0,
+				"end": 16
+			},
+			{
+				"type": "Text",
+				"content": " then ",
+				"start": 16,
+				"end": 22
+			},
+			{
+				"type": "Link",
+				"reference": "/u2",
+				"children": [
+					{
+						"type": "Text",
+						"content": "a (b (c) d) e",
+						"start": 23,
+						"end": 36
+					}
+				],
+				"link_type": "internal",
+				"start": 22,
+				"end": 42
+			}
+		],
+		"start": 0,
+		"end": 42
+	}
+]

@@ -1,0 +1,29 @@
+[
+	{
+		"type": "Blockquote",
+		"children": [
+			{
+				"type": "Codeblock",
+				"lang": "js",
+				"content": "code",
+				"start": 2,
+				"end": 20
+			}
+		],
+		"start": 0,
+		"end": 20
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "after",
+				"start": 21,
+				"end": 26
+			}
+		],
+		"start": 21,
+		"end": 26
+	}
+]

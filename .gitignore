@@ -36,6 +36,9 @@ tmp/
 # Log files
 *.log
 
+# Benchmarks (local-only baseline)
+src/benchmarks/baseline.json
+
 # Workflow
 /worktree
 

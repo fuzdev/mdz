@@ -1,0 +1,9 @@
+[
+	{
+		"type": "Codeblock",
+		"lang": null,
+		"content": "indented closer stays content - fence consumes to EOF\n ```",
+		"start": 0,
+		"end": 63
+	}
+]

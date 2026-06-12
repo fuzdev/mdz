@@ -1,0 +1,36 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Check the documentation (",
+				"start": 0,
+				"end": 25
+			},
+			{
+				"type": "Link",
+				"reference": "https://fuz.dev",
+				"children": [
+					{
+						"type": "Text",
+						"content": "https://fuz.dev",
+						"start": 25,
+						"end": 40
+					}
+				],
+				"link_type": "external",
+				"start": 25,
+				"end": 40
+			},
+			{
+				"type": "Text",
+				"content": ") for details.",
+				"start": 40,
+				"end": 54
+			}
+		],
+		"start": 0,
+		"end": 54
+	}
+]

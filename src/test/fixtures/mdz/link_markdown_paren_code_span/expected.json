@@ -1,0 +1,69 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Link",
+				"reference": "/u",
+				"children": [
+					{
+						"type": "Text",
+						"content": "a ",
+						"start": 1,
+						"end": 3
+					},
+					{
+						"type": "Code",
+						"content": ")",
+						"start": 3,
+						"end": 6
+					},
+					{
+						"type": "Text",
+						"content": " b",
+						"start": 6,
+						"end": 8
+					}
+				],
+				"link_type": "internal",
+				"start": 0,
+				"end": 13
+			},
+			{
+				"type": "Text",
+				"content": " and ",
+				"start": 13,
+				"end": 18
+			},
+			{
+				"type": "Link",
+				"reference": "/u2",
+				"children": [
+					{
+						"type": "Text",
+						"content": "a ",
+						"start": 19,
+						"end": 21
+					},
+					{
+						"type": "Code",
+						"content": "(x)",
+						"start": 21,
+						"end": 26
+					},
+					{
+						"type": "Text",
+						"content": " b",
+						"start": 26,
+						"end": 28
+					}
+				],
+				"link_type": "internal",
+				"start": 18,
+				"end": 34
+			}
+		],
+		"start": 0,
+		"end": 34
+	}
+]

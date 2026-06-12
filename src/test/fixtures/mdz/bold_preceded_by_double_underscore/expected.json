@@ -1,0 +1,28 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "text_name_",
+				"start": 0,
+				"end": 10
+			},
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Text",
+						"content": "bold",
+						"start": 12,
+						"end": 16
+					}
+				],
+				"start": 10,
+				"end": 18
+			}
+		],
+		"start": 0,
+		"end": 18
+	}
+]

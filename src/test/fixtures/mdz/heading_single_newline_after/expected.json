@@ -1,0 +1,30 @@
+[
+	{
+		"type": "Heading",
+		"level": 1,
+		"id": "heading-without-blank-line-after",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Heading without blank line after",
+				"start": 2,
+				"end": 34
+			}
+		],
+		"start": 0,
+		"end": 34
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "More text continues here.",
+				"start": 35,
+				"end": 60
+			}
+		],
+		"start": 35,
+		"end": 60
+	}
+]

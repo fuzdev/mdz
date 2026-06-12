@@ -1,0 +1,28 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Text",
+						"content": "bold `code\nstill",
+						"start": 2,
+						"end": 18
+					}
+				],
+				"start": 0,
+				"end": 20
+			},
+			{
+				"type": "Text",
+				"content": " bold`",
+				"start": 20,
+				"end": 26
+			}
+		],
+		"start": 0,
+		"end": 26
+	}
+]

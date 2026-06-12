@@ -1,0 +1,5 @@
+- `MdzStreamParser` — the parser class
+- `MdzStreamState` — reactive consumer
+- `mdz_opcodes_to_nodes` — tree consumer
+- `MdzOpcode` — opcode type union
+- /docs/usage/grammar — formal grammar for the dialect

@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "hello   world\twith\ttabs",
+				"start": 0,
+				"end": 23
+			}
+		],
+		"start": 0,
+		"end": 23
+	}
+]

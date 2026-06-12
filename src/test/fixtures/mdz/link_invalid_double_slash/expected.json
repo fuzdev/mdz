@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Use // for comments in code.",
+				"start": 0,
+				"end": 28
+			}
+		],
+		"start": 0,
+		"end": 28
+	}
+]

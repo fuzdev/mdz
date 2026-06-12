@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "snake_case_identifier",
+				"start": 0,
+				"end": 21
+			}
+		],
+		"start": 0,
+		"end": 21
+	}
+]

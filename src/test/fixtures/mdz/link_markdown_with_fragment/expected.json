@@ -1,0 +1,36 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Jump to ",
+				"start": 0,
+				"end": 8
+			},
+			{
+				"type": "Link",
+				"reference": "https://fuz.dev#section",
+				"children": [
+					{
+						"type": "Text",
+						"content": "Section",
+						"start": 9,
+						"end": 16
+					}
+				],
+				"link_type": "external",
+				"start": 8,
+				"end": 42
+			},
+			{
+				"type": "Text",
+				"content": " for info.",
+				"start": 42,
+				"end": 52
+			}
+		],
+		"start": 0,
+		"end": 52
+	}
+]

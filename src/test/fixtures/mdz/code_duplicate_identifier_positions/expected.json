@@ -1,0 +1,39 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Some text with ",
+				"start": 0,
+				"end": 15
+			},
+			{
+				"type": "Code",
+				"content": "DocsLink",
+				"start": 15,
+				"end": 25
+			},
+			{
+				"type": "Text",
+				"content": " ",
+				"start": 25,
+				"end": 26
+			},
+			{
+				"type": "Code",
+				"content": "DocsLink",
+				"start": 26,
+				"end": 36
+			},
+			{
+				"type": "Text",
+				"content": " references.",
+				"start": 36,
+				"end": 48
+			}
+		],
+		"start": 0,
+		"end": 48
+	}
+]

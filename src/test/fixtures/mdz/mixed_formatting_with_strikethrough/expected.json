@@ -1,0 +1,84 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Use ",
+				"start": 0,
+				"end": 4
+			},
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Text",
+						"content": "bold",
+						"start": 6,
+						"end": 10
+					}
+				],
+				"start": 4,
+				"end": 12
+			},
+			{
+				"type": "Text",
+				"content": " and ",
+				"start": 12,
+				"end": 17
+			},
+			{
+				"type": "Italic",
+				"children": [
+					{
+						"type": "Text",
+						"content": "italic",
+						"start": 18,
+						"end": 24
+					}
+				],
+				"start": 17,
+				"end": 25
+			},
+			{
+				"type": "Text",
+				"content": " and ",
+				"start": 25,
+				"end": 30
+			},
+			{
+				"type": "Strikethrough",
+				"children": [
+					{
+						"type": "Text",
+						"content": "strikethrough",
+						"start": 32,
+						"end": 45
+					}
+				],
+				"start": 30,
+				"end": 47
+			},
+			{
+				"type": "Text",
+				"content": " with ",
+				"start": 47,
+				"end": 53
+			},
+			{
+				"type": "Code",
+				"content": "code",
+				"start": 53,
+				"end": 59
+			},
+			{
+				"type": "Text",
+				"content": ".",
+				"start": 59,
+				"end": 60
+			}
+		],
+		"start": 0,
+		"end": 60
+	}
+]

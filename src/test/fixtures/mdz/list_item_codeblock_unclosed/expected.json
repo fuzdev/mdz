@@ -1,0 +1,30 @@
+[
+	{
+		"type": "List",
+		"ordered": false,
+		"children": [
+			{
+				"type": "ListItem",
+				"children": [
+					{
+						"type": "Text",
+						"content": "a",
+						"start": 2,
+						"end": 3
+					},
+					{
+						"type": "Codeblock",
+						"lang": null,
+						"content": "not closed",
+						"start": 6,
+						"end": 23
+					}
+				],
+				"start": 0,
+				"end": 23
+			}
+		],
+		"start": 0,
+		"end": 23
+	}
+]

@@ -1,0 +1,17 @@
+[
+	{
+		"type": "Heading",
+		"level": 2,
+		"id": "generics-like-arraystring-in-headings",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Generics like Array<string> in headings",
+				"start": 3,
+				"end": 42
+			}
+		],
+		"start": 0,
+		"end": 42
+	}
+]

@@ -1,0 +1,30 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "**bold text",
+				"start": 0,
+				"end": 11
+			}
+		],
+		"start": 0,
+		"end": 11
+	},
+	{
+		"type": "Heading",
+		"level": 1,
+		"id": "heading-here",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Heading here",
+				"start": 14,
+				"end": 26
+			}
+		],
+		"start": 12,
+		"end": 26
+	}
+]

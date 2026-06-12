@@ -1,0 +1,41 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Italic",
+				"children": [
+					{
+						"type": "Text",
+						"content": "valid",
+						"start": 1,
+						"end": 6
+					}
+				],
+				"start": 0,
+				"end": 7
+			},
+			{
+				"type": "Text",
+				"content": " snake_case_name ",
+				"start": 7,
+				"end": 24
+			},
+			{
+				"type": "Italic",
+				"children": [
+					{
+						"type": "Text",
+						"content": "another",
+						"start": 25,
+						"end": 32
+					}
+				],
+				"start": 24,
+				"end": 33
+			}
+		],
+		"start": 0,
+		"end": 33
+	}
+]

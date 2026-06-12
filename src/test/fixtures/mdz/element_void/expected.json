@@ -1,0 +1,42 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "line",
+				"start": 0,
+				"end": 4
+			},
+			{
+				"type": "Element",
+				"name": "br",
+				"children": [],
+				"start": 4,
+				"end": 10
+			},
+			{
+				"type": "Text",
+				"content": "break",
+				"start": 10,
+				"end": 15
+			}
+		],
+		"start": 0,
+		"end": 15
+	},
+	{
+		"type": "Element",
+		"name": "br",
+		"children": [
+			{
+				"type": "Text",
+				"content": "dropped",
+				"start": 21,
+				"end": 28
+			}
+		],
+		"start": 17,
+		"end": 33
+	}
+]

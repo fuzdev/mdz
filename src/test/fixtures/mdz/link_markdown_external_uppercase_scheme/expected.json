@@ -1,0 +1,36 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Visit ",
+				"start": 0,
+				"end": 6
+			},
+			{
+				"type": "Link",
+				"reference": "HTTPS://fuz.dev",
+				"children": [
+					{
+						"type": "Text",
+						"content": "example",
+						"start": 7,
+						"end": 14
+					}
+				],
+				"link_type": "external",
+				"start": 6,
+				"end": 32
+			},
+			{
+				"type": "Text",
+				"content": " site.",
+				"start": 32,
+				"end": 38
+			}
+		],
+		"start": 0,
+		"end": 38
+	}
+]

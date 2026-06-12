@@ -1,0 +1,36 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "See ",
+				"start": 0,
+				"end": 4
+			},
+			{
+				"type": "Link",
+				"reference": "https://fuz.dev/path?q=test#section",
+				"children": [
+					{
+						"type": "Text",
+						"content": "docs",
+						"start": 5,
+						"end": 9
+					}
+				],
+				"link_type": "external",
+				"start": 4,
+				"end": 47
+			},
+			{
+				"type": "Text",
+				"content": " for details.",
+				"start": 47,
+				"end": 60
+			}
+		],
+		"start": 0,
+		"end": 60
+	}
+]

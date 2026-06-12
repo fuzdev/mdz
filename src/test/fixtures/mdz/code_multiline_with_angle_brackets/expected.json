@@ -1,0 +1,27 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Plumbing: ",
+				"start": 0,
+				"end": 10
+			},
+			{
+				"type": "Code",
+				"content": "create_zzz_app",
+				"start": 10,
+				"end": 26
+			},
+			{
+				"type": "Text",
+				"content": " gained an\n`extra_rpc_actions_factory?: (deps, backend) =>\nReadonlyArray<RpcAction>` hook so the core plumbs the reset action.",
+				"start": 26,
+				"end": 152
+			}
+		],
+		"start": 0,
+		"end": 152
+	}
+]

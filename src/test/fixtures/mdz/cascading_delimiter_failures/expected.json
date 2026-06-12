@@ -1,0 +1,72 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "_a ",
+				"start": 0,
+				"end": 3
+			},
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Text",
+						"content": "b ",
+						"start": 5,
+						"end": 7
+					},
+					{
+						"type": "Italic",
+						"children": [
+							{
+								"type": "Text",
+								"content": "c ",
+								"start": 8,
+								"end": 10
+							},
+							{
+								"type": "Strikethrough",
+								"children": [
+									{
+										"type": "Text",
+										"content": "d",
+										"start": 12,
+										"end": 13
+									}
+								],
+								"start": 10,
+								"end": 15
+							},
+							{
+								"type": "Text",
+								"content": " e",
+								"start": 15,
+								"end": 17
+							}
+						],
+						"start": 7,
+						"end": 18
+					},
+					{
+						"type": "Text",
+						"content": " f",
+						"start": 18,
+						"end": 20
+					}
+				],
+				"start": 3,
+				"end": 22
+			},
+			{
+				"type": "Text",
+				"content": " g_",
+				"start": 22,
+				"end": 25
+			}
+		],
+		"start": 0,
+		"end": 25
+	}
+]

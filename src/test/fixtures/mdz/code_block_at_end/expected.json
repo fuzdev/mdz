@@ -1,0 +1,22 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Some text before.",
+				"start": 0,
+				"end": 17
+			}
+		],
+		"start": 0,
+		"end": 17
+	},
+	{
+		"type": "Codeblock",
+		"lang": null,
+		"content": "code at end",
+		"start": 19,
+		"end": 38
+	}
+]

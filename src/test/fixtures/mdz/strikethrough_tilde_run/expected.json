@@ -1,0 +1,28 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Strikethrough",
+				"children": [
+					{
+						"type": "Text",
+						"content": "~x",
+						"start": 2,
+						"end": 4
+					}
+				],
+				"start": 0,
+				"end": 6
+			},
+			{
+				"type": "Text",
+				"content": "~",
+				"start": 6,
+				"end": 7
+			}
+		],
+		"start": 0,
+		"end": 7
+	}
+]

@@ -1,0 +1,16 @@
+A streaming parser can't backtrack — it must emit something coherent for every byte it consumes. mdz handles this with **optimistic** opens and explicit reverts.
+
+When the parser sees `**` it doesn't know yet whether it'll form bold or end up as literal `**`. It emits `open Bold` immediately. If a closing `**` arrives, it emits `close Bold` and the speculation succeeded. If a paragraph break or EOF interrupts first, it emits `revert Bold` — the consumer drops the wrapper, re-parents the children to the grandparent, and prepends the literal `**` delimiter as text.
+
+The opcode types are:
+
+- `open` — open a container (Paragraph, Bold, Italic, Link, Heading, List, ListItem, Codeblock, etc.)
+- `close` — close the previously opened container, with deferred metadata resolved at close time (heading id, link reference). May carry `discard: true` for whitespace-only paragraphs the consumer should drop.
+- `text` — create a leaf Text or Code node
+- `append_text` — extend the last text node (avoids one node per character during plain runs)
+- `trim_text` — drop trailing characters from a text node (used for trailing-newline trim at block close)
+- `void` — create a self-contained leaf (Hr)
+- `revert` — undo an optimistic inline open (block structure is never speculative)
+- `wrap` — retroactively wrap an existing text node in a Link (auto-links only — may also split trailing punctuation; see below)
+
+The full type definition is in `mdz_opcodes.ts`.

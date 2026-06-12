@@ -1,0 +1,46 @@
+[
+	{
+		"type": "List",
+		"ordered": false,
+		"children": [
+			{
+				"type": "ListItem",
+				"children": [
+					{
+						"type": "Text",
+						"content": "The year",
+						"start": 2,
+						"end": 10
+					},
+					{
+						"type": "List",
+						"ordered": true,
+						"start_number": 1,
+						"children": [
+							{
+								"type": "ListItem",
+								"number": 1,
+								"children": [
+									{
+										"type": "Text",
+										"content": "was wild",
+										"start": 16,
+										"end": 24
+									}
+								],
+								"start": 13,
+								"end": 24
+							}
+						],
+						"start": 13,
+						"end": 24
+					}
+				],
+				"start": 0,
+				"end": 24
+			}
+		],
+		"start": 0,
+		"end": 24
+	}
+]

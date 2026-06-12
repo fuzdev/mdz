@@ -1,0 +1,3 @@
+{
+	"code": "<script lang=\"ts\">\n\t// @ts-nocheck\n\timport MdzPrecompiled from '$lib/MdzPrecompiled.svelte';\n\timport DocsLink from '@fuzdev/fuz_ui/DocsLink.svelte';\n\timport {resolve} from '$app/paths';\n\tlet show = $state.raw(true);\n</script>\n\n<MdzPrecompiled>{#if show}<p><DocsLink reference={'fn_a'} /></p>{:else}<p><a href={resolve('/docs')}>link</a></p>{/if}</MdzPrecompiled>\n"
+}

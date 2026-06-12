@@ -1,0 +1,43 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Some text",
+				"start": 0,
+				"end": 9
+			}
+		],
+		"start": 0,
+		"end": 9
+	},
+	{
+		"type": "Heading",
+		"level": 1,
+		"id": "heading-without-blank-line-before",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Heading without blank line before",
+				"start": 12,
+				"end": 45
+			}
+		],
+		"start": 10,
+		"end": 45
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "More text.",
+				"start": 47,
+				"end": 57
+			}
+		],
+		"start": 47,
+		"end": 57
+	}
+]

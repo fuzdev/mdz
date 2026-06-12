@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "see ~/dev/a/x.md and ~/dev/b/y.md here",
+				"start": 0,
+				"end": 38
+			}
+		],
+		"start": 0,
+		"end": 38
+	}
+]

@@ -1,0 +1,41 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Strikethrough",
+				"children": [
+					{
+						"type": "Text",
+						"content": "deleted ",
+						"start": 2,
+						"end": 10
+					},
+					{
+						"type": "Italic",
+						"children": [
+							{
+								"type": "Text",
+								"content": "italic",
+								"start": 11,
+								"end": 17
+							}
+						],
+						"start": 10,
+						"end": 18
+					},
+					{
+						"type": "Text",
+						"content": " text",
+						"start": 18,
+						"end": 23
+					}
+				],
+				"start": 0,
+				"end": 25
+			}
+		],
+		"start": 0,
+		"end": 25
+	}
+]

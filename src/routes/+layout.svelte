@@ -5,7 +5,7 @@
 
 	import ThemeRoot from '@fuzdev/fuz_ui/ThemeRoot.svelte';
 	import {SiteState, site_context} from '@fuzdev/fuz_ui/site.svelte.js';
-	import {logo_fuz_template} from '@fuzdev/fuz_ui/logos.js';
+	import {logo_fuz} from '@fuzdev/fuz_ui/logos.js';
 	import type {Snippet} from 'svelte';
 	import pkg_json from 'virtual:pkg.json';
 
@@ -16,11 +16,12 @@
 	} = $props();
 
 	// `glyph` and `repo_url` derive from `pkg_json`; `icon` stays explicit (structured `SvgData`).
-	site_context.set(new SiteState({icon: logo_fuz_template, pkg_json}));
+	site_context.set(new SiteState({icon: logo_fuz, pkg_json}));
 </script>
 
 <svelte:head>
-	<title>@fuzdev/fuz_template</title>
+	<title>@fuzdev/mdz</title>
+	<meta name="description" content={pkg_json.description} />
 </svelte:head>
 
 <ThemeRoot>

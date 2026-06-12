@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": ">>x",
+				"start": 0,
+				"end": 3
+			}
+		],
+		"start": 0,
+		"end": 3
+	}
+]

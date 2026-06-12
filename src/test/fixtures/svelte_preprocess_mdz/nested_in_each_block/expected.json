@@ -1,0 +1,3 @@
+{
+	"code": "<script lang=\"ts\">\n\t// @ts-nocheck\n\timport MdzPrecompiled from '$lib/MdzPrecompiled.svelte';\n\tconst items = ['**bold**', '_italic_'];\n</script>\n\n{#each items as item}\n\t<MdzPrecompiled><p><strong>static content</strong></p></MdzPrecompiled>\n{/each}\n"
+}

@@ -1,0 +1,3 @@
+{
+	"code": "<script lang=\"ts\">\n\timport MdzPrecompiled from '$lib/MdzPrecompiled.svelte';\n</script>\n\n<MdzPrecompiled><blockquote><p><strong>note:</strong></p><ul><li>first</li><li>second</li></ul></blockquote><blockquote><blockquote><p>nested</p></blockquote></blockquote></MdzPrecompiled>\n"
+}

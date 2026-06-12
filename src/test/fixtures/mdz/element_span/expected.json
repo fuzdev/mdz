@@ -1,0 +1,35 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Text with ",
+				"start": 0,
+				"end": 10
+			},
+			{
+				"type": "Element",
+				"name": "span",
+				"children": [
+					{
+						"type": "Text",
+						"content": "inline span",
+						"start": 16,
+						"end": 27
+					}
+				],
+				"start": 10,
+				"end": 34
+			},
+			{
+				"type": "Text",
+				"content": " element.",
+				"start": 34,
+				"end": 43
+			}
+		],
+		"start": 0,
+		"end": 43
+	}
+]

@@ -1,0 +1,9 @@
+1. **Setup**
+
+   Install the thing.
+
+   ```sh
+   npm install
+   ```
+
+2. **Run**

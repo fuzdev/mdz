@@ -1,0 +1,45 @@
+[
+	{
+		"type": "Blockquote",
+		"children": [
+			{
+				"type": "Paragraph",
+				"children": [
+					{
+						"type": "Text",
+						"content": "foo",
+						"start": 2,
+						"end": 7
+					}
+				],
+				"start": 2,
+				"end": 7
+			},
+			{
+				"type": "List",
+				"ordered": true,
+				"start_number": 1,
+				"children": [
+					{
+						"type": "ListItem",
+						"number": 1,
+						"children": [
+							{
+								"type": "Text",
+								"content": "bar",
+								"start": 11,
+								"end": 14
+							}
+						],
+						"start": 8,
+						"end": 14
+					}
+				],
+				"start": 8,
+				"end": 14
+			}
+		],
+		"start": 0,
+		"end": 14
+	}
+]

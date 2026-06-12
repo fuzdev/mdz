@@ -1,0 +1,41 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Text",
+						"content": "bold",
+						"start": 2,
+						"end": 6
+					}
+				],
+				"start": 0,
+				"end": 8
+			},
+			{
+				"type": "Text",
+				"content": " ",
+				"start": 8,
+				"end": 9
+			},
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Text",
+						"content": " more",
+						"start": 11,
+						"end": 16
+					}
+				],
+				"start": 9,
+				"end": 18
+			}
+		],
+		"start": 0,
+		"end": 18
+	}
+]

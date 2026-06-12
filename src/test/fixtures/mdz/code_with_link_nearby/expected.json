@@ -1,0 +1,36 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Code",
+				"content": "code",
+				"start": 0,
+				"end": 6
+			},
+			{
+				"type": "Text",
+				"content": " then ",
+				"start": 6,
+				"end": 12
+			},
+			{
+				"type": "Link",
+				"reference": "https://fuz.dev",
+				"children": [
+					{
+						"type": "Text",
+						"content": "https://fuz.dev",
+						"start": 12,
+						"end": 27
+					}
+				],
+				"link_type": "external",
+				"start": 12,
+				"end": 27
+			}
+		],
+		"start": 0,
+		"end": 27
+	}
+]

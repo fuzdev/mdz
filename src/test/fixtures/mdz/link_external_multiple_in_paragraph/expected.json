@@ -1,0 +1,78 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Visit ",
+				"start": 0,
+				"end": 6
+			},
+			{
+				"type": "Link",
+				"reference": "https://fuz.dev",
+				"children": [
+					{
+						"type": "Text",
+						"content": "https://fuz.dev",
+						"start": 6,
+						"end": 21
+					}
+				],
+				"link_type": "external",
+				"start": 6,
+				"end": 21
+			},
+			{
+				"type": "Text",
+				"content": " for docs, ",
+				"start": 21,
+				"end": 32
+			},
+			{
+				"type": "Link",
+				"reference": "https://fuz.dev/tutorials",
+				"children": [
+					{
+						"type": "Text",
+						"content": "https://fuz.dev/tutorials",
+						"start": 32,
+						"end": 57
+					}
+				],
+				"link_type": "external",
+				"start": 32,
+				"end": 57
+			},
+			{
+				"type": "Text",
+				"content": " for tutorials, and ",
+				"start": 57,
+				"end": 77
+			},
+			{
+				"type": "Link",
+				"reference": "https://fuz.dev/support",
+				"children": [
+					{
+						"type": "Text",
+						"content": "https://fuz.dev/support",
+						"start": 77,
+						"end": 100
+					}
+				],
+				"link_type": "external",
+				"start": 77,
+				"end": 100
+			},
+			{
+				"type": "Text",
+				"content": " for support.",
+				"start": 100,
+				"end": 113
+			}
+		],
+		"start": 0,
+		"end": 113
+	}
+]

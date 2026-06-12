@@ -1,0 +1,17 @@
+[
+	{
+		"type": "Heading",
+		"level": 3,
+		"id": "level-3-heading",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Level 3 Heading",
+				"start": 4,
+				"end": 19
+			}
+		],
+		"start": 0,
+		"end": 19
+	}
+]

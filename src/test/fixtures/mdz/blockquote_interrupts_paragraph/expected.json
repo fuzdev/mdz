@@ -1,0 +1,35 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "text",
+				"start": 0,
+				"end": 4
+			}
+		],
+		"start": 0,
+		"end": 4
+	},
+	{
+		"type": "Blockquote",
+		"children": [
+			{
+				"type": "Paragraph",
+				"children": [
+					{
+						"type": "Text",
+						"content": "q",
+						"start": 7,
+						"end": 8
+					}
+				],
+				"start": 7,
+				"end": 8
+			}
+		],
+		"start": 5,
+		"end": 8
+	}
+]

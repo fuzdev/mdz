@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Plain ryanatkn.com should not auto-link.",
+				"start": 0,
+				"end": 40
+			}
+		],
+		"start": 0,
+		"end": 40
+	}
+]

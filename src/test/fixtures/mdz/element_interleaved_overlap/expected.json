@@ -1,0 +1,29 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Element",
+				"name": "b",
+				"children": [
+					{
+						"type": "Text",
+						"content": "<i>a",
+						"start": 3,
+						"end": 7
+					}
+				],
+				"start": 0,
+				"end": 11
+			},
+			{
+				"type": "Text",
+				"content": "b</i>",
+				"start": 11,
+				"end": 16
+			}
+		],
+		"start": 0,
+		"end": 16
+	}
+]

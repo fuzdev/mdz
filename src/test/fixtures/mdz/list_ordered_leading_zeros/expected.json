@@ -1,0 +1,25 @@
+[
+	{
+		"type": "List",
+		"ordered": true,
+		"start_number": 7,
+		"children": [
+			{
+				"type": "ListItem",
+				"number": 7,
+				"children": [
+					{
+						"type": "Text",
+						"content": "bond",
+						"start": 5,
+						"end": 9
+					}
+				],
+				"start": 0,
+				"end": 9
+			}
+		],
+		"start": 0,
+		"end": 9
+	}
+]

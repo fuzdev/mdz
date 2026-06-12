@@ -1,0 +1,39 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "use ",
+				"start": 0,
+				"end": 4
+			},
+			{
+				"type": "Code",
+				"content": "🎉",
+				"start": 4,
+				"end": 8
+			},
+			{
+				"type": "Text",
+				"content": " emoji or ",
+				"start": 8,
+				"end": 18
+			},
+			{
+				"type": "Code",
+				"content": "中文",
+				"start": 18,
+				"end": 22
+			},
+			{
+				"type": "Text",
+				"content": " characters",
+				"start": 22,
+				"end": 33
+			}
+		],
+		"start": 0,
+		"end": 33
+	}
+]

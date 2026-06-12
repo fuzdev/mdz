@@ -1,0 +1,28 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "the _user_id field and ",
+				"start": 0,
+				"end": 23
+			},
+			{
+				"type": "Italic",
+				"children": [
+					{
+						"type": "Text",
+						"content": "name fields",
+						"start": 24,
+						"end": 35
+					}
+				],
+				"start": 23,
+				"end": 36
+			}
+		],
+		"start": 0,
+		"end": 36
+	}
+]

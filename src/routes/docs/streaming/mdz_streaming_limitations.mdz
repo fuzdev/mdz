@@ -1,0 +1,4 @@
+- **Residual divergences under adversarial input**, as documented above — italic-bounded and unclosed code spans under adversarial chunking, link/tag syntax held into EOF, and column-0 block lines interrupting paragraphs spanned by an optimistic inline.
+- **Opcode stream order varies with chunking**, but the final tree does not.
+- **No partial-revert** — once a container closes, it's committed. Mid-render edits aren't supported.
+- **Single-pass** — backtracking would defeat the streaming guarantee. Ambiguous syntax (e.g. unclosed `[`) renders as visible text via revert rather than re-parsing.

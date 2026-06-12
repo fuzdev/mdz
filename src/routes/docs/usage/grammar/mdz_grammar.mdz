@@ -1,0 +1,349 @@
+# mdz Formal Grammar
+
+This document is the normative reference for mdz (strict markdown dialect) syntax, using Rust-inspired grammar notation. It is verified against the parser source (`mdz_lexer.ts`, `mdz_helpers.ts`) and the fixture suite.
+
+For a guided tour with live examples, see /docs/usage. For the streaming model, see /docs/streaming. The full table of divergences from CommonMark and GFM follows the grammar at the end of this page.
+
+## Grammar Notation
+
+```
+Notation              Examples                      Meaning
+--------              --------                      -------
+CAPITAL               TEXT, NEWLINE, BACKTICK       A terminal token
+_ItalicCamelCase_     _Paragraph_, _Heading_        A non-terminal production
+`literal`             `**`, `#`, `---`              The exact character(s)
+x?                    _LanguageHint_?               An optional item
+x*                    _InlineNode_*                 0 or more of x
+x+                    _InlineNode_+                 1 or more of x
+x{a..b}               BACKTICK{3..}                 a to b repetitions of x
+Rule1 Rule2           `#` SPACE _Text_              Sequence of rules in order
+|                     _Bold_ | _Italic_             Either one or another
+[ ]                   [`a`-`z`]                     Any character in the set
+~[ ]                  ~[`\n`]                       Any character except those listed
+( )                   (`*` _InlineNode_)?           Groups items
+<column 0>            <must start at column 0>      Special constraint
+<followed by>         <followed by newline or EOF>  Lookahead constraint
+```
+
+Sequences have higher precedence than `|` alternation.
+
+---
+
+## Character Classes
+
+```
+NEWLINE           = `\n`
+CR                = `\r`
+SPACE             = ` `
+TAB               = `\t`
+LINE_WS           = SPACE | TAB | CR
+WHITESPACE        = SPACE | TAB | NEWLINE
+LETTER            = [`a`-`z`] | [`A`-`Z`]
+DIGIT             = [`0`-`9`]
+WORD_CHAR         = LETTER | DIGIT
+URI_CHAR          = WORD_CHAR | [`-` `.` `_` `~` `!` `$` `&` `'` `(` `)` `*` `+` `,` `;` `=` `:` `@` `/` `?` `#` `%`]
+```
+
+SPACE is the literal space character only. Where a block production requires SPACE (after heading hashes), a tab does not qualify — a tab there makes the construct literal text. Trailing LINE_WS on an HR or fence line is tolerated and never significant.
+
+URI_CHAR is the RFC 3986 path character set (unreserved + sub-delims + `:@/?#%`). It is what URL and path scans accept; notably it excludes whitespace, `]`, `<`, `>`, and quotes.
+
+---
+
+## Document Structure
+
+```
+_Document_ = _Node_*
+
+_Node_ = _Paragraph_
+       | _Heading_
+       | _HorizontalRule_
+       | _List_
+       | _Blockquote_
+       | _Codeblock_
+
+_Paragraph_ = _InlineNode_+ (_ParagraphBreak_ | EOF)
+
+_ParagraphBreak_ = NEWLINE _BlankLine_+
+
+_BlankLine_ = LINE_WS* NEWLINE
+```
+
+A document is zero or more block-level nodes. Block elements (headings, horizontal rules, lists, blockquotes, codeblocks) are recognized only at column 0 — at the start of the input or immediately after a newline. They can interrupt a paragraph without a blank line. Everything else accumulates into paragraphs, separated by one or more blank lines. A line is blank when it's empty or contains only whitespace (spaces, tabs, `\r`) — an invisible trailing space never changes document structure. Leading and trailing blank lines around the document are skipped.
+
+---
+
+## Inline Formatting
+
+```
+_InlineNode_ = _Bold_
+             | _Italic_
+             | _Strikethrough_
+             | _InlineCode_
+             | _Link_
+             | _Component_
+             | _Element_
+             | _Text_
+             | NEWLINE
+
+_Bold_ = `**` _InlineNode_+ `**`
+
+_Italic_ = `_` _InlineNode_+ `_`
+
+_Strikethrough_ = `~~` _InlineNode_+ `~~`
+
+_InlineCode_ = BACKTICK ~[BACKTICK | NEWLINE]+ BACKTICK
+```
+
+**Matching:**
+
+An opening delimiter pairs with the first matching closing delimiter after it (greedy-first). Children are then parsed only within that range, so nested formatting cannot consume a parent's closer. A paragraph break (a blank line) between opener and closer invalidates the pair — the opener renders as literal text.
+
+All inline formatting nests: `**~~_text_~~**` is bold containing strikethrough containing italic. Bold, italic, and strikethrough may span single newlines (soft breaks). Inline code may not — a newline before the closing backtick makes both backticks literal.
+
+**Validation:**
+
+Empty formatting renders as literal text: `****`, `__`, `~~~~`, and two adjacent backticks (empty inline code) all stay literal. If any check fails (no closer, bad boundary, paragraph break), the delimiter renders as literal text — mdz prefers false negatives over false positives.
+
+**Word boundaries:**
+
+Bold and strikethrough have no boundary restrictions — their doubled delimiters are unambiguous enough to pair anywhere, so `foo**bar**baz` and `foo~~bar~~baz` format intraword. A single `~` is always literal text (`~/dev/paths` and `~approximations` never open a span); only a paired `~~` delimits, and the first `~~` after the opener closes it.
+
+Italic checks two characters: the character immediately before the opening delimiter, and the character immediately after the closing delimiter. Each must not be a WORD_CHAR and must not be `_` itself. This keeps `snake_case_identifiers` literal while allowing `word _emphasis_ word`.
+
+Other formatting delimiters are transparent to these checks (they don't count as word characters), so adjacent and flush-nested formatting works:
+
+```
+**bold**_italic_ → Bold then Italic
+_~~x~~_          → Italic containing Strikethrough
+```
+
+But `_` is opaque to itself — it counts as a word character in its own boundary checks — so underscore runs never pair:
+
+```
+__init__ → literal text (dunder identifiers never half-match)
+```
+
+This keeps the doubled-underscore bold convention from other dialects (`__bold__`) fully literal instead of half-matching. Doubled tildes are mdz's own strikethrough delimiter, so `~~struck~~` pairs.
+
+Inline code has no boundary checks — backticks work anywhere, including intraword.
+
+---
+
+## Links
+
+```
+_Link_ = _MarkdownLink_
+       | _AutoUrl_
+       | _AutoPath_
+
+_MarkdownLink_ = `[` _LinkText_ `]` `(` _LinkRef_ `)`
+_LinkText_     = _InlineNode_*        <no bare `]` between children — inside a child (e.g. a code span) `]` is content>
+_LinkRef_      = URI_CHAR+
+
+_AutoUrl_ = (`https://` | `http://`) URI_CHAR+
+            <scheme match is case-insensitive>
+            <preceded by a non-WORD_CHAR or start of input>
+
+_AutoPath_ = _AbsolutePath_ | _RelativePath_
+             <preceded by SPACE, TAB, NEWLINE, or start of input>
+_AbsolutePath_ = `/` URI_CHAR+        <second character must not be `/` or whitespace>
+_RelativePath_ = (`./` | `../`) URI_CHAR+
+                 <character after the prefix must not be `/` or whitespace>
+```
+
+**Markdown links:**
+
+Display text can contain inline formatting and may be empty. Only `]` delimits it — parentheses in display text are ordinary content, balanced or not (`[see (note)](/u)`, `[a ) b](/u)`). The reference must be non-empty and consist entirely of URI_CHARs — any other character (including whitespace) invalidates the link. The reference ends at the first `)` after `](`, so parentheses never nest in references (`[a](/u(1))` links to `/u(1` and the trailing `)` is text). References with unsafe schemes (`javascript:`, `data:`, anything with `:` that isn't `http(s)://`) are rejected at parse time. In every rejection case, no link forms: the leading `[` renders as literal text and the rest of the input re-parses as ordinary content (formatting inside the would-be display text still applies).
+
+**Auto-detected URLs:**
+
+The scheme match is case-insensitive (RFC 3986 §3.1) — `Https://` from mobile auto-capitalization works; original casing is preserved in the reference. The character before the scheme must not be a word character: `xhttps://...` stays plain text. The scan consumes URI_CHARs and stops at whitespace or any other character.
+
+**Auto-detected paths:**
+
+Must be preceded by whitespace or start of input. `//` is rejected (protocol-relative/comment-like), as is a prefix followed immediately by whitespace.
+
+**Trailing punctuation trim:**
+
+After scanning, trailing `.` `,` `;` `:` `!` `?` characters are trimmed from the end of the reference (GFM convention), so `See https://fuz.dev.` links the URL without the period. Unbalanced trailing `)` characters are also trimmed, but balanced parentheses are kept: `https://en.wikipedia.org/wiki/Markdown_(markup_language)` keeps its closing paren. The trimmed characters render as ordinary text after the link.
+
+**Link types and rendering:**
+
+Link nodes carry `link_type`: `'external'` for `http(s)://` references, `'internal'` for paths. Absolute paths resolve through SvelteKit's `resolve()`; relative paths resolve against the `base` prop/context when provided, or pass through as raw hrefs otherwise.
+
+As defense in depth, the renderers also strip `href` from any reference that contains `:` without an `http(s)://` prefix — see `mdz_is_safe_reference`.
+
+---
+
+## Headings
+
+```
+_Heading_ = <column 0> `#`{1..6} SPACE _InlineNode_+ <followed by newline or EOF>
+```
+
+Must start at column 0, have 1-6 hashes, a literal space after the hashes (a tab does not qualify), and at least one non-whitespace character on the rest of the line. Heading content can include any inline formatting.
+
+Invalid forms render as paragraph text: `#No space`, ` # Indented`, `####### Seven`, `## ` (no content).
+
+Each heading gets a lowercase slugified `id` for fragment links — inline formatting is stripped, then the text is lowercased, non-word characters dropped, and whitespace/hyphen runs collapsed to single hyphens (`## Async Patterns` → `id="async-patterns"`). See `mdz_heading_id`.
+
+---
+
+## Horizontal Rules
+
+```
+_HorizontalRule_ = <column 0> `---` LINE_WS* <followed by newline or EOF>
+```
+
+Exactly three hyphens at column 0; only whitespace (spaces, tabs, `\r`) may follow on the line. ` ---`, `----`, and `---text` are paragraph text, and `- - -` is a one-item list containing literal `- -` (it fails the three-hyphen rule, and `-` + space is a valid list marker).
+
+mdz has no setext headings, so `---` after a paragraph is always a horizontal rule — unlike CommonMark, where `text\n---` becomes an `<h2>`.
+
+---
+
+## Lists
+
+```
+_List_ = _ListItem_+                      <all items share one marker type>
+
+_ListItem_ = (_MarkerLine_ | _EmptyMarkerLine_) _ItemContent_*
+
+_MarkerLine_      = _Marker_ SPACE LINE_WS* _InlineNode_+
+_EmptyMarkerLine_ = _Marker_ LINE_WS* <followed by newline or EOF>
+_Marker_          = `-` | DIGIT{1..9} `.`
+
+_ItemContent_ = _ContinuationLine_ | _Paragraph_ | _List_ | _Codeblock_ | _Blockquote_
+
+_ContinuationLine_ = NEWLINE LINE_WS+ _InlineNode_+
+                     <indent deeper than the item's marker;
+                      not a marker, fence opener, or quote opener line>
+```
+
+**Markers.** Unordered items use `-`, ordered items use 1–9 digits and `.` — each followed by exactly one literal space (a tab does not qualify). Extra whitespace after the marker space is trimmed content slop, not a deeper content column. Ten or more digits, `*`/`+` bullets, and `N)` markers are literal text. Leading zeros parse to the integer (`007.` is 7) and `0.` is valid.
+
+**Starting a list.** A marker line at column 0 starts a list; indented markers only have meaning while a list is open. The marker line must have content — a lone `-` or `- ` outside a list is literal text, so empty items can never start a list. Lists can interrupt a paragraph without a blank line, with one guard adopted from CommonMark and applied uniformly: against a current inline run (a paragraph's or an item's), only a `1.` marker opens an ordered list — a hard-wrapped line beginning `2024. The…` stays prose. After a blank line or block boundary, any number starts a list.
+
+**Nesting is strict-relative.** Each open level remembers its marker's column. A marker indented past the deepest level's marker opens a nested list inside that level's current item (subject to the ordered guard when the item's run is current); any other marker closes levels deeper than it and joins the nearest surviving level as a sibling. A sibling marker of the other type closes the list and opens a new one at the same indent. A tab counts as one column. Unlike CommonMark there is no content-column arithmetic: one space of extra indent nests.
+
+**Continuation — no lazy form.** A non-marker, non-blank line indented deeper than an open item's marker continues that item: it joins the item's current inline run across a soft break, with the structural indent stripped from content. If the item's run is no longer current (a blank line or block child intervened), the line opens a new _Paragraph_ block child instead. A column-0 non-marker line always ends the list — there is no lazy continuation.
+
+**Blank lines contain rather than terminate.** A blank run inside an open list is structural noise while what follows is still list-shaped: a marker at an open level continues as a sibling, a deeper marker nests, a deeper non-marker line becomes a new block child of the item it attaches to (a _Codeblock_ or _Blockquote_ when it's a fence or quote opener, else a _Paragraph_), and anything else (a column-0 non-marker line, EOF) closes the list. `- a`, blank, `- b` is one list.
+
+**Empty items** are valid mid-list only: a bare `-` or `N.` (trailing whitespace tolerated) at an indent exactly matching an open level of the same marker type. Anywhere else a bare marker is literal text or continuation content.
+
+**Code blocks inside items.** A line deeper than an open item's marker whose shape is a complete fence opener starts a _Codeblock_ block child — no blank line needed. The fence's raw mode is absolute (see Codeblocks); its closer matches at any indent at or below the opener's (a deeper-indented backtick run is content), and content lines strip `min(opener indent, line indent)` leading whitespace, never non-whitespace.
+
+**Blockquotes inside items.** A line deeper than an open item's marker that is a quote opener (a valid prefix with content after it — see Blockquotes) starts a _Blockquote_ block child, also without a blank line. Continuation lines carry any indent deeper than the item's marker before their prefix (the pre-prefix indent is structural slop). A deeper bare prefix is continuation text, never an empty quote.
+
+**Marker-line content is inline-only.** The remainder of a marker line is the item's inline run, never block constructs: `- - a` is an item containing literal `- a`, and a fence on a marker line is literal backticks. Nesting and fences require their own lines.
+
+**Inline scoping.** Each inline run — a marker line plus its continuation lines, or one _Paragraph_ child — is a paragraph-equivalent region: delimiter pairs are bounded to the run, so `**a` in one item never pairs with `**` in the next, while bold does span an item's own soft breaks.
+
+**Numbering and rendering.** The AST preserves each item's authored number; rendering follows GFM — `<ol start>` from the first item, the browser numbers the rest. Items render tight, per item: the first run renders bare and every subsequent block child renders as a block. There is no CommonMark loose/tight distinction (it's retroactive, which streaming forbids).
+
+---
+
+## Blockquotes
+
+```
+_Blockquote_ = _QuoteLine_+      <the stripped line remainders form a _Document_>
+
+_QuoteLine_   = <column 0> _QuotePrefix_ ~[NEWLINE]* (NEWLINE | EOF)
+_QuotePrefix_ = `>` (SPACE? `>`)* (SPACE | <only LINE_WS to the line end>)
+```
+
+**A quote's content is a mini-document behind a per-line prefix.** Strip one prefix level from each line and the remainders parse by the full document grammar, with the quote's content column as column 0: paragraphs, headings, horizontal rules, lists (with all their machinery, including the ordered interrupt guard), code blocks, and nested blockquotes all work inside by recursion.
+
+**The prefix.** A run of `>` markers — tight (`>>`) or separated by single spaces (`> >`), interchangeably, even line to line — terminated by exactly one space or the end of the line. Depth is the count of `>`. Like every mdz block marker, the space is required: `>a` is literal text, and a tab does not qualify (`>` followed by a tab is literal unless only whitespace follows to the line end). Extra whitespace after the terminating space is content. A `>` not followed by a space, another `>`, or the line end is content, and the separator space before it re-serves as the terminator: `> >x` is a depth-1 quote containing literal `>x`, and `>>x` has no valid prefix at all.
+
+**Starting a quote.** A prefix line at column 0 whose line has non-whitespace content after the full prefix starts a quote — contentless prefix lines never start one (no empty start, mirroring lists), so a lone `>` outside a quote is literal text. Multi-level prefixes open all their levels at once. Quotes interrupt paragraphs and item runs without a blank line, like every block construct.
+
+**Continuation — no lazy form.** A line continues an open quote only if it carries a prefix at column 0. The line's depth resolves structure: deeper opens nested quotes (interrupting a current paragraph), equal continues the deepest level's content, shallower closes inner levels — and the closed level's paragraph never continues (the remainder classifies fresh at the surviving level). A line with no prefix ends the quote entirely, along with everything open inside it; there is no lazy continuation. An indented prefix line also ends it — quote prefixes have no meaning at an indent except inside an open list item.
+
+**Empty prefix lines.** A bare prefix (just `>` markers, trailing whitespace tolerated) is a blank line in the quote's content document — the in-quote paragraph separator: `> a`, `>`, `> b` is one quote with two paragraphs. A bare prefix deeper than the open depth is content, not structure (no-empty-start means it can't open a level).
+
+**A blank line ends the quote** — the whole stack. Two prefix runs separated by a blank line are two adjacent blockquotes, exactly as in CommonMark; the in-band bare-prefix form above is how a single quote holds multiple paragraphs. A partial-depth bare prefix composes by recursion: at depth 2, a bare `>` line is a blank in depth 1's content, closing the depth-2 quote and breaking the paragraph.
+
+**Code blocks inside quotes** follow the document rules on the stripped content, with one boundary consequence: a fence binds to the innermost marker-delimited container, so an unclosed fence inside a quote consumes to the quote's end, not the input's. A non-prefix line ends the quote and the fence together — there is no lazy continuation into fences.
+
+**Rendering.** `<blockquote>` wrapping block children; content is uniformly block-level, so paragraphs render as `<p>`. Headings inside quotes get their slugified ids as anywhere else.
+
+---
+
+## Codeblocks
+
+```
+_Codeblock_ = _OpenFence_ _CodeLine_* (_CloseFence_ | EOF)
+
+_OpenFence_  = <column 0> BACKTICK{3..} _LanguageHint_? LINE_WS* NEWLINE
+_CloseFence_ = <column 0> BACKTICK{n..} LINE_WS* <followed by newline or EOF>
+               <where n is the opening fence length>
+
+_CodeLine_     = ~[NEWLINE]* NEWLINE  <any line that is not a _CloseFence_>
+_LanguageHint_ = ~[LINE_WS | NEWLINE]+
+```
+
+The opening fence is 3 or more backticks at column 0. The language hint runs to the first whitespace or newline — it cannot contain whitespace, and only whitespace may follow it on the fence line. The closing fence is a line of **at least** as many backticks as the opening fence, optionally followed by whitespace — a longer run still closes.
+
+Codeblocks may be empty: an immediately-closed fence pair is a codeblock with empty content. Raw mode is absolute: a complete opening fence line always opens a codeblock, and a fence with no closing fence consumes the rest of the input as content — streaming-first, the fence decision is made from the opener line alone, never from input that may arrive later. A fence binds to the innermost marker-delimited container: the document at top level, or the enclosing blockquote (an unclosed fence inside a quote ends at the quote's end). An opening fence cut off at end of input without its newline stays paragraph text. The content is raw text — nothing inside is parsed. The closing fence must be its own line: a backtick run at the end of a content line never closes the block, and a fence-length run with anything but whitespace after it is content.
+
+Shorter fences nest inside longer ones:
+
+````
+```
+Use ``` for codeblocks.
+```
+````
+
+The inner ``` does not close the outer fence because a closing run must be at least the opener's length. Keep the outer fence the longest — a run longer than the opener closes it.
+
+---
+
+## Components and Elements
+
+```
+_Component_ = _SelfClosingTag_ | _TagWithChildren_     <name starts [`A`-`Z`]>
+_Element_   = _SelfClosingTag_ | _TagWithChildren_     <name starts [`a`-`z`]>
+
+_SelfClosingTag_  = `<` _TagName_ SPACE* `/>`
+_TagWithChildren_ = `<` _TagName_ SPACE* `>` _InlineNode_* `</` _TagName_ `>`
+
+_TagName_ = LETTER (LETTER | DIGIT | `-` | `_`)*
+```
+
+Components start with an uppercase letter (`<Alert>`), elements with lowercase (`<aside>`). Attributes are not supported — a tag with anything other than optional spaces between the name and `>`/`/>` is literal text.
+
+A non-self-closing tag commits only if its exact closing tag exists later in the input with no paragraph break in between; otherwise the `<` renders as literal text. Children can include any inline formatting and nested tags.
+
+**Tag scoping.** A tag's children are a bounded region, like a heading line or a list-item run: an inline delimiter inside the tag never pairs across the closing tag (in ``<b>`a</b>x` ``, the backtick is literal — a code span can't swallow `</b>`), and a nested same-name tag consumes the nearest closer, leaving the outer tag to find its own later (`<b>x<b>y</b></b>` nests; when no closer remains for the outer tag, it degrades to literal `<` and the rest re-parses).
+
+Components and elements must be registered (via `MdzRoot` or the contexts directly) to render; unregistered tags render as inert `<Name />` placeholders. See /docs/usage for the registration API.
+
+HTML void elements (`br`, `img`, `hr`, …) always render self-closing. The grammar still parses the open/close form (`<br>x</br>` is an element with children — the parser doesn't know void-ness), but renderers drop the children, matching HTML, where a `</br>` closer is ignored.
+
+**MDX convention:** a paragraph consisting of a single component or element (plus only whitespace) is not wrapped in `<p>`.
+
+---
+
+## Whitespace
+
+Within a paragraph, whitespace is preserved in text nodes exactly as authored — single newlines stay literal `\n` characters and no `<br>` nodes are created. A single newline is a soft break: the default rendering applies no `white-space` style, so it displays as a space. Consumers opt into other presentations via the `whitespace` prop (`pre-line`, `pre-wrap`).
+
+Structural whitespace is markup: a blank line ends a paragraph (a line of only spaces, tabs, or `\r` is blank), any longer blank run is still a single paragraph break, and trailing newlines at the end of a paragraph are trimmed. Whitespace-only paragraphs are dropped. Both definitions are ASCII-only: a line or paragraph of Unicode whitespace (U+00A0 NBSP, U+3000, etc.) is content, not blank — matching CommonMark. Trailing whitespace on a horizontal rule or fence line is tolerated but never significant — nothing in the grammar depends on end-of-line whitespace. `\r` counts as line-end whitespace, so CRLF input parses; mdz does no other CRLF handling (a `\r` before the newline stays in text content).
+
+Block constructs must start at column 0 — leading whitespace makes them paragraph text.
+
+---
+
+## Parsing Model
+
+Single forward pass, no backtracking. Delimiter matching is greedy and bounded: an opener finds its first closer, then children parse only within that window. Invalid syntax never errors — it renders as literal text (false negatives over false positives). All nodes carry `start`/`end` source offsets.
+
+The same grammar is implemented twice: the synchronous lexer pipeline behind `mdz_parse`, and the incremental `MdzStreamParser` (see /docs/streaming). Parity tests assert both produce identical trees for the same input.
+
+---
+
+## AST
+
+`mdz_parse` produces `MdzNode` trees: Text, Code, Codeblock, Bold, Italic, Strikethrough, Link, Paragraph, Hr, Heading, List, ListItem, Blockquote, Element, and Component nodes. The type definitions live in `mdz.ts` — see its API docs for the authoritative shapes rather than a copy here.

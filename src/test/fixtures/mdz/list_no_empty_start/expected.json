@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "- \nnot a list",
+				"start": 0,
+				"end": 13
+			}
+		],
+		"start": 0,
+		"end": 13
+	}
+]

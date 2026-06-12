@@ -1,0 +1,16 @@
+[
+	{
+		"type": "Element",
+		"name": "div",
+		"children": [
+			{
+				"type": "Text",
+				"content": "First line.\n  Second line.\nThird line.",
+				"start": 5,
+				"end": 43
+			}
+		],
+		"start": 0,
+		"end": 49
+	}
+]
