@@ -95,10 +95,6 @@ const y = 1336;
 			<Code lang="ts" content="import Mdz from '@fuzdev/mdz/Mdz.svelte';" />
 			<Code content={`<Mdz content="${usage_example}" />`} />
 			<Mdz content={usage_example} class="mb_lg" />
-			<aside>
-				⚠️ This project is pre-stable: breaking changes are expected and some features (like
-				attributes) are not yet implemented.
-			</aside>
 		</section>
 
 		<TomeSection>

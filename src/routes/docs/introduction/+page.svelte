@@ -70,6 +70,10 @@
 		<p>
 			For more see the docs ahead and the <a href="https://github.com/fuzdev/mdz">repo</a>.
 		</p>
+		<aside>
+			⚠️ This project is pre-stable: breaking changes are expected and some features (like
+			attributes) are not yet implemented. Feedback is welcome!
+		</aside>
 	</section>
 
 	<TomeSection>
