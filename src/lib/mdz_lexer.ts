@@ -47,7 +47,7 @@ import {
 	mdz_blockquote_line_has_content,
 	mdz_blockquote_strip_width,
 	mdz_remap_segments,
-} from './mdz_helpers.js';
+} from './mdz_helpers.ts';
 
 //
 // Token types

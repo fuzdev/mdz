@@ -5,7 +5,7 @@
 		mdz_resolve_relative_path,
 		mdz_is_safe_reference,
 		mdz_is_void_element,
-	} from './mdz_helpers.js';
+	} from './mdz_helpers.ts';
 	import MdzStreamNodeView from './MdzStreamNodeView.svelte';
 	import {
 		mdz_components_context,
@@ -13,8 +13,8 @@
 		mdz_base_context,
 		mdz_code_context,
 		mdz_codeblock_context,
-	} from './mdz_contexts.js';
-	import type {MdzStreamNode} from './mdz_stream_state.svelte.js';
+	} from './mdz_contexts.ts';
+	import type {MdzStreamNode} from './mdz_stream_state.svelte.ts';
 
 	const {
 		node,

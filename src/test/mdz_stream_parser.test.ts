@@ -1,8 +1,8 @@
 import {test, assert, describe, beforeAll} from 'vitest';
 
-import {MdzStreamParser} from '$lib/mdz_stream_parser.js';
-import {mdz_opcodes_to_nodes} from '$lib/mdz_opcodes_to_nodes.js';
-import {mdz_parse, type MdzNode} from '$lib/mdz.js';
+import {MdzStreamParser} from '$lib/mdz_stream_parser.ts';
+import {mdz_opcodes_to_nodes} from '$lib/mdz_opcodes_to_nodes.ts';
+import {mdz_parse, type MdzNode} from '$lib/mdz.ts';
 import type {
 	MdzOpcode,
 	MdzOpcodeOpen,
@@ -12,8 +12,8 @@ import type {
 	MdzOpcodeVoid,
 	MdzOpcodeRevert,
 	MdzOpcodeWrap,
-} from '$lib/mdz_opcodes.js';
-import {stream_parse, load_fixtures, type MdzFixture} from './fixtures/mdz/mdz_test_helpers.js';
+} from '$lib/mdz_opcodes.ts';
+import {stream_parse, load_fixtures, type MdzFixture} from './fixtures/mdz/mdz_test_helpers.ts';
 
 /**
  * Collect all opcodes from feeding text to the streaming parser.

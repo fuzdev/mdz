@@ -5,7 +5,7 @@
  * @module
  */
 
-import type {MdzNodeTypeContainer} from './mdz_opcodes.js';
+import type {MdzNodeTypeContainer} from './mdz_opcodes.ts';
 import {
 	A_UPPER,
 	LEFT_BRACKET,
@@ -22,7 +22,7 @@ import {
 	is_valid_path_char,
 	mdz_is_safe_reference,
 	mdz_is_url,
-} from './mdz_helpers.js';
+} from './mdz_helpers.ts';
 import {
 	type MdzStreamParserState,
 	type TryResult,
@@ -36,7 +36,7 @@ import {
 	pop_stack_entry,
 	push_stack_entry,
 	revert_above,
-} from './mdz_stream_parser_state.js';
+} from './mdz_stream_parser_state.ts';
 
 // -- Links --
 

@@ -1,6 +1,6 @@
 import type {Component} from 'svelte';
 
-import {create_context} from './context_helpers.js';
+import {create_context} from './context_helpers.ts';
 
 /**
  * Component registry for custom Svelte components that can be used in mdz content.

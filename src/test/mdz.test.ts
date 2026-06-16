@@ -1,12 +1,12 @@
 import {test, assert, describe, beforeAll} from 'vitest';
 
-import {mdz_parse} from '$lib/mdz.js';
+import {mdz_parse} from '$lib/mdz.ts';
 import {
 	stream_parse,
 	load_fixtures,
 	validate_positions,
 	type MdzFixture,
-} from './fixtures/mdz/mdz_test_helpers.js';
+} from './fixtures/mdz/mdz_test_helpers.ts';
 
 let fixtures: Array<MdzFixture> = [];
 

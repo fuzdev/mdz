@@ -18,7 +18,7 @@ import type {ImportDeclaration, VariableDeclaration} from 'estree';
 import {parse, type PreprocessorGroup, type AST} from 'svelte/compiler';
 import MagicString from 'magic-string';
 import {walk} from 'zimmerframe';
-import {should_exclude_path} from '@fuzdev/fuz_util/path.js';
+import {should_exclude_path} from '@fuzdev/fuz_util/path.ts';
 import {
 	find_attribute,
 	extract_static_string,
@@ -34,10 +34,10 @@ import {
 	handle_preprocess_error,
 	type PreprocessImportInfo,
 	type ResolvedComponentImport,
-} from '@fuzdev/fuz_util/svelte_preprocess_helpers.js';
+} from '@fuzdev/fuz_util/svelte_preprocess_helpers.ts';
 
-import {mdz_parse} from './mdz.js';
-import {mdz_to_svelte} from './mdz_to_svelte.js';
+import {mdz_parse} from './mdz.ts';
+import {mdz_to_svelte} from './mdz_to_svelte.ts';
 
 /**
  * An estree `ImportDeclaration` augmented with Svelte's position data.

@@ -1,5 +1,5 @@
-import type {MdzNode} from '$lib/mdz.js';
-import type {MdzFixture} from '../../../test/fixtures/mdz/mdz_test_helpers.js';
+import type {MdzNode} from '$lib/mdz.ts';
+import type {MdzFixture} from '../../../test/fixtures/mdz/mdz_test_helpers.ts';
 
 /**
  * Loads the parser test corpus at build time via Vite glob imports.

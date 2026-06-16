@@ -4,16 +4,16 @@
 	import DocsLink from '@fuzdev/fuz_ui/DocsLink.svelte';
 	import DocsFooter from '@fuzdev/fuz_ui/DocsFooter.svelte';
 	import Card from '@fuzdev/fuz_ui/Card.svelte';
-	import {site_context} from '@fuzdev/fuz_ui/site.svelte.js';
-	import {FUZ_DEV_URL, MAIN_HEADER_MARGIN_TOP} from '@fuzdev/fuz_ui/constants.js';
-	import {DOCS_PATH} from '@fuzdev/fuz_ui/docs_helpers.svelte.js';
-	import {Library, library_context} from '@fuzdev/fuz_ui/library.svelte.js';
+	import {site_context} from '@fuzdev/fuz_ui/site.svelte.ts';
+	import {FUZ_DEV_URL, MAIN_HEADER_MARGIN_TOP} from '@fuzdev/fuz_ui/constants.ts';
+	import {DOCS_PATH} from '@fuzdev/fuz_ui/docs_helpers.svelte.ts';
+	import {Library, library_context} from '@fuzdev/fuz_ui/library.svelte.ts';
 
-	import {library_json} from '$routes/library.js';
+	import {library_json} from './library.ts';
 	import MdzRoot from '$lib/MdzRoot.svelte';
 	import MdzStream from '$lib/MdzStream.svelte';
-	import {MdzStreamParser} from '$lib/mdz_stream_parser.js';
-	import {MdzStreamState} from '$lib/mdz_stream_state.svelte.js';
+	import {MdzStreamParser} from '$lib/mdz_stream_parser.ts';
+	import {MdzStreamState} from '$lib/mdz_stream_state.svelte.ts';
 
 	const site = site_context.get();
 

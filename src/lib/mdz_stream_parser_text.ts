@@ -22,13 +22,13 @@ import {
 	UNDERSCORE,
 	is_word_char,
 	match_url_prefix_case_insensitive,
-} from './mdz_helpers.js';
+} from './mdz_helpers.ts';
 import {
 	type MdzStreamParserState,
 	accumulate_text,
 	ensure_paragraph,
 	offset,
-} from './mdz_stream_parser_state.js';
+} from './mdz_stream_parser_state.ts';
 
 /**
  * Consume a delimiter at the current position as literal text — the shared

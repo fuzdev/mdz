@@ -6,7 +6,7 @@ import {
 	run_preprocess,
 	DEFAULT_TEST_OPTIONS,
 	type PreprocessMdzFixture,
-} from './fixtures/svelte_preprocess_mdz/svelte_preprocess_mdz_test_helpers.js';
+} from './fixtures/svelte_preprocess_mdz/svelte_preprocess_mdz_test_helpers.ts';
 
 let fixtures: Array<PreprocessMdzFixture> = [];
 
@@ -44,7 +44,7 @@ describe('svelte_preprocess_mdz fixtures', () => {
 		const fixture = fixtures.find((f) => f.name === 'bold_double_quoted');
 		assert.ok(fixture, 'bold_double_quoted fixture should exist');
 		const {preprocess} = await import('svelte/compiler');
-		const {svelte_preprocess_mdz} = await import('$lib/svelte_preprocess_mdz.js');
+		const {svelte_preprocess_mdz} = await import('$lib/svelte_preprocess_mdz.ts');
 		const result = await preprocess(fixture.input, [svelte_preprocess_mdz(DEFAULT_TEST_OPTIONS)], {
 			filename: 'Test.svelte',
 		});

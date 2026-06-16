@@ -1,6 +1,6 @@
 import {test, assert, describe} from 'vitest';
 
-import type {MdzNode, MdzNodeComponent, MdzNodeElement} from '$lib/mdz.js';
+import type {MdzNode, MdzNodeComponent, MdzNodeElement} from '$lib/mdz.ts';
 import {
 	is_letter,
 	is_tag_name_char,
@@ -32,7 +32,7 @@ import {
 	LEFT_BRACKET,
 	RIGHT_BRACKET,
 	LEFT_PAREN,
-} from '$lib/mdz_helpers.js';
+} from '$lib/mdz_helpers.ts';
 
 /* eslint-disable no-script-url */
 

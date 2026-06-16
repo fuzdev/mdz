@@ -17,7 +17,7 @@ import {
 	NEWLINE,
 	SPACE,
 	is_line_whitespace,
-} from './mdz_helpers.js';
+} from './mdz_helpers.ts';
 import {
 	type CodeblockState,
 	type MdzStreamParserState,
@@ -28,7 +28,7 @@ import {
 	flush_text,
 	offset,
 	push_stack_entry,
-} from './mdz_stream_parser_state.js';
+} from './mdz_stream_parser_state.ts';
 
 /**
  * Try to parse a heading at column 0.

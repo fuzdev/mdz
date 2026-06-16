@@ -1,6 +1,6 @@
 import {test, assert, describe} from 'vitest';
 
-import {MdzStreamState} from '$lib/mdz_stream_state.svelte.js';
+import {MdzStreamState} from '$lib/mdz_stream_state.svelte.ts';
 import type {
 	MdzOpcodeOpen,
 	MdzOpcodeClose,
@@ -9,7 +9,7 @@ import type {
 	MdzOpcodeVoid,
 	MdzOpcodeRevert,
 	MdzOpcodeWrap,
-} from '$lib/mdz_opcodes.js';
+} from '$lib/mdz_opcodes.ts';
 
 // -- Helpers --
 

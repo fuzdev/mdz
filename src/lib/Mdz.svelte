@@ -1,13 +1,13 @@
 <script lang="ts">
 	import type {SvelteHTMLElements} from 'svelte/elements';
 
-	import {mdz_parse} from './mdz.js';
+	import {mdz_parse} from './mdz.ts';
 	import MdzNodeView from './MdzNodeView.svelte';
 	import {
 		mdz_base_context,
 		mdz_set_context_with_fallback,
 		type MdzWhitespace,
-	} from './mdz_contexts.js';
+	} from './mdz_contexts.ts';
 
 	const {
 		content,

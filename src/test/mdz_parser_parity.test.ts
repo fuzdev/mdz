@@ -14,11 +14,11 @@
 
 import {test, assert, describe, beforeAll} from 'vitest';
 
-import {mdz_parse, type MdzNode} from '$lib/mdz.js';
-import {MdzStreamParser} from '$lib/mdz_stream_parser.js';
-import {mdz_opcodes_to_nodes} from '$lib/mdz_opcodes_to_nodes.js';
-import {MdzStreamState, type MdzStreamNode} from '$lib/mdz_stream_state.svelte.js';
-import {load_fixtures, type MdzFixture} from './fixtures/mdz/mdz_test_helpers.js';
+import {mdz_parse, type MdzNode} from '$lib/mdz.ts';
+import {MdzStreamParser} from '$lib/mdz_stream_parser.ts';
+import {mdz_opcodes_to_nodes} from '$lib/mdz_opcodes_to_nodes.ts';
+import {MdzStreamState, type MdzStreamNode} from '$lib/mdz_stream_state.svelte.ts';
+import {load_fixtures, type MdzFixture} from './fixtures/mdz/mdz_test_helpers.ts';
 
 const stream_parse_text = (text: string) => {
 	const p = new MdzStreamParser();

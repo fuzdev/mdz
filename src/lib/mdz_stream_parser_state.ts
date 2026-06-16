@@ -8,8 +8,8 @@
  * @module
  */
 
-import type {MdzNodeTypeContainer, MdzNodeId, MdzOpcode} from './mdz_opcodes.js';
-import {NEWLINE, has_non_whitespace, mdz_heading_id_from_text} from './mdz_helpers.js';
+import type {MdzNodeTypeContainer, MdzNodeId, MdzOpcode} from './mdz_opcodes.ts';
+import {NEWLINE, has_non_whitespace, mdz_heading_id_from_text} from './mdz_helpers.ts';
 
 /**
  * Tri-state result for `try_*` parser handlers.

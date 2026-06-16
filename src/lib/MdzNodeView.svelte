@@ -1,12 +1,12 @@
 <script lang="ts">
 	import {resolve} from '$app/paths';
 
-	import type {MdzNode} from './mdz.js';
+	import type {MdzNode} from './mdz.ts';
 	import {
 		mdz_resolve_relative_path,
 		mdz_is_safe_reference,
 		mdz_is_void_element,
-	} from './mdz_helpers.js';
+	} from './mdz_helpers.ts';
 	import MdzNodeView from './MdzNodeView.svelte';
 	import {
 		mdz_components_context,
@@ -14,7 +14,7 @@
 		mdz_base_context,
 		mdz_code_context,
 		mdz_codeblock_context,
-	} from './mdz_contexts.js';
+	} from './mdz_contexts.ts';
 
 	const {
 		node,

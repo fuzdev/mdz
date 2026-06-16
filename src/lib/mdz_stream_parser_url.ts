@@ -24,7 +24,7 @@ import {
 	is_word_char,
 	match_url_prefix_case_insensitive,
 	mdz_trim_url_punctuation,
-} from './mdz_helpers.js';
+} from './mdz_helpers.ts';
 import {
 	type MdzStreamParserState,
 	type TryResult,
@@ -34,7 +34,7 @@ import {
 	ensure_paragraph,
 	flush_text,
 	offset,
-} from './mdz_stream_parser_state.js';
+} from './mdz_stream_parser_state.ts';
 
 const HTTPS_PREFIX = 'https://';
 const HTTP_PREFIX = 'http://';

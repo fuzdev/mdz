@@ -1,8 +1,8 @@
 import type {Task} from '@fuzdev/gro';
 import {join} from 'node:path';
 
-import {mdz_parse} from '$lib/mdz.js';
-import {run_update_task} from '../../test_helpers.js';
+import {mdz_parse} from '$lib/mdz.ts';
+import {run_update_task} from '../../test_helpers.ts';
 
 export const task: Task = {
 	summary: 'generate expected.json files for mdz fixtures',

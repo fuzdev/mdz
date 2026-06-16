@@ -7,7 +7,7 @@
  * @module
  */
 
-import type {MdzNode, MdzNodeText, MdzNodeComponent, MdzNodeElement} from './mdz.js';
+import type {MdzNode, MdzNodeText, MdzNodeComponent, MdzNodeElement} from './mdz.ts';
 
 // Character codes for performance
 /** @nodocs */

@@ -35,7 +35,7 @@
  * @module
  */
 
-import type {MdzOpcode} from './mdz_opcodes.js';
+import type {MdzOpcode} from './mdz_opcodes.ts';
 import {
 	BACKTICK,
 	ASTERISK,
@@ -61,7 +61,7 @@ import {
 	mdz_blockquote_line_has_content,
 	mdz_blockquote_strip_width,
 	mdz_remap_segments,
-} from './mdz_helpers.js';
+} from './mdz_helpers.ts';
 import {
 	type MdzStreamParserState,
 	type TryResult,
@@ -80,7 +80,7 @@ import {
 	pop_stack_entry,
 	push_stack_entry,
 	revert_failed_close,
-} from './mdz_stream_parser_state.js';
+} from './mdz_stream_parser_state.ts';
 import {
 	process_codeblock,
 	process_codeblock_forced,
@@ -88,8 +88,8 @@ import {
 	try_codeblock_open,
 	try_heading,
 	try_hr,
-} from './mdz_stream_parser_block.js';
-import {process_list_line, try_list_start} from './mdz_stream_parser_list.js';
+} from './mdz_stream_parser_block.ts';
+import {process_list_line, try_list_start} from './mdz_stream_parser_list.ts';
 import {
 	check_close_word_boundary,
 	close_delimiter,
@@ -97,13 +97,13 @@ import {
 	try_code,
 	try_double_delimiter,
 	try_italic,
-} from './mdz_stream_parser_inline.js';
+} from './mdz_stream_parser_inline.ts';
 import {
 	try_close_tag,
 	try_complete_link,
 	try_link_open,
 	try_tag_open,
-} from './mdz_stream_parser_link.js';
+} from './mdz_stream_parser_link.ts';
 import {
 	complete_pending_url,
 	process_url_content,
@@ -111,8 +111,8 @@ import {
 	try_auto_path_absolute,
 	try_auto_path_relative,
 	try_auto_url_forced,
-} from './mdz_stream_parser_url.js';
-import {consume_delimiter_as_text, consume_text_run} from './mdz_stream_parser_text.js';
+} from './mdz_stream_parser_url.ts';
+import {consume_delimiter_as_text, consume_text_run} from './mdz_stream_parser_text.ts';
 
 /**
  * Streaming opcode parser for mdz content.

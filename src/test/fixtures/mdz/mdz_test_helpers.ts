@@ -1,7 +1,7 @@
-import type {MdzNode} from '$lib/mdz.js';
-import {MdzStreamParser} from '$lib/mdz_stream_parser.js';
-import {mdz_opcodes_to_nodes} from '$lib/mdz_opcodes_to_nodes.js';
-import {load_fixtures_generic} from '../../test_helpers.js';
+import type {MdzNode} from '$lib/mdz.ts';
+import {MdzStreamParser} from '$lib/mdz_stream_parser.ts';
+import {mdz_opcodes_to_nodes} from '$lib/mdz_opcodes_to_nodes.ts';
+import {load_fixtures_generic} from '../../test_helpers.ts';
 
 /**
  * Parse text through the streaming parser and convert to an MdzNode[] tree.

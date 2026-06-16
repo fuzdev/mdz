@@ -14,7 +14,7 @@ import {getContext, setContext} from 'svelte';
  * If a `fallback` is provided, the `value` argument to `set` is optional
  * and `get_maybe` is omitted from the type.
  *
- * Vendored from `@fuzdev/fuz_ui/context_helpers.js` — fuz_ui sits above mdz
+ * Vendored from `@fuzdev/fuz_ui/context_helpers.ts` — fuz_ui sits above mdz
  * in the dependency graph, so mdz keeps its own copy for `mdz_contexts.ts`.
  * Consumers should import fuz_ui's.
  *

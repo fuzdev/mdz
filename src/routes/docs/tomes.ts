@@ -1,11 +1,11 @@
-import type {Tome} from '@fuzdev/fuz_ui/tome.js';
-import ApiPage from '$routes/docs/api/+page.svelte';
-import LibraryPage from '$routes/docs/library/+page.svelte';
-import introduction from '$routes/docs/introduction/+page.svelte';
-import usage from '$routes/docs/usage/+page.svelte';
-import streaming from '$routes/docs/streaming/+page.svelte';
-import svelte_preprocess_mdz from '$routes/docs/svelte_preprocess_mdz/+page.svelte';
-import fixtures from '$routes/docs/fixtures/+page.svelte';
+import type {Tome} from '@fuzdev/fuz_ui/tome.ts';
+import ApiPage from './api/+page.svelte';
+import LibraryPage from './library/+page.svelte';
+import introduction from './introduction/+page.svelte';
+import usage from './usage/+page.svelte';
+import streaming from './streaming/+page.svelte';
+import svelte_preprocess_mdz from './svelte_preprocess_mdz/+page.svelte';
+import fixtures from './fixtures/+page.svelte';
 
 export const tomes: Array<Tome> = [
 	{

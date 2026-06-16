@@ -27,7 +27,7 @@ import {
 	is_line_whitespace,
 	mdz_match_blockquote_prefix,
 	mdz_blockquote_line_has_content,
-} from './mdz_helpers.js';
+} from './mdz_helpers.ts';
 import {
 	type MdzStreamParserState,
 	type TryResult,
@@ -43,7 +43,7 @@ import {
 	flush_text,
 	offset,
 	push_stack_entry,
-} from './mdz_stream_parser_state.js';
+} from './mdz_stream_parser_state.ts';
 
 /**
  * A matched list marker: `- ` (unordered) or `N. ` (ordered, 1-9 digits).

@@ -26,9 +26,9 @@ import type {
 	MdzNodeHeading,
 	MdzNodeCode,
 	MdzNodeListItem,
-} from './mdz.js';
-import type {MdzOpcode, MdzNodeId} from './mdz_opcodes.js';
-import {mdz_extract_single_tag, mdz_heading_id, mdz_merge_adjacent_text} from './mdz_helpers.js';
+} from './mdz.ts';
+import type {MdzOpcode, MdzNodeId} from './mdz_opcodes.ts';
+import {mdz_extract_single_tag, mdz_heading_id, mdz_merge_adjacent_text} from './mdz_helpers.ts';
 
 interface StackFrame {
 	id: MdzNodeId;

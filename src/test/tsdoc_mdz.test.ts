@@ -1,5 +1,5 @@
 import {test, assert, describe} from 'vitest';
-import {mdz_from_tsdoc} from '$lib/tsdoc_mdz.js';
+import {mdz_from_tsdoc} from '$lib/tsdoc_mdz.ts';
 
 describe('mdz_from_tsdoc', () => {
 	test('converts {@link url|text} to markdown link', () => {

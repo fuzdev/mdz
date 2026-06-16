@@ -10,7 +10,7 @@
 
 import {DEV} from 'esm-env';
 
-import type {MdzNodeId, MdzNodeType, MdzOpcode} from './mdz_opcodes.js';
+import type {MdzNodeId, MdzNodeType, MdzOpcode} from './mdz_opcodes.ts';
 
 /**
  * A reactive node in the stream renderer tree.

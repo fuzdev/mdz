@@ -1,17 +1,17 @@
 import {test, assert, describe, beforeAll} from 'vitest';
 import {parse} from 'svelte/compiler';
-import {escape_js_string} from '@fuzdev/fuz_util/string.js';
+import {escape_js_string} from '@fuzdev/fuz_util/string.ts';
 
-import {mdz_to_svelte} from '$lib/mdz_to_svelte.js';
-import type {SveltePreprocessMdzOptions} from '$lib/svelte_preprocess_mdz.js';
+import {mdz_to_svelte} from '$lib/mdz_to_svelte.ts';
+import type {SveltePreprocessMdzOptions} from '$lib/svelte_preprocess_mdz.ts';
 import {
 	load_fixtures as load_mdz_fixtures,
 	type MdzFixture,
-} from './fixtures/mdz/mdz_test_helpers.js';
+} from './fixtures/mdz/mdz_test_helpers.ts';
 import {
 	run_preprocess,
 	DEFAULT_TEST_OPTIONS,
-} from './fixtures/svelte_preprocess_mdz/svelte_preprocess_mdz_test_helpers.js';
+} from './fixtures/svelte_preprocess_mdz/svelte_preprocess_mdz_test_helpers.ts';
 
 // Extend default options with elements used in mdz fixtures
 const CROSS_TEST_PREPROCESS_OPTIONS = {

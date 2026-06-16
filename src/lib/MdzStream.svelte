@@ -6,8 +6,8 @@
 		mdz_base_context,
 		mdz_set_context_with_fallback,
 		type MdzWhitespace,
-	} from './mdz_contexts.js';
-	import type {MdzStreamState} from './mdz_stream_state.svelte.js';
+	} from './mdz_contexts.ts';
+	import type {MdzStreamState} from './mdz_stream_state.svelte.ts';
 
 	const {
 		stream,

@@ -20,14 +20,14 @@ import type {
 	MdzNodeBlockquote,
 	MdzNodeElement,
 	MdzNodeComponent,
-} from './mdz.js';
+} from './mdz.ts';
 import {
 	has_non_whitespace,
 	mdz_extract_single_tag,
 	mdz_heading_id,
 	mdz_merge_adjacent_text,
 	mdz_push_merging_text,
-} from './mdz_helpers.js';
+} from './mdz_helpers.ts';
 import {
 	type MdzToken,
 	type MdzTokenHeadingStart,
@@ -38,7 +38,7 @@ import {
 	type MdzTokenTagSelfClose,
 	type MdzTokenListOpen,
 	type MdzTokenListItemOpen,
-} from './mdz_lexer.js';
+} from './mdz_lexer.ts';
 
 /**
  * Builds an `MdzNode[]` tree from a lexed `MdzToken[]` stream.

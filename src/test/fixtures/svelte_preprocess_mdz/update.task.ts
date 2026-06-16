@@ -2,9 +2,9 @@ import type {Task} from '@fuzdev/gro';
 import {join} from 'node:path';
 import {preprocess} from 'svelte/compiler';
 
-import {svelte_preprocess_mdz} from '$lib/svelte_preprocess_mdz.js';
-import {run_update_task} from '../../test_helpers.js';
-import {DEFAULT_TEST_OPTIONS} from './svelte_preprocess_mdz_test_helpers.js';
+import {svelte_preprocess_mdz} from '$lib/svelte_preprocess_mdz.ts';
+import {run_update_task} from '../../test_helpers.ts';
+import {DEFAULT_TEST_OPTIONS} from './svelte_preprocess_mdz_test_helpers.ts';
 
 export const task: Task = {
 	summary: 'generate expected.json files for svelte_preprocess_mdz fixtures',

@@ -1,13 +1,13 @@
 import {test, assert, describe} from 'vitest';
 
-import {escape_svelte_text} from '@fuzdev/fuz_util/svelte_preprocess_helpers.js';
+import {escape_svelte_text} from '@fuzdev/fuz_util/svelte_preprocess_helpers.ts';
 
-import {mdz_parse} from '$lib/mdz.js';
+import {mdz_parse} from '$lib/mdz.ts';
 import {
 	mdz_to_svelte,
 	type MdzToSvelteOptions,
 	type MdzToSvelteResult,
-} from '$lib/mdz_to_svelte.js';
+} from '$lib/mdz_to_svelte.ts';
 
 /** Renderer imports matching the docs site: inline code → DocsLink, codeblocks → fuz_code's Code. */
 const DOCS_RENDERER_IMPORTS: Pick<

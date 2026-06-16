@@ -14,7 +14,7 @@ import {
 	is_word_char,
 	mdz_blockquote_line_has_content,
 	mdz_match_blockquote_prefix,
-} from './mdz_helpers.js';
+} from './mdz_helpers.ts';
 import {
 	type MdzStreamParserState,
 	accumulate_text,
@@ -28,9 +28,9 @@ import {
 	pop_stack_entry,
 	push_stack_entry,
 	revert_above,
-} from './mdz_stream_parser_state.js';
-import {match_fence_opener, match_list_marker} from './mdz_stream_parser_list.js';
-import {consume_delimiter_as_text} from './mdz_stream_parser_text.js';
+} from './mdz_stream_parser_state.ts';
+import {match_fence_opener, match_list_marker} from './mdz_stream_parser_list.ts';
+import {consume_delimiter_as_text} from './mdz_stream_parser_text.ts';
 
 /**
  * Whether `buffer` contains a paragraph break — a newline followed (across

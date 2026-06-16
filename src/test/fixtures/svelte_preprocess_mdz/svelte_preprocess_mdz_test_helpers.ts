@@ -3,8 +3,8 @@ import {preprocess} from 'svelte/compiler';
 import {
 	svelte_preprocess_mdz,
 	type SveltePreprocessMdzOptions,
-} from '$lib/svelte_preprocess_mdz.js';
-import {load_fixtures_generic} from '../../test_helpers.js';
+} from '$lib/svelte_preprocess_mdz.ts';
+import {load_fixtures_generic} from '../../test_helpers.ts';
 
 /**
  * Default options used by most fixture and behavioral tests. Models a fully

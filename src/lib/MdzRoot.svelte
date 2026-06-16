@@ -12,7 +12,7 @@
 		type MdzCodeblockComponent,
 		type MdzComponents,
 		type MdzElements,
-	} from './mdz_contexts.js';
+	} from './mdz_contexts.ts';
 
 	const {
 		base,

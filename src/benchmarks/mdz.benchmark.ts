@@ -7,18 +7,18 @@
  */
 
 import {readFile, writeFile} from 'node:fs/promises';
-import {Benchmark} from '@fuzdev/fuz_util/benchmark.js';
+import {Benchmark} from '@fuzdev/fuz_util/benchmark.ts';
 import {
 	benchmark_baseline_save,
 	benchmark_baseline_compare,
 	benchmark_baseline_format,
-} from '@fuzdev/fuz_util/benchmark_baseline.js';
-import {format_file} from '@fuzdev/gro/format_file.js';
+} from '@fuzdev/fuz_util/benchmark_baseline.ts';
+import {format_file} from '@fuzdev/gro/format_file.ts';
 
-import {mdz_parse} from '../lib/mdz.js';
-import {MdzStreamParser} from '../lib/mdz_stream_parser.js';
-import {mdz_opcodes_to_nodes} from '../lib/mdz_opcodes_to_nodes.js';
-import type {MdzOpcode} from '../lib/mdz_opcodes.js';
+import {mdz_parse} from '../lib/mdz.ts';
+import {MdzStreamParser} from '../lib/mdz_stream_parser.ts';
+import {mdz_opcodes_to_nodes} from '../lib/mdz_opcodes_to_nodes.ts';
+import type {MdzOpcode} from '../lib/mdz_opcodes.ts';
 
 const save_baseline = process.argv.includes('--save');
 const BASELINE_PATH = 'src/benchmarks';

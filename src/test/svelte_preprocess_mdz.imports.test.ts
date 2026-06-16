@@ -3,7 +3,7 @@ import {test, assert, describe} from 'vitest';
 import {
 	run_preprocess,
 	DEFAULT_TEST_OPTIONS,
-} from './fixtures/svelte_preprocess_mdz/svelte_preprocess_mdz_test_helpers.js';
+} from './fixtures/svelte_preprocess_mdz/svelte_preprocess_mdz_test_helpers.ts';
 
 describe('import addition', () => {
 	test('adds DocsLink import for inline code', async () => {
