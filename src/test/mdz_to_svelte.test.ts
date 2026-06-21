@@ -323,6 +323,70 @@ describe('mdz_to_svelte', () => {
 		});
 	});
 
+	describe('table nodes', () => {
+		test('renders a basic table with thead and tbody', () => {
+			const result = convert('| a | b |\n| - | - |\n| 1 | 2 |');
+			assert.equal(
+				result.markup,
+				'<table><thead><tr><th>a</th><th>b</th></tr></thead>' +
+					'<tbody><tr><td>1</td><td>2</td></tr></tbody></table>',
+			);
+		});
+
+		test('renders per-cell alignment as inline style', () => {
+			const result = convert('| a | b | c |\n| :- | :-: | -: |\n| 1 | 2 | 3 |');
+			assert.equal(
+				result.markup,
+				'<table><thead><tr>' +
+					'<th style="text-align:left">a</th>' +
+					'<th style="text-align:center">b</th>' +
+					'<th style="text-align:right">c</th>' +
+					'</tr></thead><tbody><tr>' +
+					'<td style="text-align:left">1</td>' +
+					'<td style="text-align:center">2</td>' +
+					'<td style="text-align:right">3</td>' +
+					'</tr></tbody></table>',
+			);
+		});
+
+		test('renders a header-only table without a tbody', () => {
+			const result = convert('| a | b |\n| - | - |');
+			assert.equal(result.markup, '<table><thead><tr><th>a</th><th>b</th></tr></thead></table>');
+		});
+
+		test('truncates extra cells and pads short rows to the column count', () => {
+			const more = convert('| a | b |\n| - | - |\n| 1 | 2 | 3 |');
+			assert.equal(
+				more.markup,
+				'<table><thead><tr><th>a</th><th>b</th></tr></thead>' +
+					'<tbody><tr><td>1</td><td>2</td></tr></tbody></table>',
+			);
+			const fewer = convert('| a | b |\n| - | - |\n| 1 |');
+			assert.equal(
+				fewer.markup,
+				'<table><thead><tr><th>a</th><th>b</th></tr></thead>' +
+					'<tbody><tr><td>1</td><td></td></tr></tbody></table>',
+			);
+		});
+
+		test('renders inline formatting inside cells', () => {
+			const result = convert('| **a** | _b_ |\n| - | - |\n| `c` | d |');
+			assert.equal(
+				result.markup,
+				'<table><thead><tr><th><strong>a</strong></th><th><em>b</em></th></tr></thead>' +
+					'<tbody><tr><td><code>c</code></td><td>d</td></tr></tbody></table>',
+			);
+		});
+
+		test('protects code-span pipes and unescapes `\\|` in cells', () => {
+			const result = convert('| `A | B` | a \\| b |\n| - | - |');
+			assert.equal(
+				result.markup,
+				'<table><thead><tr><th><code>A | B</code></th><th>a | b</th></tr></thead></table>',
+			);
+		});
+	});
+
 	describe('element and component nodes', () => {
 		test('renders configured element', () => {
 			const result = convert('<aside>note</aside>', {}, {aside: true});

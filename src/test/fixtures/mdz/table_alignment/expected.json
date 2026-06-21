@@ -1,0 +1,130 @@
+[
+	{
+		"type": "Table",
+		"align": ["left", "center", "right", null],
+		"children": [
+			{
+				"type": "TableRow",
+				"header": true,
+				"children": [
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "left",
+								"start": 2,
+								"end": 6
+							}
+						],
+						"start": 2,
+						"end": 6
+					},
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "center",
+								"start": 9,
+								"end": 15
+							}
+						],
+						"start": 9,
+						"end": 15
+					},
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "right",
+								"start": 18,
+								"end": 23
+							}
+						],
+						"start": 18,
+						"end": 23
+					},
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "none",
+								"start": 26,
+								"end": 30
+							}
+						],
+						"start": 26,
+						"end": 30
+					}
+				],
+				"start": 0,
+				"end": 32
+			},
+			{
+				"type": "TableRow",
+				"header": false,
+				"children": [
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "1",
+								"start": 61,
+								"end": 62
+							}
+						],
+						"start": 61,
+						"end": 62
+					},
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "2",
+								"start": 65,
+								"end": 66
+							}
+						],
+						"start": 65,
+						"end": 66
+					},
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "3",
+								"start": 69,
+								"end": 70
+							}
+						],
+						"start": 69,
+						"end": 70
+					},
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "4",
+								"start": 73,
+								"end": 74
+							}
+						],
+						"start": 73,
+						"end": 74
+					}
+				],
+				"start": 59,
+				"end": 76
+			}
+		],
+		"start": 0,
+		"end": 76
+	}
+]

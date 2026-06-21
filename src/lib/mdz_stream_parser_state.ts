@@ -208,6 +208,12 @@ export interface MdzStreamParserState {
 	 */
 	blockquote: MdzBlockquoteState | null;
 	/**
+	 * The open table, or null. While set, each line is consumed as a body row
+	 * (or ends the table) by `process_table_line`. Holds the `Table` frame's id
+	 * so the table can be closed when a non-row line or EOF ends it.
+	 */
+	table: {id: MdzNodeId} | null;
+	/**
 	 * Whether the innermost open ListItem's first inline run is current.
 	 * Content then flows directly into the ListItem frame — the sync AST
 	 * keeps an item's first run as direct children — so `ensure_paragraph`
@@ -300,6 +306,7 @@ export const create_state = (): MdzStreamParserState => ({
 	codeblock: null,
 	list_levels: [],
 	blockquote: null,
+	table: null,
 	in_list_item_run: false,
 	last_empty_item_end: 0,
 	base_offset: 0,

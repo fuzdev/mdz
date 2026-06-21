@@ -47,7 +47,13 @@ import {
 	mdz_blockquote_line_has_content,
 	mdz_blockquote_strip_width,
 	mdz_remap_segments,
+	mdz_split_table_row,
+	mdz_parse_table_delimiter,
+	PIPE,
+	BACKSLASH,
 } from './mdz_helpers.ts';
+
+import type {MdzTableAlign} from './mdz.ts';
 
 //
 // Token types
@@ -84,7 +90,13 @@ export type MdzToken =
 	| MdzTokenListItemOpen
 	| MdzTokenListItemClose
 	| MdzTokenBlockquoteOpen
-	| MdzTokenBlockquoteClose;
+	| MdzTokenBlockquoteClose
+	| MdzTokenTableOpen
+	| MdzTokenTableClose
+	| MdzTokenTableRowOpen
+	| MdzTokenTableRowClose
+	| MdzTokenTableCellOpen
+	| MdzTokenTableCellClose;
 
 export interface MdzTokenText extends MdzTokenBase {
 	type: 'text';
@@ -207,6 +219,34 @@ export interface MdzTokenBlockquoteClose extends MdzTokenBase {
 	type: 'blockquote_close';
 }
 
+export interface MdzTokenTableOpen extends MdzTokenBase {
+	type: 'table_open';
+	/** Per-column alignment from the delimiter row; length is the column count. */
+	align: Array<MdzTableAlign>;
+}
+
+export interface MdzTokenTableClose extends MdzTokenBase {
+	type: 'table_close';
+}
+
+export interface MdzTokenTableRowOpen extends MdzTokenBase {
+	type: 'table_row_open';
+	/** `true` for the header row, `false` for body rows. */
+	header: boolean;
+}
+
+export interface MdzTokenTableRowClose extends MdzTokenBase {
+	type: 'table_row_close';
+}
+
+export interface MdzTokenTableCellOpen extends MdzTokenBase {
+	type: 'table_cell_open';
+}
+
+export interface MdzTokenTableCellClose extends MdzTokenBase {
+	type: 'table_cell_close';
+}
+
 /**
  * A matched list marker: `- ` (unordered) or `N. ` (ordered, 1-9 digits).
  * `empty` markers have nothing but whitespace after the marker — valid only
@@ -258,6 +298,12 @@ export class MdzLexer {
 	 * scanner pre-validated every line in the run as continuation).
 	 */
 	#list_run_strip: boolean = false;
+	/**
+	 * Whether `#tokenize_text` is inside a table cell: `#max_search_index` is a
+	 * hard stop (the cell's trimmed end, mid-line with no newline to halt on)
+	 * and `\|` unescapes to a literal pipe.
+	 */
+	#in_table_cell: boolean = false;
 
 	constructor(text: string) {
 		this.#text = text;
@@ -300,6 +346,7 @@ export class MdzLexer {
 				if (this.#tokenize_codeblock()) continue;
 				if (this.#tokenize_list()) continue;
 				if (this.#tokenize_blockquote()) continue;
+				if (this.#tokenize_table()) continue;
 			}
 
 			// Check for paragraph break
@@ -314,6 +361,22 @@ export class MdzLexer {
 			this.#tokenize_inline();
 		}
 
+		return this.#tokens;
+	}
+
+	/**
+	 * Tokenize a table cell's inline content `[cell_start, cell_end)` as a
+	 * bounded inline run, with no wrapping cell tokens (the bare form of
+	 * `#emit_table_cell`, sharing `#tokenize_cell_inline`). The streaming parser
+	 * reuses it across a row's cells via `MdzTableCellParser`: the token buffer
+	 * resets per call while the search memo — valid over the immutable bound
+	 * text — carries across cells (the same reuse the sync lexer does in place).
+	 *
+	 * @nodocs
+	 */
+	lex_table_cell(cell_start: number, cell_end: number): Array<MdzToken> {
+		this.#tokens = [];
+		this.#tokenize_cell_inline(cell_start, cell_end);
 		return this.#tokens;
 	}
 
@@ -602,6 +665,98 @@ export class MdzLexer {
 		}
 		this.#tokens.push({type: 'blockquote_close', start: last_line_end, end: last_line_end});
 		this.#index = last_line_end;
+	}
+
+	// -- Table tokenizers --
+
+	/**
+	 * Tokenize a table starting at a column-0 pipe row, emitting
+	 * `table_open`/`table_row_open`/`table_cell_open` … structure tokens (the
+	 * header row's cells first, then each body row's). Returns false with no
+	 * side effects when the current line isn't a table: not a `| … |` row, or
+	 * not followed by a delimiter row whose column count matches the header. The
+	 * delimiter row's colons set `align`; body rows continue until a blank line,
+	 * a non-pipe-row line, or EOF.
+	 */
+	#tokenize_table(): boolean {
+		const table_start = this.#index;
+		let header_end = this.#index_of('\n', this.#index);
+		if (header_end === -1) header_end = this.#text.length;
+		const header_cells = mdz_split_table_row(this.#text, this.#index, header_end);
+		if (header_cells === null) return false;
+		if (header_end >= this.#text.length) return false; // a header needs a delimiter row beneath it
+		const delim_start = header_end + 1;
+		let delim_end = this.#index_of('\n', delim_start);
+		if (delim_end === -1) delim_end = this.#text.length;
+		const align = mdz_parse_table_delimiter(this.#text, delim_start, delim_end);
+		if (align === null || align.length !== header_cells.length) return false;
+
+		// committed — emit the table; the delimiter row is structural (not emitted)
+		this.#tokens.push({type: 'table_open', align, start: table_start, end: header_end});
+		this.#emit_table_row(header_cells, true, table_start, header_end);
+
+		this.#index = delim_end;
+		let table_end = delim_end;
+
+		// body rows: consecutive valid pipe rows, until a blank/non-row line or EOF
+		while (this.#index < this.#text.length) {
+			const row_start = this.#index + 1; // past the newline at #index
+			let row_end = this.#index_of('\n', row_start);
+			if (row_end === -1) row_end = this.#text.length;
+			const cells = mdz_split_table_row(this.#text, row_start, row_end);
+			if (cells === null) break;
+			this.#emit_table_row(cells, false, row_start, row_end);
+			this.#index = row_end;
+			table_end = row_end;
+		}
+
+		this.#tokens.push({type: 'table_close', start: table_end, end: table_end});
+		this.#skip_blank_lines();
+		return true;
+	}
+
+	/** Emit one table row's open / cell / close tokens. */
+	#emit_table_row(
+		cells: Array<{start: number; end: number}>,
+		header: boolean,
+		row_start: number,
+		row_end: number,
+	): void {
+		this.#tokens.push({type: 'table_row_open', header, start: row_start, end: row_start});
+		for (const cell of cells) {
+			this.#emit_table_cell(cell.start, cell.end);
+		}
+		this.#tokens.push({type: 'table_row_close', start: row_end, end: row_end});
+	}
+
+	/**
+	 * Emit one cell's `table_cell_open`, inline-content tokens, and
+	 * `table_cell_close`. Inline tokenization is bounded to the cell's trimmed
+	 * span via `#max_search_index`, with `#in_table_cell` set so `#tokenize_text`
+	 * stops at that bound and unescapes `\|`.
+	 */
+	#emit_table_cell(cell_start: number, cell_end: number): void {
+		this.#tokens.push({type: 'table_cell_open', start: cell_start, end: cell_start});
+		this.#tokenize_cell_inline(cell_start, cell_end);
+		this.#tokens.push({type: 'table_cell_close', start: cell_end, end: cell_end});
+	}
+
+	/**
+	 * Tokenize a cell's trimmed inline span `[cell_start, cell_end)` into the
+	 * current token buffer, bounded by `#max_search_index` with `#in_table_cell`
+	 * set so `#tokenize_text` stops at the bound and unescapes `\|`. Shared by
+	 * `#emit_table_cell` (wrapped in cell tokens) and `lex_table_cell` (bare).
+	 */
+	#tokenize_cell_inline(cell_start: number, cell_end: number): void {
+		const saved_max = this.#max_search_index;
+		this.#max_search_index = cell_end;
+		this.#in_table_cell = true;
+		this.#index = cell_start;
+		while (this.#index < cell_end) {
+			this.#tokenize_inline();
+		}
+		this.#in_table_cell = false;
+		this.#max_search_index = saved_max;
 	}
 
 	// -- List tokenizers --
@@ -1543,6 +1698,24 @@ export class MdzLexer {
 		while (this.#index < this.#text.length) {
 			const char_code = this.#text.charCodeAt(this.#index);
 
+			// in a table cell: the trimmed cell end is a hard stop (no newline to
+			// halt on mid-line), and `\|` is a literal pipe (the only mdz escape,
+			// scoped here)
+			if (this.#in_table_cell) {
+				if (this.#index >= this.#max_search_index) break;
+				if (
+					char_code === BACKSLASH &&
+					this.#index + 1 < this.#max_search_index &&
+					this.#text.charCodeAt(this.#index + 1) === PIPE
+				) {
+					(parts ??= []).push(this.#text.slice(part_start, this.#index));
+					parts.push('|');
+					this.#index += 2;
+					part_start = this.#index;
+					continue;
+				}
+			}
+
 			// Stop at special characters
 			if (
 				char_code === BACKTICK ||
@@ -1588,7 +1761,8 @@ export class MdzLexer {
 						next_char === HYPHEN ||
 						next_char === BACKTICK ||
 						next_char === ONE ||
-						next_char === RIGHT_ANGLE
+						next_char === RIGHT_ANGLE ||
+						next_char === PIPE
 					) {
 						this.#index++; // consume the newline
 						break;

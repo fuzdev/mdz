@@ -19,7 +19,7 @@
  * - inline code in backticks (creates `Code` nodes; auto-linking to identifiers/modules
  *   is handled by the rendering layer via `MdzNodeView.svelte`)
  * - paragraph breaks (blank lines)
- * - block elements: headings, horizontal rules, lists, blockquotes, code blocks
+ * - block elements: headings, horizontal rules, lists, blockquotes, code blocks, tables
  * - HTML elements and Svelte components (opt-in via context)
  *
  * Whitespace: the parser preserves whitespace in text node content (single
@@ -64,6 +64,37 @@ import {MdzTokenParser} from './mdz_token_parser.ts';
 export const mdz_parse = (text: string): Array<MdzNode> =>
 	new MdzTokenParser(new MdzLexer(text).tokenize()).parse();
 
+/**
+ * Parses table cells' inline content for the streaming parser, sharing one
+ * `MdzLexer` + `MdzTokenParser` across a row's cells rather than allocating a
+ * fresh pair (and search-memo `Map`) per cell. Bind to the buffer holding the
+ * row, then call `parse` once per cell `[cell_start, cell_end)` span; each
+ * call yields inline `MdzNode`s honoring code-span protection and the `\|`
+ * escape, matching the sync reference exactly — it *is* the sync lexer/parser,
+ * reset per cell, mirroring how the sync lexer already reuses one instance
+ * across a table's cells.
+ *
+ * The sync pipeline never needs this seam: its `MdzLexer` tokenizes a table's
+ * cells in place. Only the streaming path, which parses each fully-buffered
+ * cell out of band, would otherwise allocate per cell.
+ *
+ * @nodocs
+ */
+export class MdzTableCellParser {
+	#lexer: MdzLexer;
+	#parser: MdzTokenParser = new MdzTokenParser([]);
+
+	/** @param text - the buffer the cell spans index into (stable across a row). */
+	constructor(text: string) {
+		this.#lexer = new MdzLexer(text);
+	}
+
+	parse(cell_start: number, cell_end: number): Array<MdzNode> {
+		this.#parser.reset(this.#lexer.lex_table_cell(cell_start, cell_end));
+		return this.#parser.parse_inline_run();
+	}
+}
+
 export type MdzNode =
 	| MdzNodeText
 	| MdzNodeCode
@@ -78,6 +109,9 @@ export type MdzNode =
 	| MdzNodeList
 	| MdzNodeListItem
 	| MdzNodeBlockquote
+	| MdzNodeTable
+	| MdzNodeTableRow
+	| MdzNodeTableCell
 	| MdzNodeElement
 	| MdzNodeComponent;
 
@@ -172,6 +206,39 @@ export interface MdzNodeBlockquote extends MdzNodeBase {
 	 * can appear at the top level can appear here (`Paragraph` | `Heading` |
 	 * `Hr` | `List` | `Codeblock` | `Blockquote`).
 	 */
+	children: Array<MdzNode>;
+}
+
+/** Per-column text alignment from the delimiter row's colons; `null` is the default (no alignment). */
+export type MdzTableAlign = 'left' | 'center' | 'right' | null;
+
+export interface MdzNodeTable extends MdzNodeBase {
+	type: 'Table';
+	/**
+	 * Per-column alignment, length equal to the delimiter row's column count.
+	 * Rendered as `text-align` on each cell; tooling can read it to re-theme
+	 * (e.g. a CSP-strict consumer that avoids inline styles).
+	 */
+	align: Array<MdzTableAlign>;
+	/** The header row first, then any body rows. */
+	children: Array<MdzNodeTableRow>;
+}
+
+export interface MdzNodeTableRow extends MdzNodeBase {
+	type: 'TableRow';
+	/** `true` for the header row (renders `thead`/`th`); `false` for body rows (`tbody`/`td`). */
+	header: boolean;
+	/**
+	 * The row's authored cells, preserved as written. The renderer normalizes to
+	 * the column count: short rows are padded with empty cells, cells past the
+	 * column count are ignored (their content survives here for tooling).
+	 */
+	children: Array<MdzNodeTableCell>;
+}
+
+export interface MdzNodeTableCell extends MdzNodeBase {
+	type: 'TableCell';
+	/** Inline content only (text, bold, italic, strikethrough, code, links). */
 	children: Array<MdzNode>;
 }
 

@@ -7,9 +7,11 @@
 	<Mdz content={mdz_grammar} />
 </div>
 
-<!-- mdz has no table syntax, so the divergence table lives here as HTML
-	rather than in `mdz_grammar.mdz`; the heading id matches the mdz
-	heading-slug convention so fragment links work the same way. -->
+<!-- The divergence table stays HTML here (rather than as an mdz table in
+	`mdz_grammar.mdz`) because its cells carry rich, multi-line phrasing that
+	mdz's inline-only cells don't express — not for any lack of table syntax,
+	which mdz now has. The heading id matches the mdz heading-slug convention so
+	fragment links work the same way. -->
 <section>
 	<h2 id="commonmark-and-gfm-divergences">CommonMark and GFM Divergences</h2>
 	<p>
@@ -152,6 +154,21 @@
 				<td>blockquote on a list marker line</td>
 				<td><code>- &gt; q</code> nests a quote in the item</td>
 				<td>inline content, like every marker-line remainder</td>
+			</tr>
+			<tr>
+				<td>tables</td>
+				<td>pipe tables; outer <code>|</code> optional (<code>a | b</code>)</td>
+				<td
+					>leading <strong>and</strong> trailing <code>|</code> required (<code>| a | b |</code
+					>)</td
+				>
+			</tr>
+			<tr>
+				<td>literal pipe in a table cell</td>
+				<td
+					><code>\|</code> escape; a <code>|</code> inside <code>`code`</code> still splits the cell</td
+				>
+				<td><code>`code`</code> protects its pipes; <code>\|</code> also escapes one</td>
 			</tr>
 			<tr>
 				<td>tag scoping</td>

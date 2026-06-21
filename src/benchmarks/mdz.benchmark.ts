@@ -111,6 +111,29 @@ const generate_list_heavy_input = (): string => {
 	return `# List Heavy\n\n${sections.join('\n\n')}`;
 };
 
+// Table-heavy input: many pipe tables with inline-dense cells (bold, code,
+// links, strikethrough), code-span and `\|` literal pipes, and per-column
+// alignment. Locks in two costs: per-row cell splitting + cell inline parsing
+// must stay linear across hundreds of cells (the streaming path shares one
+// lexer/parser per row via `MdzTableCellParser`), and the streaming header hold
+// (a `|` row held until its delimiter line arrives) must not rescan
+// quadratically — the 64B feed strategy splits rows mid-line.
+const generate_table_heavy_input = (): string => {
+	const sections: Array<string> = [];
+	for (let i = 0; i < 40; i++) {
+		sections.push(`## Table group ${i + 1}
+
+| Name | \`Type\` | Default | Notes |
+| :--- | :----: | ------: | :---- |
+| field_${i}_a | \`string\` | \`""\` | a **bold** note with ./path_${i} |
+| field_${i}_b | \`number\` | \`0\` | union \`A_${i} | B_${i}\` protected |
+| field_${i}_c | \`boolean\` | \`false\` | escaped a \\| b literal |
+| field_${i}_d | \`Array<x>\` | \`[]\` | see [docs](/docs/${i}) and ~~old~~ |
+| field_${i}_e | \`Map\` | \`null\` | trailing _italic_ ${i} |`);
+	}
+	return `# Table Heavy\n\n${sections.join('\n\n')}`;
+};
+
 const inputs = [
 	{name: 'tiny', content: 'hello **bold** world'},
 	{
@@ -219,6 +242,7 @@ Functions with Array<string>, Promise<void>, and Map<string, number> in prose.
 	},
 	{name: 'list heavy', content: generate_list_heavy_input()},
 	{name: 'blockquote heavy', content: generate_blockquote_heavy_input()},
+	{name: 'table heavy', content: generate_table_heavy_input()},
 	{
 		name: 'large dense inline',
 		// Large doc dense in unclosed delimiter candidates — `<Tag>`-shaped

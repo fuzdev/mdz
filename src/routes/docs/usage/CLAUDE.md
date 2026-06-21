@@ -10,7 +10,8 @@ The usage docs routes (`/docs/usage`) — the guided tour of the mdz dialect.
 - `grammar/mdz_grammar.mdz` - formal grammar, the normative syntax reference,
   verified against the parser source (rendered via Mdz); the full
   CommonMark/GFM divergence table lives in `grammar/+page.svelte` as HTML
-  after the rendered grammar (mdz has no table syntax)
+  after the rendered grammar (it stays HTML for its rich, multi-line cells,
+  not for lack of table syntax — mdz now has tables)
 
 The test-fixtures gallery is its own `fixtures` tome at `../fixtures/` (a
 top-level docs page, not nested here); it still authors its example links
@@ -22,11 +23,12 @@ heading registers in the docs nav); it sets up its own `MdzRoot` since it
 sits outside this directory's layout.
 
 The grammar and streaming docs are `.mdz` files imported with `?raw` and
-rendered by the `Mdz` component — mdz documenting itself, with their
-bullets parsing as real lists (the `whitespace="pre-line"` stopgap dropped
-when lists landed; tables in those docs still render as plain text inside
-code fences). The `fixtures` tome uses `whitespace="pre-wrap"` so whitespace
-fixtures display faithfully.
+rendered by the `Mdz` component — mdz documenting itself, with their bullets
+parsing as real lists and pipe tables as real tables (the
+`whitespace="pre-line"` stopgap was dropped when lists landed; grammar
+example snippets still sit inside code fences, so they render literally). The
+`fixtures` tome uses `whitespace="pre-wrap"` so whitespace fixtures display
+faithfully.
 
 ## Auto-linking
 

@@ -54,7 +54,9 @@ export const validate_positions = (
 		if (node.start < 0 || node.end < 0) {
 			throw Error(`Node ${i} has negative position: start=${node.start}, end=${node.end}`);
 		}
-		if (node.start >= node.end) {
+		// an empty table cell (`||`) is a legitimate zero-width span
+		const empty_cell = node.type === 'TableCell' && node.children.length === 0;
+		if (node.start > node.end || (node.start === node.end && !empty_cell)) {
 			throw Error(`Node ${i} has invalid range: start=${node.start}, end=${node.end}`);
 		}
 

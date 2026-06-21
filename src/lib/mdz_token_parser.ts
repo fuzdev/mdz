@@ -18,6 +18,9 @@ import type {
 	MdzNodeList,
 	MdzNodeListItem,
 	MdzNodeBlockquote,
+	MdzNodeTable,
+	MdzNodeTableRow,
+	MdzNodeTableCell,
 	MdzNodeElement,
 	MdzNodeComponent,
 } from './mdz.ts';
@@ -38,6 +41,9 @@ import {
 	type MdzTokenTagSelfClose,
 	type MdzTokenListOpen,
 	type MdzTokenListItemOpen,
+	type MdzTokenTableOpen,
+	type MdzTokenTableRowOpen,
+	type MdzTokenTableCellOpen,
 } from './mdz_lexer.ts';
 
 /**
@@ -52,8 +58,36 @@ export class MdzTokenParser {
 		this.#tokens = tokens;
 	}
 
+	/**
+	 * Rebind to a new token stream and rewind, so one parser instance can be
+	 * reused across inputs — the streaming table path reuses one across a row's
+	 * cells via `MdzTableCellParser`.
+	 *
+	 * @nodocs
+	 */
+	reset(tokens: Array<MdzToken>): void {
+		this.#tokens = tokens;
+		this.#index = 0;
+	}
+
 	parse(): Array<MdzNode> {
 		return this.#parse_block_stream(false);
+	}
+
+	/**
+	 * Parse the entire token stream as a single inline run — used for table
+	 * cells, whose tokens come from `MdzLexer.lex_table_cell`. Adjacent text
+	 * merges as it accumulates, matching `#parse_table_cell`.
+	 *
+	 * @nodocs
+	 */
+	parse_inline_run(): Array<MdzNode> {
+		const children: Array<MdzNode> = [];
+		while (this.#index < this.#tokens.length) {
+			const node = this.#parse_inline();
+			if (node) mdz_push_merging_text(children, node);
+		}
+		return children;
 	}
 
 	/**
@@ -118,6 +152,13 @@ export class MdzTokenParser {
 				continue;
 			}
 
+			if (token.type === 'table_open') {
+				const flushed = this.#flush_paragraph(paragraph_children, true);
+				if (flushed) nodes.push(flushed);
+				nodes.push(this.#parse_table());
+				continue;
+			}
+
 			if (token.type === 'paragraph_break') {
 				const flushed = this.#flush_paragraph(paragraph_children, true);
 				if (flushed) nodes.push(flushed);
@@ -145,6 +186,74 @@ export class MdzTokenParser {
 		// with the open's position as a defensive fallback
 		const end = children.length > 0 ? children[children.length - 1]!.end : open.end;
 		return {type: 'Blockquote', children, start: open.start, end};
+	}
+
+	#parse_table(): MdzNodeTable {
+		const open = this.#tokens[this.#index]! as MdzTokenTableOpen;
+		this.#index++;
+
+		const rows: Array<MdzNodeTableRow> = [];
+
+		while (this.#index < this.#tokens.length) {
+			const t = this.#tokens[this.#index]!;
+			if (t.type === 'table_row_open') {
+				rows.push(this.#parse_table_row());
+				continue;
+			}
+			if (t.type === 'table_close') {
+				this.#index++;
+				break;
+			}
+			this.#index++; // skip anything unexpected (defensive)
+		}
+
+		const end = rows.length > 0 ? rows[rows.length - 1]!.end : open.end;
+		return {type: 'Table', align: open.align, children: rows, start: open.start, end};
+	}
+
+	#parse_table_row(): MdzNodeTableRow {
+		const open = this.#tokens[this.#index]! as MdzTokenTableRowOpen;
+		const header = open.header;
+		this.#index++;
+
+		const cells: Array<MdzNodeTableCell> = [];
+
+		while (this.#index < this.#tokens.length) {
+			const t = this.#tokens[this.#index]!;
+			if (t.type === 'table_cell_open') {
+				cells.push(this.#parse_table_cell());
+				continue;
+			}
+			if (t.type === 'table_row_close') {
+				this.#index++;
+				return {type: 'TableRow', header, children: cells, start: open.start, end: t.end};
+			}
+			this.#index++; // skip anything unexpected (defensive)
+		}
+
+		const end = cells.length > 0 ? cells[cells.length - 1]!.end : open.end;
+		return {type: 'TableRow', header, children: cells, start: open.start, end};
+	}
+
+	#parse_table_cell(): MdzNodeTableCell {
+		const open = this.#tokens[this.#index]! as MdzTokenTableCellOpen;
+		const start = open.start;
+		this.#index++;
+
+		const children: Array<MdzNode> = [];
+
+		while (this.#index < this.#tokens.length) {
+			const t = this.#tokens[this.#index]!;
+			if (t.type === 'table_cell_close') {
+				this.#index++;
+				return {type: 'TableCell', children, start, end: t.end};
+			}
+			const node = this.#parse_inline();
+			if (node) mdz_push_merging_text(children, node);
+		}
+
+		const end = children.length > 0 ? children[children.length - 1]!.end : open.end;
+		return {type: 'TableCell', children, start, end};
 	}
 
 	#parse_heading(): MdzNodeHeading {
@@ -382,7 +491,8 @@ export class MdzTokenParser {
 				t.type === 'codeblock' ||
 				t.type === 'list_open' ||
 				t.type === 'list_item_close' ||
-				t.type === 'blockquote_open'
+				t.type === 'blockquote_open' ||
+				t.type === 'table_open'
 			) {
 				break;
 			}
@@ -430,7 +540,8 @@ export class MdzTokenParser {
 				t.type === 'codeblock' ||
 				t.type === 'list_open' ||
 				t.type === 'list_item_close' ||
-				t.type === 'blockquote_open'
+				t.type === 'blockquote_open' ||
+				t.type === 'table_open'
 			) {
 				break;
 			}

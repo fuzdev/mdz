@@ -12,7 +12,7 @@ import {UnreachableError} from '@fuzdev/fuz_util/error.ts';
 import {escape_svelte_text} from '@fuzdev/fuz_util/svelte_preprocess_helpers.ts';
 import {escape_js_string} from '@fuzdev/fuz_util/string.ts';
 
-import type {MdzNode} from './mdz.ts';
+import type {MdzNode, MdzNodeTableRow} from './mdz.ts';
 import {mdz_resolve_relative_path, mdz_is_void_element} from './mdz_helpers.ts';
 
 /**
@@ -170,6 +170,40 @@ export const mdz_to_svelte = (
 
 			case 'Blockquote':
 				return `<blockquote>${render_nodes(node.children)}</blockquote>`;
+
+			case 'Table': {
+				const {align} = node;
+				const render_row = (row: MdzNodeTableRow, tag: 'th' | 'td'): string => {
+					let cells = '';
+					// normalize to the column count: pad short rows, ignore extra cells
+					for (let i = 0; i < align.length; i++) {
+						const a = align[i];
+						const style = a ? ` style="text-align:${a}"` : '';
+						const cell = row.children[i];
+						cells += `<${tag}${style}>${cell ? render_nodes(cell.children) : ''}</${tag}>`;
+					}
+					return `<tr>${cells}</tr>`;
+				};
+				let out = '<table>';
+				const header_rows = node.children.filter((r) => r.header);
+				const body_rows = node.children.filter((r) => !r.header);
+				if (header_rows.length > 0) {
+					out += '<thead>';
+					for (const row of header_rows) out += render_row(row, 'th');
+					out += '</thead>';
+				}
+				if (body_rows.length > 0) {
+					out += '<tbody>';
+					for (const row of body_rows) out += render_row(row, 'td');
+					out += '</tbody>';
+				}
+				return out + '</table>';
+			}
+
+			case 'TableRow':
+			case 'TableCell':
+				// rendered within their `Table`; never reached through `render_nodes`
+				throw new Error(`mdz: ${node.type} must render within a Table`);
 
 			case 'Hr':
 				return '<hr />';

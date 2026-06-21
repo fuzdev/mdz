@@ -12,6 +12,8 @@
  * @module
  */
 
+import type {MdzTableAlign} from './mdz.ts';
+
 /**
  * Unique monotonic identifier for each node created by the parser.
  * IDs are never reused within a parser instance.
@@ -39,7 +41,10 @@ export type MdzNodeTypeContainer =
 	| 'Element'
 	| 'Component'
 	| 'Codeblock'
-	| 'Code';
+	| 'Code'
+	| 'Table'
+	| 'TableRow'
+	| 'TableCell';
 
 /** Node types for self-contained leaf elements. */
 export type MdzNodeTypeVoid = 'Hr';
@@ -69,6 +74,10 @@ export interface MdzOpcodeOpen {
 	start_number?: number;
 	/** Authored item number. Present when `node_type` is `'ListItem'` in an ordered list. */
 	number?: number;
+	/** Per-column alignment from the delimiter row. Present when `node_type` is `'Table'`. */
+	align?: Array<MdzTableAlign>;
+	/** Whether this is the header row (`thead`/`th`). Present when `node_type` is `'TableRow'`. */
+	header?: boolean;
 }
 
 /**

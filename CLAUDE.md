@@ -110,6 +110,7 @@ mdz is a **markdown dialect and renderer**:
 | Blockquotes            | `> ` per line (no lazy continuation); nesting via `>>` or `> > `; bare `>` is the in-quote paragraph break; a blank line ends the quote; content is a mini-document |
 | Code blocks            | fenced with optional language hints; an unclosed fence consumes to EOF (or to the end of its enclosing blockquote)                                                  |
 | Horizontal rule        | `---` on its own line                                                                                                                                               |
+| Tables                 | `\| a \| b \|` rows + a `\| --- \| :-: \|` delimiter row (colons set per-column alignment); leading **and** trailing `\|` required; inline-only cells (`` `code` `` protects pipes, `\|` is a literal pipe); a header/delimiter column-count mismatch stays a paragraph; body rows pad/truncate at render |
 | Components / elements  | `<Alert>…</Alert>` / `<aside>…</aside>` (must be registered)                                                                                                        |
 | Paragraphs / breaks    | blank line between paragraphs; single newlines are soft breaks; `<br />` (registered) for hard breaks                                                               |
 
@@ -138,6 +139,18 @@ streaming parser feeds an inner parser state per quote (shared id counter,
 opcodes forwarded with positions remapped, line-bounded prefix holds).
 Everything inside a quote — lists, fences, headings, deeper quotes —
 follows from the recursion rather than from per-construct quote handling.
+
+Tables follow GFM's pipe-table shape, tightened to the streaming grain.
+Recognition is a bounded one-line lookahead: a column-0 `| … |` row holds until
+its next line resolves as a delimiter row (`| --- | :-: |`) with a matching
+column count — if it does, the table commits; if not, the held line flushes as
+a paragraph (the false-negative-over-false-positive default). Required outer
+pipes make a row self-identifying at column 0; cell splitting protects
+inline-code spans and treats `\|` as a literal pipe (the only escape mdz
+recognizes, scoped to cells). Body rows then stream one per line. Because a row
+is always fully buffered before it emits, the streaming parser parses each
+cell's inline content with the sync reference and replays it as opcodes, so the
+two pipelines agree by construction.
 
 ### Parsing pipeline
 

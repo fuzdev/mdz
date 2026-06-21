@@ -2,3 +2,4 @@
 - **Opcode stream order varies with chunking**, but the final tree does not.
 - **No partial-revert** — once a container closes, it's committed. Mid-render edits aren't supported.
 - **Single-pass** — backtracking would defeat the streaming guarantee. Ambiguous syntax (e.g. unclosed `[`) renders as visible text via revert rather than re-parsing.
+- **A table's header holds one line** — a pipe row (`| a | b |`) renders only once its delimiter row (`| - | - |`) arrives, the bounded lookahead that tells a table from a paragraph of literal pipes; body rows then stream one per line. This is intentional, not a stall: there's no useful partial render of a header before it's known to be a table.

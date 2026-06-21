@@ -62,6 +62,8 @@ const y = 1336;
 		'3. starts at three\n1. authored numbers are preserved\n2. but render in order';
 	const blockquote_example =
 		'> A quote with **formatting** and `code`.\n> Same paragraph, soft break.\n>\n> New paragraph via bare `>`.\n>> Nested quote.';
+	const table_example =
+		'| Left | Center | Right |\n| :--- | :----: | ----: |\n| **bold** | `code` | _italic_ |\n| a \\| b | `x | y` | [docs](/docs) |';
 	const element_aside_example =
 		'<aside>This is _italicized <code>code</code>_ inside an `aside`.</aside>';
 	const element_marquee_example = '<marquee>use it or lose it</marquee>';
@@ -263,6 +265,22 @@ const y = 1336;
 		</TomeSection>
 
 		<TomeSection>
+			<TomeSectionHeader text="Tables" />
+			<p>
+				GFM-style pipe tables: a header row, a delimiter row whose colons set per-column alignment,
+				then body rows. Leading <strong>and</strong> trailing <code>|</code> are required:
+			</p>
+			<Code content={table_example} />
+			<Mdz content={table_example} class="mb_xl5" />
+			<p>
+				Cells hold inline content only. A literal <code>|</code> in a cell comes from an inline-code
+				span (<code>`a | b`</code> keeps its pipe, unlike GFM) or the <code>\|</code> escape — the one
+				escape mdz has. The header and delimiter rows must share a column count or the whole block stays
+				a paragraph; body rows pad or truncate to that count when rendered.
+			</p>
+		</TomeSection>
+
+		<TomeSection>
 			<TomeSectionHeader text="Whitespace" />
 			<p>
 				The parser preserves whitespace in text nodes exactly as authored — single newlines stay
@@ -419,6 +437,14 @@ const nodes = mdz_parse(content);`}
 						<td
 							>none — list continuation must be indented past the marker; every quote line carries
 							its prefix</td
+						>
+					</tr>
+					<tr>
+						<td>tables</td>
+						<td>pipe tables; outer <code>|</code> optional; <code>\|</code> escapes cell pipes</td>
+						<td
+							>leading and trailing <code>|</code> required; <code>`code`</code> protects pipes and
+							<code>\|</code> escapes one</td
 						>
 					</tr>
 					<tr>

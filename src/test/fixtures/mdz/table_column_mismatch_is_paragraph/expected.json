@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "| a | b | c |\n| - | - |\n| 1 | 2 | 3 |",
+				"start": 0,
+				"end": 37
+			}
+		],
+		"start": 0,
+		"end": 37
+	}
+]
