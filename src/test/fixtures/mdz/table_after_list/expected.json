@@ -1,0 +1,99 @@
+[
+	{
+		"type": "List",
+		"ordered": false,
+		"children": [
+			{
+				"type": "ListItem",
+				"children": [
+					{
+						"type": "Text",
+						"content": "a",
+						"start": 2,
+						"end": 3
+					}
+				],
+				"start": 0,
+				"end": 3
+			}
+		],
+		"start": 0,
+		"end": 3
+	},
+	{
+		"type": "Table",
+		"align": [null, null],
+		"children": [
+			{
+				"type": "TableRow",
+				"header": true,
+				"children": [
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "x",
+								"start": 6,
+								"end": 7
+							}
+						],
+						"start": 6,
+						"end": 7
+					},
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "y",
+								"start": 10,
+								"end": 11
+							}
+						],
+						"start": 10,
+						"end": 11
+					}
+				],
+				"start": 4,
+				"end": 13
+			},
+			{
+				"type": "TableRow",
+				"header": false,
+				"children": [
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "1",
+								"start": 26,
+								"end": 27
+							}
+						],
+						"start": 26,
+						"end": 27
+					},
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "2",
+								"start": 30,
+								"end": 31
+							}
+						],
+						"start": 30,
+						"end": 31
+					}
+				],
+				"start": 24,
+				"end": 33
+			}
+		],
+		"start": 4,
+		"end": 33
+	}
+]

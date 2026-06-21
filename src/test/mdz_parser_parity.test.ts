@@ -456,6 +456,12 @@ describe('mdz parser parity', () => {
 			'**unclosed\n| a | b |\n| - | - |\n| 1 | 2 |\n', // optimistic inline interrupted
 			'| a | b |\n| - | - |\n| 1 | 2 |\n# heading\n', // table ends, heading re-dispatches
 			'| a | b |\n| - | - |\n| 1 | 2 |\n- item\n', // ...a list re-dispatches
+			// the reverse direction: a block construct then a table, opening at
+			// column 0 the line after the construct ends (no blank line)
+			'# h\n| a | b |\n| - | - |\n| 1 | 2 |\n', // after a heading
+			'---\n| a | b |\n| - | - |\n', // after an HR
+			'- a\n| x | y |\n| - | - |\n| 1 | 2 |\n', // column-0 table ends the list
+			'> q\n| a | b |\n| - | - |\n| 1 | 2 |\n', // a quote line, then a top-level table
 			// blank-line ends, then more
 			'| a | b |\n| - | - |\n| 1 | 2 |\n\nafter\n',
 			'| a |\n| - |\n| 1 |\n\n| b |\n| - |\n| 2 |\n', // two tables
