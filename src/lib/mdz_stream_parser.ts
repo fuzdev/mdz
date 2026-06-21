@@ -44,6 +44,7 @@ import {
 	NEWLINE,
 	HYPHEN,
 	HASH,
+	PIPE,
 	LEFT_ANGLE,
 	RIGHT_ANGLE,
 	SLASH,
@@ -90,6 +91,7 @@ import {
 	try_hr,
 } from './mdz_stream_parser_block.ts';
 import {process_list_line, try_list_start} from './mdz_stream_parser_list.ts';
+import {close_table, process_table_line, try_table_start} from './mdz_stream_parser_table.ts';
 import {
 	check_close_word_boundary,
 	close_delimiter,
@@ -223,6 +225,11 @@ const finish_state = (state: MdzStreamParserState): void => {
 	// bytes as concrete content rather than waiting for more input
 	if (state.buffer.length > 0) {
 		process_loop(state, true);
+	}
+	// close an open top-level table — forced processing ends it at the last
+	// row, but an already-drained buffer (everything consumed) needs this net
+	if (state.table) {
+		close_table(state);
 	}
 	// close an open blockquote — finishes its nested inner document (an
 	// unclosed fence inside ends at the quote's EOF, which is this) and
@@ -558,6 +565,12 @@ const process_loop = (state: MdzStreamParserState, forced: boolean): void => {
 			continue;
 		}
 
+		// open table — each line is a body row or ends the table
+		if (state.table) {
+			if (!process_table_line(state, forced)) return; // need more input
+			continue;
+		}
+
 		const char_code = state.buffer.charCodeAt(state.pos);
 
 		// newline handling
@@ -630,6 +643,10 @@ const process_loop = (state: MdzStreamParserState, forced: boolean): void => {
 				if (!forced && r === 'need_more') return;
 			} else if (char_code === RIGHT_ANGLE) {
 				const r = try_blockquote_start(state, forced);
+				if (r === 'consumed') continue;
+				if (!forced && r === 'need_more') return;
+			} else if (char_code === PIPE) {
+				const r = try_table_start(state, forced);
 				if (r === 'consumed') continue;
 				if (!forced && r === 'need_more') return;
 			}

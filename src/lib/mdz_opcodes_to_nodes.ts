@@ -26,6 +26,9 @@ import type {
 	MdzNodeHeading,
 	MdzNodeCode,
 	MdzNodeListItem,
+	MdzNodeTableRow,
+	MdzNodeTableCell,
+	MdzTableAlign,
 } from './mdz.ts';
 import type {MdzOpcode, MdzNodeId} from './mdz_opcodes.ts';
 import {mdz_extract_single_tag, mdz_heading_id, mdz_merge_adjacent_text} from './mdz_helpers.ts';
@@ -43,6 +46,8 @@ interface StackFrame {
 	ordered?: boolean;
 	start_number?: number;
 	number?: number;
+	align?: Array<MdzTableAlign>;
+	header?: boolean;
 	// metadata from close opcode (deferred)
 	end?: number;
 	reference?: string;
@@ -76,6 +81,8 @@ export const mdz_opcodes_to_nodes = (opcodes: Array<MdzOpcode>): Array<MdzNode> 
 					ordered: op.ordered,
 					start_number: op.start_number,
 					number: op.number,
+					align: op.align,
+					header: op.header,
 				});
 				break;
 			}
@@ -416,6 +423,33 @@ const build_node = (frame: StackFrame, frame_children: Array<MdzNode>): MdzNode 
 				frame_children.length > 0 ? frame_children[frame_children.length - 1]!.end : frame.end!;
 			return {type: 'Blockquote', children: frame_children, start: frame.start, end};
 		}
+
+		case 'Table': {
+			// rows are the only children — `end` derives from the last, matching
+			// the sync token parser
+			const children = frame_children as Array<MdzNodeTableRow>;
+			const end = children.length > 0 ? children[children.length - 1]!.end : frame.end!;
+			return {type: 'Table', align: frame.align ?? [], children, start: frame.start, end};
+		}
+
+		case 'TableRow': {
+			const children = frame_children as Array<MdzNodeTableCell>;
+			return {
+				type: 'TableRow',
+				header: frame.header ?? false,
+				children,
+				start: frame.start,
+				end: frame.end!,
+			};
+		}
+
+		case 'TableCell':
+			return {
+				type: 'TableCell',
+				children: mdz_merge_adjacent_text(frame_children),
+				start: frame.start,
+				end: frame.end!,
+			};
 
 		case 'Code': {
 			// optimistic inline code container — concatenate children text into leaf MdzNodeCode

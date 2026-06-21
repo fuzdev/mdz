@@ -1,0 +1,78 @@
+[
+	{
+		"type": "Table",
+		"align": [null, null],
+		"children": [
+			{
+				"type": "TableRow",
+				"header": true,
+				"children": [
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "type",
+								"start": 2,
+								"end": 6
+							}
+						],
+						"start": 2,
+						"end": 6
+					},
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "note",
+								"start": 9,
+								"end": 13
+							}
+						],
+						"start": 9,
+						"end": 13
+					}
+				],
+				"start": 0,
+				"end": 15
+			},
+			{
+				"type": "TableRow",
+				"header": false,
+				"children": [
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Code",
+								"content": "A | B",
+								"start": 34,
+								"end": 41
+							}
+						],
+						"start": 34,
+						"end": 41
+					},
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "union",
+								"start": 44,
+								"end": 49
+							}
+						],
+						"start": 44,
+						"end": 49
+					}
+				],
+				"start": 32,
+				"end": 51
+			}
+		],
+		"start": 0,
+		"end": 51
+	}
+]

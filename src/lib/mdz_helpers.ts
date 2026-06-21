@@ -7,7 +7,7 @@
  * @module
  */
 
-import type {MdzNode, MdzNodeText, MdzNodeComponent, MdzNodeElement} from './mdz.ts';
+import type {MdzNode, MdzNodeText, MdzNodeComponent, MdzNodeElement, MdzTableAlign} from './mdz.ts';
 
 // Character codes for performance
 /** @nodocs */
@@ -46,6 +46,10 @@ export const LEFT_PAREN = 40; // (
 export const RIGHT_PAREN = 41; // )
 /** @nodocs */
 export const COLON = 58; // :
+/** @nodocs */
+export const PIPE = 124; // |
+/** @nodocs */
+export const BACKSLASH = 92; // \
 /** @nodocs */
 export const PERIOD = 46; // .
 /** @nodocs */
@@ -285,6 +289,126 @@ export const mdz_remap_segments = (
 	}
 	const seg = segments[lo]!;
 	return seg.source_start + (p - seg.inner_start);
+};
+
+// -- Table helpers --
+
+/** Trim line-whitespace from both ends of a `[start, end)` span. */
+const trim_table_cell = (
+	text: string,
+	start: number,
+	end: number,
+): {start: number; end: number} => {
+	let s = start;
+	let e = end;
+	while (s < e && is_line_whitespace(text.charCodeAt(s))) s++;
+	while (e > s && is_line_whitespace(text.charCodeAt(e - 1))) e--;
+	return {start: s, end: e};
+};
+
+/**
+ * Split a table row line `[line_start, line_end)` into its cell-content spans.
+ *
+ * A valid row starts with `|` and ends — after optional trailing whitespace —
+ * with `|`, yielding at least one cell. Returns each cell's trimmed
+ * `[start, end)` source span, or `null` when the line is not a valid pipe row
+ * (no leading `|`, no trailing `|`, or zero cells).
+ *
+ * Pipe-finding honors two protections so the cell content can hold a literal
+ * `|`: an inline-code span (a `` ` `` to its matching `` ` `` on the same line —
+ * an unclosed `` ` `` is literal and protects nothing) shields the pipes inside
+ * it, and a `\|` escape is consumed as a literal pipe. The escape is
+ * table-cell-scoped — the caller's inline tokenizer performs the matching
+ * `\|` → `|` substitution; this scanner only declines to split there.
+ *
+ * @nodocs
+ */
+export const mdz_split_table_row = (
+	text: string,
+	line_start: number,
+	line_end: number,
+): Array<{start: number; end: number}> | null => {
+	if (line_start >= line_end || text.charCodeAt(line_start) !== PIPE) return null;
+	const cells: Array<{start: number; end: number}> = [];
+	let i = line_start + 1; // past the leading pipe
+	let cell_start = i;
+	while (i < line_end) {
+		const char_code = text.charCodeAt(i);
+		if (char_code === BACKTICK) {
+			// inline-code span: skip to the matching backtick; unclosed → literal
+			let close = -1;
+			for (let k = i + 1; k < line_end; k++) {
+				if (text.charCodeAt(k) === BACKTICK) {
+					close = k;
+					break;
+				}
+			}
+			if (close === -1) {
+				i++;
+			} else {
+				i = close + 1;
+			}
+			continue;
+		}
+		if (char_code === BACKSLASH) {
+			// `\|` is a literal pipe, never a delimiter
+			i += i + 1 < line_end && text.charCodeAt(i + 1) === PIPE ? 2 : 1;
+			continue;
+		}
+		if (char_code === PIPE) {
+			cells.push(trim_table_cell(text, cell_start, i));
+			i++;
+			cell_start = i;
+			continue;
+		}
+		i++;
+	}
+	// the trailing pipe is required: only whitespace may follow the last one
+	for (let k = cell_start; k < line_end; k++) {
+		if (!is_line_whitespace(text.charCodeAt(k))) return null;
+	}
+	if (cells.length === 0) return null;
+	return cells;
+};
+
+/** Classify a trimmed delimiter cell `[start, end)`; `false` when it is not a valid delimiter cell. */
+const table_delimiter_align = (text: string, start: number, end: number): MdzTableAlign | false => {
+	let i = start;
+	let j = end;
+	if (i >= j) return false;
+	const left = text.charCodeAt(i) === COLON;
+	if (left) i++;
+	const right = j > i && text.charCodeAt(j - 1) === COLON;
+	if (right) j--;
+	if (i >= j) return false; // needs at least one dash
+	for (let k = i; k < j; k++) {
+		if (text.charCodeAt(k) !== HYPHEN) return false;
+	}
+	return left && right ? 'center' : left ? 'left' : right ? 'right' : null;
+};
+
+/**
+ * Parse a table delimiter row (`| --- | :-: | ---: |`) into its per-column
+ * alignment, or `null` when the line is not a valid delimiter row. Each cell
+ * must be an optional leading `:`, one or more `-`, and an optional trailing
+ * `:`. Splits with `mdz_split_table_row` so the column count matches the header.
+ *
+ * @nodocs
+ */
+export const mdz_parse_table_delimiter = (
+	text: string,
+	line_start: number,
+	line_end: number,
+): Array<MdzTableAlign> | null => {
+	const cells = mdz_split_table_row(text, line_start, line_end);
+	if (cells === null) return null;
+	const align: Array<MdzTableAlign> = [];
+	for (const cell of cells) {
+		const a = table_delimiter_align(text, cell.start, cell.end);
+		if (a === false) return null;
+		align.push(a);
+	}
+	return align;
 };
 
 /**

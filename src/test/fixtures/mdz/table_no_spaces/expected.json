@@ -1,0 +1,78 @@
+[
+	{
+		"type": "Table",
+		"align": [null, null],
+		"children": [
+			{
+				"type": "TableRow",
+				"header": true,
+				"children": [
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "a",
+								"start": 1,
+								"end": 2
+							}
+						],
+						"start": 1,
+						"end": 2
+					},
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "b",
+								"start": 3,
+								"end": 4
+							}
+						],
+						"start": 3,
+						"end": 4
+					}
+				],
+				"start": 0,
+				"end": 5
+			},
+			{
+				"type": "TableRow",
+				"header": false,
+				"children": [
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "1",
+								"start": 13,
+								"end": 14
+							}
+						],
+						"start": 13,
+						"end": 14
+					},
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "2",
+								"start": 15,
+								"end": 16
+							}
+						],
+						"start": 15,
+						"end": 16
+					}
+				],
+				"start": 12,
+				"end": 17
+			}
+		],
+		"start": 0,
+		"end": 17
+	}
+]

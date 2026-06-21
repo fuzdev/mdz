@@ -67,6 +67,8 @@ interface PlainNode {
 	ordered?: boolean;
 	start_number?: number;
 	number?: number;
+	align?: Array<string | null>;
+	header?: boolean;
 }
 
 const merge_adjacent_text = (nodes: Array<PlainNode>): Array<PlainNode> => {
@@ -142,6 +144,8 @@ const to_plain = (node: MdzStreamNode): unknown => {
 	if (node.ordered !== undefined) base.ordered = node.ordered;
 	if (node.start_number !== undefined) base.start_number = node.start_number;
 	if (node.number !== undefined) base.number = node.number;
+	if (node.align !== undefined) base.align = node.align;
+	if (node.header !== undefined) base.header = node.header;
 	return base;
 };
 
@@ -164,6 +168,8 @@ const project_mdz_node = (node: MdzNode): unknown => {
 		base.start_number = node.start_number;
 	}
 	if ('number' in node && node.number !== undefined) base.number = node.number;
+	if ('align' in node) base.align = node.align;
+	if ('header' in node) base.header = node.header;
 	return base;
 };
 
@@ -402,6 +408,69 @@ describe('mdz parser parity', () => {
 			// CRLF + whitespace tolerance
 			'> a\r\n> b\r\n',
 			'> a\n>\r\n> b\n',
+		]) {
+			test(`one-shot matches mdz_parse for ${JSON.stringify(input)}`, () => {
+				assert.deepEqual(stream_parse_text(input), mdz_parse(input));
+			});
+			for (const chunk_size of [1, 2, 3]) {
+				test(`chunk_size=${chunk_size} matches mdz_parse for ${JSON.stringify(input)}`, () => {
+					assert.deepEqual(stream_parse_chunked(input, chunk_size), mdz_parse(input));
+				});
+			}
+		}
+	});
+
+	describe('tables', () => {
+		// GFM pipe tables tightened to the streaming grain: the header row holds
+		// until its delimiter line arrives (a bounded one-line lookahead), body
+		// rows stream one per line, and a non-row line / blank / EOF ends the
+		// table and re-dispatches. Required outer pipes, code-span pipe
+		// protection, the `\|` escape, ragged-row tolerance, paragraph
+		// interruption, and nesting in blockquotes/list-items — all exercised
+		// across chunk boundaries, where the holds live.
+		for (const input of [
+			// canonical
+			'| a | b |\n| - | - |\n| 1 | 2 |\n',
+			'| a | b |\n| - | - |\n| 1 | 2 |', // no trailing newline
+			'| a |\n| - |\n| 1 |\n', // single column
+			'|a|b|\n|-|-|\n|1|2|\n', // no inner spaces
+			'| a | b |\n| - | - |\n', // header + delimiter only (no body)
+			'| a | b |\n| - | - |', // ...at EOF
+			// alignment
+			'| a | b | c |\n| :- | :-: | -: |\n| 1 | 2 | 3 |\n',
+			'| a |\n| :-: |\n| 1 |\n',
+			// ragged bodies (authored cells preserved)
+			'| a | b |\n| - | - |\n| 1 | 2 | 3 |\n',
+			'| a | b |\n| - | - |\n| 1 |\n',
+			'| a | b |\n| - | - |\n|  |  |\n', // empty cells
+			// inline content
+			'| **a** | _b_ |\n| - | - |\n| `c` | [x](/y) |\n',
+			'| **a** ~~b~~ | c |\n| - | - |\n| `code` | https://fuz.dev |\n',
+			// literal pipes
+			'| `A | B` | union |\n| - | - |\n| x | y |\n', // code-span protection
+			'| a \\| b | c |\n| - | - |\n| x \\| y | z |\n', // `\|` escape
+			'| a `b | c` d | e |\n| - | - |\n| 1 | 2 |\n', // code span across a pipe
+			// paragraph interruption + termination without a blank line
+			'before\n| a | b |\n| - | - |\n| 1 | 2 |\nafter\n',
+			'**bold** text\n| a | b |\n| - | - |\n',
+			'**unclosed\n| a | b |\n| - | - |\n| 1 | 2 |\n', // optimistic inline interrupted
+			'| a | b |\n| - | - |\n| 1 | 2 |\n# heading\n', // table ends, heading re-dispatches
+			'| a | b |\n| - | - |\n| 1 | 2 |\n- item\n', // ...a list re-dispatches
+			// blank-line ends, then more
+			'| a | b |\n| - | - |\n| 1 | 2 |\n\nafter\n',
+			'| a |\n| - |\n| 1 |\n\n| b |\n| - |\n| 2 |\n', // two tables
+			// nesting
+			'> | a | b |\n> | - | - |\n> | 1 | 2 |\n', // in a blockquote
+			'> | a | b |\n> | - | - |\n> | 1 | 2 |\n> after\n',
+			'- item\n  | a | b |\n  | - | - |\n', // table-shaped lines in an item (stay text — deferred)
+			// rejection (false-negative → paragraph)
+			'| a | b |\n', // header only
+			'| a | b | c |\n| - | - |\n| 1 | 2 | 3 |\n', // column mismatch
+			'| a | b\n| - | -\n', // no trailing pipe
+			'| a | b |\n| : | - |\n', // invalid delimiter cell
+			'| a | b |\n| c | d |\n', // two pipe rows, no delimiter
+			// CRLF
+			'| a | b |\r\n| - | - |\r\n| 1 | 2 |\r\n',
 		]) {
 			test(`one-shot matches mdz_parse for ${JSON.stringify(input)}`, () => {
 				assert.deepEqual(stream_parse_text(input), mdz_parse(input));

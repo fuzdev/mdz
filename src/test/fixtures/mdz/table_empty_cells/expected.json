@@ -1,0 +1,64 @@
+[
+	{
+		"type": "Table",
+		"align": [null, null],
+		"children": [
+			{
+				"type": "TableRow",
+				"header": true,
+				"children": [
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "a",
+								"start": 2,
+								"end": 3
+							}
+						],
+						"start": 2,
+						"end": 3
+					},
+					{
+						"type": "TableCell",
+						"children": [
+							{
+								"type": "Text",
+								"content": "b",
+								"start": 6,
+								"end": 7
+							}
+						],
+						"start": 6,
+						"end": 7
+					}
+				],
+				"start": 0,
+				"end": 9
+			},
+			{
+				"type": "TableRow",
+				"header": false,
+				"children": [
+					{
+						"type": "TableCell",
+						"children": [],
+						"start": 23,
+						"end": 23
+					},
+					{
+						"type": "TableCell",
+						"children": [],
+						"start": 26,
+						"end": 26
+					}
+				],
+				"start": 20,
+				"end": 27
+			}
+		],
+		"start": 0,
+		"end": 27
+	}
+]

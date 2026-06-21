@@ -15,6 +15,7 @@
 		mdz_codeblock_context,
 	} from './mdz_contexts.ts';
 	import type {MdzStreamNode} from './mdz_stream_state.svelte.ts';
+	import type {MdzTableAlign} from './mdz.ts';
 
 	const {
 		node,
@@ -117,6 +118,26 @@
 	<li>{@render render_children(node.children)}</li>
 {:else if node.type === 'Blockquote'}
 	<blockquote>{@render render_children(node.children)}</blockquote>
+{:else if node.type === 'Table'}
+	{@const align = node.align ?? []}
+	{@const header_rows = node.children.filter((r) => r.header)}
+	{@const body_rows = node.children.filter((r) => !r.header)}
+	<table>
+		{#if header_rows.length > 0}
+			<thead>
+				{#each header_rows as row (row.id)}
+					<tr>{@render render_cells(row, 'th', align)}</tr>
+				{/each}
+			</thead>
+		{/if}
+		{#if body_rows.length > 0}
+			<tbody>
+				{#each body_rows as row (row.id)}
+					<tr>{@render render_cells(row, 'td', align)}</tr>
+				{/each}
+			</tbody>
+		{/if}
+	</table>
 {:else if node.type === 'Hr'}
 	<hr />
 {:else if node.type === 'Heading'}
@@ -136,6 +157,16 @@
 {#snippet render_children(nodes: Array<MdzStreamNode>)}
 	{#each nodes as node (node.id)}
 		<MdzStreamNodeView {node} />
+	{/each}
+{/snippet}
+
+{#snippet render_cells(row: MdzStreamNode, tag: 'th' | 'td', align: Array<MdzTableAlign>)}
+	<!-- normalize to the column count: pad short rows, ignore extra cells -->
+	{#each align as a, i (i)}
+		{@const cell = row.children[i]}
+		<svelte:element this={tag} style={a ? `text-align:${a}` : undefined}>
+			{#if cell}{@render render_children(cell.children)}{/if}
+		</svelte:element>
 	{/each}
 {/snippet}
 

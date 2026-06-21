@@ -11,6 +11,7 @@
 import {DEV} from 'esm-env';
 
 import type {MdzNodeId, MdzNodeType, MdzOpcode} from './mdz_opcodes.ts';
+import type {MdzTableAlign} from './mdz.ts';
 
 /**
  * A reactive node in the stream renderer tree.
@@ -31,6 +32,10 @@ export class MdzStreamNode {
 	ordered?: boolean;
 	start_number?: number;
 	number?: number;
+	/** Per-column alignment (Table nodes). */
+	align?: Array<MdzTableAlign>;
+	/** Whether this is the header row (TableRow nodes). */
+	header?: boolean;
 
 	constructor(id: MdzNodeId, type: MdzNodeType) {
 		this.id = id;
@@ -104,6 +109,8 @@ export class MdzStreamState {
 				if (opcode.ordered !== undefined) node.ordered = opcode.ordered;
 				if (opcode.start_number !== undefined) node.start_number = opcode.start_number;
 				if (opcode.number !== undefined) node.number = opcode.number;
+				if (opcode.align !== undefined) node.align = opcode.align;
+				if (opcode.header !== undefined) node.header = opcode.header;
 				this.#attach(node);
 				this.#stack.push(opcode.id);
 				break;
