@@ -1,0 +1,23 @@
+[
+	{
+		"type": "List",
+		"ordered": false,
+		"children": [
+			{
+				"type": "ListItem",
+				"children": [
+					{
+						"type": "Text",
+						"content": "item\n| a | b |\nmore text",
+						"start": 2,
+						"end": 30
+					}
+				],
+				"start": 0,
+				"end": 30
+			}
+		],
+		"start": 0,
+		"end": 30
+	}
+]

@@ -1,0 +1,75 @@
+[
+	{
+		"type": "List",
+		"ordered": false,
+		"children": [
+			{
+				"type": "ListItem",
+				"children": [
+					{
+						"type": "Text",
+						"content": "item",
+						"start": 2,
+						"end": 6
+					},
+					{
+						"type": "Table",
+						"align": [
+							null,
+							null
+						],
+						"children": [
+							{
+								"type": "TableRow",
+								"header": true,
+								"children": [
+									{
+										"type": "TableCell",
+										"children": [
+											{
+												"type": "Text",
+												"content": "a",
+												"start": 11,
+												"end": 12
+											}
+										],
+										"start": 11,
+										"end": 12
+									},
+									{
+										"type": "TableCell",
+										"children": [
+											{
+												"type": "Text",
+												"content": "b",
+												"start": 15,
+												"end": 16
+											}
+										],
+										"start": 15,
+										"end": 16
+									}
+								],
+								"start": 9,
+								"end": 18
+							}
+						],
+						"start": 9,
+						"end": 18
+					},
+					{
+						"type": "Codeblock",
+						"lang": "ts",
+						"content": "code",
+						"start": 34,
+						"end": 52
+					}
+				],
+				"start": 0,
+				"end": 52
+			}
+		],
+		"start": 0,
+		"end": 52
+	}
+]

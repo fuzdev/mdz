@@ -214,7 +214,7 @@ _MarkerLine_      = _Marker_ SPACE LINE_WS* _InlineNode_+
 _EmptyMarkerLine_ = _Marker_ LINE_WS* <followed by newline or EOF>
 _Marker_          = `-` | DIGIT{1..9} `.`
 
-_ItemContent_ = _ContinuationLine_ | _Paragraph_ | _List_ | _Codeblock_ | _Blockquote_
+_ItemContent_ = _ContinuationLine_ | _Paragraph_ | _List_ | _Codeblock_ | _Blockquote_ | _Table_
 
 _ContinuationLine_ = NEWLINE LINE_WS+ _InlineNode_+
                      <indent deeper than the item's marker;
@@ -229,7 +229,7 @@ _ContinuationLine_ = NEWLINE LINE_WS+ _InlineNode_+
 
 **Continuation — no lazy form.** A non-marker, non-blank line indented deeper than an open item's marker continues that item: it joins the item's current inline run across a soft break, with the structural indent stripped from content. If the item's run is no longer current (a blank line or block child intervened), the line opens a new _Paragraph_ block child instead. A column-0 non-marker line always ends the list — there is no lazy continuation.
 
-**Blank lines contain rather than terminate.** A blank run inside an open list is structural noise while what follows is still list-shaped: a marker at an open level continues as a sibling, a deeper marker nests, a deeper non-marker line becomes a new block child of the item it attaches to (a _Codeblock_ or _Blockquote_ when it's a fence or quote opener, else a _Paragraph_), and anything else (a column-0 non-marker line, EOF) closes the list. `- a`, blank, `- b` is one list.
+**Blank lines contain rather than terminate.** A blank run inside an open list is structural noise while what follows is still list-shaped: a marker at an open level continues as a sibling, a deeper marker nests, a deeper non-marker line becomes a new block child of the item it attaches to (a _Codeblock_, _Blockquote_, or _Table_ when it's a fence opener, quote opener, or table start, else a _Paragraph_), and anything else (a column-0 non-marker line, EOF) closes the list. `- a`, blank, `- b` is one list.
 
 **Empty items** are valid mid-list only: a bare `-` or `N.` (trailing whitespace tolerated) at an indent exactly matching an open level of the same marker type. Anywhere else a bare marker is literal text or continuation content.
 
@@ -237,7 +237,9 @@ _ContinuationLine_ = NEWLINE LINE_WS+ _InlineNode_+
 
 **Blockquotes inside items.** A line deeper than an open item's marker that is a quote opener (a valid prefix with content after it — see Blockquotes) starts a _Blockquote_ block child, also without a blank line. Continuation lines carry any indent deeper than the item's marker before their prefix (the pre-prefix indent is structural slop). A deeper bare prefix is continuation text, never an empty quote.
 
-**Marker-line content is inline-only.** The remainder of a marker line is the item's inline run, never block constructs: `- - a` is an item containing literal `- a`, and a fence on a marker line is literal backticks. Nesting and fences require their own lines.
+**Tables inside items.** A line deeper than an open item's marker that begins a table — a pipe row whose next line is a likewise-deeper delimiter row — starts a _Table_ block child, no blank line needed (the fence/quote precedent, with a two-line lookahead). Body rows continue while each stays a pipe row indented past the item's marker; a line that dedents to the marker, a blank line, or a non-row line ends the table and is re-classified by the list. Cells stay inline-only, exactly as at the top level.
+
+**Marker-line content is inline-only.** The remainder of a marker line is the item's inline run, never block constructs: `- - a` is an item containing literal `- a`, and a fence or pipe row on a marker line is literal text (`` `- | a |` `` is the item content `| a |`, not a table header). Nested lists, fences, quotes, and tables all require their own lines.
 
 **Inline scoping.** Each inline run — a marker line plus its continuation lines, or one _Paragraph_ child — is a paragraph-equivalent region: delimiter pairs are bounded to the run, so `**a` in one item never pairs with `**` in the next, while bold does span an item's own soft breaks.
 

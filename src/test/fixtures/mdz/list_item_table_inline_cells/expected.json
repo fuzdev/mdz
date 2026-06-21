@@ -1,0 +1,137 @@
+[
+	{
+		"type": "List",
+		"ordered": false,
+		"children": [
+			{
+				"type": "ListItem",
+				"children": [
+					{
+						"type": "Text",
+						"content": "i",
+						"start": 2,
+						"end": 3
+					},
+					{
+						"type": "Table",
+						"align": [
+							"left",
+							"right"
+						],
+						"children": [
+							{
+								"type": "TableRow",
+								"header": true,
+								"children": [
+									{
+										"type": "TableCell",
+										"children": [
+											{
+												"type": "Bold",
+												"children": [
+													{
+														"type": "Text",
+														"content": "a",
+														"start": 10,
+														"end": 11
+													}
+												],
+												"start": 8,
+												"end": 13
+											},
+											{
+												"type": "Text",
+												"content": " ",
+												"start": 13,
+												"end": 14
+											},
+											{
+												"type": "Strikethrough",
+												"children": [
+													{
+														"type": "Text",
+														"content": "b",
+														"start": 16,
+														"end": 17
+													}
+												],
+												"start": 14,
+												"end": 19
+											}
+										],
+										"start": 8,
+										"end": 19
+									},
+									{
+										"type": "TableCell",
+										"children": [
+											{
+												"type": "Code",
+												"content": "c",
+												"start": 22,
+												"end": 25
+											}
+										],
+										"start": 22,
+										"end": 25
+									}
+								],
+								"start": 6,
+								"end": 27
+							},
+							{
+								"type": "TableRow",
+								"header": false,
+								"children": [
+									{
+										"type": "TableCell",
+										"children": [
+											{
+												"type": "Text",
+												"content": "x | y",
+												"start": 46,
+												"end": 52
+											}
+										],
+										"start": 46,
+										"end": 52
+									},
+									{
+										"type": "TableCell",
+										"children": [
+											{
+												"type": "Link",
+												"reference": "/e",
+												"children": [
+													{
+														"type": "Text",
+														"content": "d",
+														"start": 56,
+														"end": 57
+													}
+												],
+												"link_type": "internal",
+												"start": 55,
+												"end": 62
+											}
+										],
+										"start": 55,
+										"end": 62
+									}
+								],
+								"start": 44,
+								"end": 64
+							}
+						],
+						"start": 6,
+						"end": 64
+					}
+				],
+				"start": 0,
+				"end": 64
+			}
+		],
+		"start": 0,
+		"end": 64
+	}
+]

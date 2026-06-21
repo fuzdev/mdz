@@ -468,7 +468,23 @@ describe('mdz parser parity', () => {
 			// nesting
 			'> | a | b |\n> | - | - |\n> | 1 | 2 |\n', // in a blockquote
 			'> | a | b |\n> | - | - |\n> | 1 | 2 |\n> after\n',
-			'- item\n  | a | b |\n  | - | - |\n', // table-shaped lines in an item (stay text — deferred)
+			// nested as a list-item block child: the header holds across chunk
+			// boundaries until its (also-indented) delimiter line resolves, body
+			// rows stream indented, and a dedent / blank / non-pipe line ends the
+			// table and hands the line back to the list (sibling, paragraph child,
+			// or list end). The marker line stays inline — a table can't start there.
+			'- item\n  | a | b |\n  | - | - |\n  | 1 | 2 |\n', // tight in an item
+			'- item\n  | a | b |\n  | - | - |\n  | 1 | 2 |', // ...at EOF, no trailing newline
+			'- item\n\n  | a | b |\n  | - | - |\n  | 1 | 2 |\n', // blank-separated
+			'- a\n  | x | y |\n  | - | - |\n  | 1 | 2 |\n- b\n', // then a sibling item
+			'- a\n  | x | y |\n  | - | - |\n  | 1 | 2 |\n  more\n', // then a paragraph child
+			'- a\n  | x | y |\n  | - | - |\n  - b\n', // then a nested list
+			'1. step\n\n   | a | b |\n   | - | - |\n   | 1 | 2 |\n', // ordered item
+			'- outer\n  - inner\n\n    | a | b |\n    | - | - |\n', // in a nested item
+			'- item\n  | a | b |\n  | - | - |\n  | 1 | 2 |\nafter\n', // col-0 line ends list + table
+			'- item\n  | a | b |\n  | - | - |\n\n  ```ts\n  code\n  ```\n', // table then a fence child
+			'- | a | b |\n  | - | - |\n', // marker line stays inline — not a table
+			'- item\n  | a | b |\n  more text\n', // pipe row, no delimiter — stays text
 			// rejection (false-negative → paragraph)
 			'| a | b |\n', // header only
 			'| a | b | c |\n| - | - |\n| 1 | 2 | 3 |\n', // column mismatch

@@ -218,8 +218,8 @@ const y = 1336;
 			<p>
 				Blank lines between items don't end the list (loose LLM-style lists keep their structure),
 				items render tight, and a column-0 non-marker line always ends the list — there is no lazy
-				continuation. Items can contain paragraphs, nested lists, code blocks, and blockquotes on
-				their own indented lines. See the
+				continuation. Items can contain paragraphs, nested lists, code blocks, blockquotes, and
+				tables on their own indented lines. See the
 				<a href={resolve('/docs/usage/grammar')}>formal grammar</a> for the precise rules.
 			</p>
 		</TomeSection>

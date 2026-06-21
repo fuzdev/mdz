@@ -135,6 +135,23 @@ const nodes = mdz_parse('# Heading\\n\\nSome **bold** text.');`}
 	</TomeSection>
 
 	<TomeSection>
+		<TomeSectionHeader text="Styling" />
+		<p>
+			mdz renders plain semantic HTML — headings, tables, lists, blockquotes, code — and adds no
+			classes of its own, so style it with whatever CSS you already use.
+		</p>
+		<p>
+			One integration caveat with <code>@fuzdev/fuz_css</code>: its Vite plugin tree-shakes base
+			styles by statically scanning source for element names, but mdz emits table cells, headings,
+			and opt-in HTML through dynamic <code>&lt;svelte:element&gt;</code> that static analysis can't
+			see — so those base styles get stripped. Opt them back in with the plugin's
+			<code>additional_elements</code> option (a list, or <code>'all'</code> for the full base reset).
+			This rough edge in the fuz_css integration is expected to be revisited.
+		</p>
+		<Code lang="ts" content={`vite_plugin_fuz_css({additional_elements: 'all'})`} />
+	</TomeSection>
+
+	<TomeSection>
 		<TomeSectionHeader text="Streaming" />
 		<p>
 			Feed chunks to <DeclarationLink name="MdzStreamParser" /> as they arrive (e.g. from an LLM) and
