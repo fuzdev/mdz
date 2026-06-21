@@ -1,0 +1,7 @@
+# Generated parser/preprocessor fixture snapshots, regenerated via
+# `gro src/test/fixtures/<feature>/update`. Prettier reformats the generator's
+# output (e.g. collapsing the multi-line `align` arrays it emits for tables),
+# which fails the format check on a freshly regenerated tree. These are
+# machine-written test data, not hand-authored source. The pending tsv
+# formatter switchover makes this moot.
+src/test/fixtures/**/expected.json
