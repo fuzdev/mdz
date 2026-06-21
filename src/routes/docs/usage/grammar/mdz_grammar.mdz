@@ -61,6 +61,7 @@ _Node_ = _Paragraph_
        | _List_
        | _Blockquote_
        | _Codeblock_
+       | _Table_
 
 _Paragraph_ = _InlineNode_+ (_ParagraphBreak_ | EOF)
 
@@ -69,7 +70,7 @@ _ParagraphBreak_ = NEWLINE _BlankLine_+
 _BlankLine_ = LINE_WS* NEWLINE
 ```
 
-A document is zero or more block-level nodes. Block elements (headings, horizontal rules, lists, blockquotes, codeblocks) are recognized only at column 0 — at the start of the input or immediately after a newline. They can interrupt a paragraph without a blank line. Everything else accumulates into paragraphs, separated by one or more blank lines. A line is blank when it's empty or contains only whitespace (spaces, tabs, `\r`) — an invisible trailing space never changes document structure. Leading and trailing blank lines around the document are skipped.
+A document is zero or more block-level nodes. Block elements (headings, horizontal rules, lists, blockquotes, codeblocks, tables) are recognized only at column 0 — at the start of the input or immediately after a newline. They can interrupt a paragraph without a blank line. Everything else accumulates into paragraphs, separated by one or more blank lines. A line is blank when it's empty or contains only whitespace (spaces, tabs, `\r`) — an invisible trailing space never changes document structure. Leading and trailing blank lines around the document are skipped.
 
 ---
 
@@ -300,6 +301,36 @@ The inner ``` does not close the outer fence because a closing run must be at le
 
 ---
 
+## Tables
+
+```
+_Table_        = _Row_ _DelimiterRow_ _Row_*
+                 <header row, delimiter row with a matching column count, then body rows>
+_Row_          = <column 0> `|` _Cell_ (`|` _Cell_)* `|` LINE_WS* (NEWLINE | EOF)
+_Cell_         = <trimmed inline content; a literal `|` only via `\|` or inside an inline-code span>
+_DelimiterRow_ = `|` _DelimCell_ (`|` _DelimCell_)* `|` LINE_WS*
+_DelimCell_    = LINE_WS* `:`? `-`+ `:`? LINE_WS*
+                 <`:`…`:` center, `:`… left, …`:` right, … none>
+```
+
+GFM-style pipe tables, tightened to the streaming grain: a header row, a delimiter row, then zero or more body rows.
+
+**Required outer pipes.** Every row starts and ends with `|` — `| a | b |`, not the GFM loose form `a | b`. The leading pipe makes a row self-identifying at column 0 (and tells a one-cell `| --- |` apart from a horizontal rule); a row missing either pipe is not a table row. Trailing whitespace after the last pipe is tolerated.
+
+**The delimiter row is mandatory and fixes the columns.** The second line must be a delimiter row — each cell is one or more `-` with an optional leading and/or trailing `:`. Its column count must equal the header's, or the construct is not a table and the held header line flushes to a paragraph (false negatives over false positives). This is the grammar's only two-line lookahead; the streaming parser holds the header until its delimiter line resolves, a bounded one-line hold.
+
+**Alignment** comes from the delimiter colons: `:--` left, `:-:` center, `--:` right, `---` none. The default rendering applies it per cell as `style="text-align:…"`; the alignment array is also on the `Table` node, so a consumer that avoids inline styles (e.g. under a strict CSP) can re-theme from it.
+
+**Cells are inline-only.** A cell is the trimmed span between pipes, parsed as inline content (text, bold, italic, strikethrough, code, links) — never block constructs, so a leading `#` or `-` in a cell is literal text. A literal `|` reaches a cell two ways: inside an inline-code span (`` `a | b` `` keeps its pipe — mdz protects code spans, unlike GFM), or via `\|`. That `\|` is the **only** escape mdz recognizes and is scoped to table cells — `\*`, `\_`, and a lone `\` stay literal everywhere, tables included.
+
+**Body rows are tolerant.** The AST preserves each row's authored cells; the renderer normalizes to the column count, padding short rows with empty cells and dropping cells past the count (their content survives in the tree for tooling). A header/delimiter mismatch rejects the table, but a ragged body row does not.
+
+**Boundaries.** A table interrupts a paragraph without a blank line, like every block construct, and ends at a blank line, a line that is not a valid `| … |` row, or EOF — the ending line then re-parses as a fresh block.
+
+**Rendering.** `<table>` with a `<thead>` of `<th>` cells for the header and a `<tbody>` of `<td>` cells for the body rows (the `<tbody>` is omitted when there are none); each cell carries the column's `text-align` when set.
+
+---
+
 ## Components and Elements
 
 ```
@@ -346,4 +377,4 @@ The same grammar is implemented twice: the synchronous lexer pipeline behind `md
 
 ## AST
 
-`mdz_parse` produces `MdzNode` trees: Text, Code, Codeblock, Bold, Italic, Strikethrough, Link, Paragraph, Hr, Heading, List, ListItem, Blockquote, Element, and Component nodes. The type definitions live in `mdz.ts` — see its API docs for the authoritative shapes rather than a copy here.
+`mdz_parse` produces `MdzNode` trees: Text, Code, Codeblock, Bold, Italic, Strikethrough, Link, Paragraph, Hr, Heading, List, ListItem, Blockquote, Table, TableRow, TableCell, Element, and Component nodes. The type definitions live in `mdz.ts` — see its API docs for the authoritative shapes rather than a copy here.

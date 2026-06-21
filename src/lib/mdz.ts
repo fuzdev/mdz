@@ -72,6 +72,10 @@ export const mdz_parse = (text: string): Array<MdzNode> =>
  *
  * @nodocs
  */
+// TODO: this allocates a fresh `MdzLexer` (and its search-memo `Map`) plus an
+// `MdzTokenParser` per cell — measurable on table-dense streaming input (the
+// `table heavy` benchmark). If it shows up, reuse one lexer/parser across a
+// row or table instead of per cell.
 export const mdz_parse_table_cell_inline = (
 	text: string,
 	cell_start: number,
