@@ -31,6 +31,10 @@ It supports markdown basics like **bold**, _italic_, ~~strikethrough~~, \`inline
 
 > blockquotes too,<br />line by<br />line
 
+| feature | streams |
+| :-- | :-: |
+| tables | yes |
+
 And of course, [highlighted code](https://code.fuz.dev/) blocks:
 
 \`\`\`ts

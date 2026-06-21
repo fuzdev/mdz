@@ -109,8 +109,11 @@
 			</tr>
 			<tr>
 				<td>block constructs on a marker line</td>
-				<td><code>- - a</code> nests; a fence can open mid-marker-line</td>
-				<td>marker-line remainder is always inline content</td>
+				<td><code>- - a</code> nests; a fence, quote, or table can open mid-marker-line</td>
+				<td
+					>marker-line remainder is always inline content (a table must start on its own indented
+					line)</td
+				>
 			</tr>
 			<tr>
 				<td>dedent inside a list item's fence</td>
@@ -149,11 +152,6 @@
 				<td>unclosed fence in a quote</td>
 				<td>closes at the quote's end</td>
 				<td>same — a fence binds to the innermost marker-delimited container</td>
-			</tr>
-			<tr>
-				<td>blockquote on a list marker line</td>
-				<td><code>- &gt; q</code> nests a quote in the item</td>
-				<td>inline content, like every marker-line remainder</td>
 			</tr>
 			<tr>
 				<td>tables</td>

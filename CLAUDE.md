@@ -106,7 +106,7 @@ mdz is a **markdown dialect and renderer**:
 | Bold / italic / strike | `**bold**`, `_italic_`, `~~strike~~` (single `~` is literal)                                                                                                        |
 | Links                  | auto-detected URLs, `/internal/path`, `./relative`, `[text](url)`                                                                                                   |
 | Headings               | `# Heading` (column 0; gets a slugified `id` for fragment links)                                                                                                    |
-| Lists                  | `- item` / `1. item` (column 0 starts; indent nests, blank lines contained, items hold paragraphs/lists/code blocks/blockquotes)                                    |
+| Lists                  | `- item` / `1. item` (column 0 starts; indent nests, blank lines contained, items hold paragraphs/lists/code blocks/blockquotes/tables on their own indented lines; marker-line remainder is inline-only)            |
 | Blockquotes            | `> ` per line (no lazy continuation); nesting via `>>` or `> > `; bare `>` is the in-quote paragraph break; a blank line ends the quote; content is a mini-document |
 | Code blocks            | fenced with optional language hints; an unclosed fence consumes to EOF (or to the end of its enclosing blockquote)                                                  |
 | Horizontal rule        | `---` on its own line                                                                                                                                               |
