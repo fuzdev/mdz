@@ -1,0 +1,1 @@
+import{ft as e,ht as t}from"./B8r-4TbV.js";function n(n){let r=Symbol(),i=()=>{let t=e(r);return t===void 0?n?.():t};return{get:e=>{let t=i();if(t===void 0)throw Error(e??`context value is not set`);return t},get_maybe:i,set:(e=n?.())=>t(r,e)}}var r=n(),i=n(),a=n(),o=n(),s=n(),c=(e,t)=>{let n=e.get_maybe();e.set(()=>t()??n?.())};export{i as a,r as i,o as n,c as o,s as r,a as t};

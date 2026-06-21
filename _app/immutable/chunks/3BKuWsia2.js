@@ -1,0 +1,1 @@
+import{M as e,j as t,mt as n,pt as r,tt as i,w as a}from"./B8r-4TbV.js";import"./xihTtKlq.js";import{a as o,i as s,n as c,o as l,r as u,t as d}from"./mT3BuQYw2.js";function f(f,p){n(p,!0),l(d,()=>p.base),l(s,()=>p.components),l(o,()=>p.elements),l(c,()=>p.code),l(u,()=>p.codeblock);var m=e();a(i(m),()=>p.children),t(f,m),r()}export{f as t};
