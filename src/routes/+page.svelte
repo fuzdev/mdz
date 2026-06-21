@@ -121,7 +121,7 @@ For more see the /docs.`;
 			<h1 class="mb_0" style:margin-top={MAIN_HEADER_MARGIN_TOP}>mdz</h1>
 		</section>
 		<section class="box width_atmost_md">
-			<div class="panel shade_05 p_md width:100%" style:min-height="438px">
+			<div class="panel shade_05 p_md width:100%" style:min-height="500px">
 				<MdzRoot elements={demo_elements} code={DocsLink} codeblock={Code}>
 					<MdzStream stream={demo_state} />
 				</MdzRoot>
