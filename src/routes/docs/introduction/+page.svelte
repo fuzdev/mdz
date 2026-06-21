@@ -145,8 +145,8 @@ const nodes = mdz_parse('# Heading\\n\\nSome **bold** text.');`}
 			styles by statically scanning source for element names, but mdz emits table cells, headings,
 			and opt-in HTML through dynamic <code>&lt;svelte:element&gt;</code> that static analysis can't
 			see — so those base styles get stripped. Opt them back in with the plugin's
-			<code>additional_elements</code> option (a list, or <code>'all'</code> for the full base
-			reset). This rough edge in the fuz_css integration is expected to be revisited.
+			<code>additional_elements</code> option (a list, or <code>'all'</code> for the full base reset).
+			This rough edge in the fuz_css integration is expected to be revisited.
 		</p>
 		<Code lang="ts" content={`vite_plugin_fuz_css({additional_elements: 'all'})`} />
 	</TomeSection>
