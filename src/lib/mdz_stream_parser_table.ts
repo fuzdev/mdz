@@ -6,8 +6,9 @@
  * the header row holds (`need_more`) until its delimiter line arrives, then the
  * whole header emits at once. Body rows then stream one per line. Because a row
  * is always fully buffered before it emits (no within-row streaming), each
- * cell's inline content is parsed with the sync reference (`mdz_parse_table_cell_inline`)
- * and replayed as opcodes — guaranteeing sync↔stream parity by construction.
+ * cell's inline content is parsed with the sync reference (`MdzTableCellParser`,
+ * one `MdzLexer`/`MdzTokenParser` shared across the row's cells) and replayed
+ * as opcodes — guaranteeing sync↔stream parity by construction.
  *
  * @module
  */
@@ -15,7 +16,7 @@
 import {DEV} from 'esm-env';
 
 import {NEWLINE, PIPE, mdz_split_table_row, mdz_parse_table_delimiter} from './mdz_helpers.ts';
-import {mdz_parse_table_cell_inline, type MdzNode} from './mdz.ts';
+import {MdzTableCellParser, type MdzNode} from './mdz.ts';
 import {
 	type MdzStreamParserState,
 	type TryResult,
@@ -150,8 +151,11 @@ const emit_table_row = (
 	const row_off = offset(state, row_start);
 	emit(state, {type: 'open', id: row_id, node_type: 'TableRow', start: row_off, header});
 	push_stack_entry(state, row_id, 'TableRow', row_off);
+	// one lexer/parser shared across the row's cells (all index into the same
+	// buffer) rather than allocated per cell
+	const cell_parser = new MdzTableCellParser(state.buffer);
 	for (const cell of cells) {
-		emit_table_cell(state, cell.start, cell.end);
+		emit_table_cell(state, cell_parser, cell.start, cell.end);
 	}
 	pop_stack_entry(state);
 	emit(state, {type: 'close', id: row_id, end: offset(state, row_end)});
@@ -160,10 +164,11 @@ const emit_table_row = (
 
 /**
  * Emit one cell: open, its inline content (parsed with the sync reference over
- * the fully-buffered span), close.
+ * the fully-buffered span via the row's shared `cell_parser`), close.
  */
 const emit_table_cell = (
 	state: MdzStreamParserState,
+	cell_parser: MdzTableCellParser,
 	cell_start: number,
 	cell_end: number,
 ): void => {
@@ -171,7 +176,7 @@ const emit_table_cell = (
 	const cell_off = offset(state, cell_start);
 	emit(state, {type: 'open', id: cell_id, node_type: 'TableCell', start: cell_off});
 	push_stack_entry(state, cell_id, 'TableCell', cell_off);
-	emit_inline_nodes(state, mdz_parse_table_cell_inline(state.buffer, cell_start, cell_end));
+	emit_inline_nodes(state, cell_parser.parse(cell_start, cell_end));
 	pop_stack_entry(state);
 	emit(state, {type: 'close', id: cell_id, end: offset(state, cell_end)});
 	state.active_text_id = null;

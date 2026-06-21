@@ -368,12 +368,14 @@ export class MdzLexer {
 	 * Tokenize a table cell's inline content `[cell_start, cell_end)` as a
 	 * bounded inline run, with no wrapping cell tokens (the bare form of
 	 * `#emit_table_cell`, sharing `#tokenize_cell_inline`). The streaming parser
-	 * reuses it via `mdz_parse_table_cell_inline` for fully-buffered rows.
-	 * Expects a fresh lexer (empty token buffer).
+	 * reuses it across a row's cells via `MdzTableCellParser`: the token buffer
+	 * resets per call while the search memo — valid over the immutable bound
+	 * text — carries across cells (the same reuse the sync lexer does in place).
 	 *
 	 * @nodocs
 	 */
 	lex_table_cell(cell_start: number, cell_end: number): Array<MdzToken> {
+		this.#tokens = [];
 		this.#tokenize_cell_inline(cell_start, cell_end);
 		return this.#tokens;
 	}

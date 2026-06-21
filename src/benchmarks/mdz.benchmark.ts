@@ -114,9 +114,9 @@ const generate_list_heavy_input = (): string => {
 // Table-heavy input: many pipe tables with inline-dense cells (bold, code,
 // links, strikethrough), code-span and `\|` literal pipes, and per-column
 // alignment. Locks in two costs: per-row cell splitting + cell inline parsing
-// must stay linear across hundreds of cells (the streaming path allocates a
-// lexer/parser per cell — see `mdz_parse_table_cell_inline`), and the streaming
-// header hold (a `|` row held until its delimiter line arrives) must not rescan
+// must stay linear across hundreds of cells (the streaming path shares one
+// lexer/parser per row via `MdzTableCellParser`), and the streaming header hold
+// (a `|` row held until its delimiter line arrives) must not rescan
 // quadratically — the 64B feed strategy splits rows mid-line.
 const generate_table_heavy_input = (): string => {
 	const sections: Array<string> = [];

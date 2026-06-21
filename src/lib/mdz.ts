@@ -65,23 +65,35 @@ export const mdz_parse = (text: string): Array<MdzNode> =>
 	new MdzTokenParser(new MdzLexer(text).tokenize()).parse();
 
 /**
- * Parse a single table cell's inline content (the `[cell_start, cell_end)`
- * span within `text`) to inline `MdzNode`s, honoring code-span protection and
- * the `\|` escape. The streaming parser reuses this for fully-buffered table
- * rows so its cell content matches the sync reference exactly.
+ * Parses table cells' inline content for the streaming parser, sharing one
+ * `MdzLexer` + `MdzTokenParser` across a row's cells rather than allocating a
+ * fresh pair (and search-memo `Map`) per cell. Bind to the buffer holding the
+ * row, then call `parse` once per cell `[cell_start, cell_end)` span; each
+ * call yields inline `MdzNode`s honoring code-span protection and the `\|`
+ * escape, matching the sync reference exactly — it *is* the sync lexer/parser,
+ * reset per cell, mirroring how the sync lexer already reuses one instance
+ * across a table's cells.
+ *
+ * The sync pipeline never needs this seam: its `MdzLexer` tokenizes a table's
+ * cells in place. Only the streaming path, which parses each fully-buffered
+ * cell out of band, would otherwise allocate per cell.
  *
  * @nodocs
  */
-// TODO: this allocates a fresh `MdzLexer` (and its search-memo `Map`) plus an
-// `MdzTokenParser` per cell — measurable on table-dense streaming input (the
-// `table heavy` benchmark). If it shows up, reuse one lexer/parser across a
-// row or table instead of per cell.
-export const mdz_parse_table_cell_inline = (
-	text: string,
-	cell_start: number,
-	cell_end: number,
-): Array<MdzNode> =>
-	new MdzTokenParser(new MdzLexer(text).lex_table_cell(cell_start, cell_end)).parse_inline_run();
+export class MdzTableCellParser {
+	#lexer: MdzLexer;
+	#parser: MdzTokenParser = new MdzTokenParser([]);
+
+	/** @param text - the buffer the cell spans index into (stable across a row). */
+	constructor(text: string) {
+		this.#lexer = new MdzLexer(text);
+	}
+
+	parse(cell_start: number, cell_end: number): Array<MdzNode> {
+		this.#parser.reset(this.#lexer.lex_table_cell(cell_start, cell_end));
+		return this.#parser.parse_inline_run();
+	}
+}
 
 export type MdzNode =
 	| MdzNodeText

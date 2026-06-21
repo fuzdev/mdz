@@ -58,6 +58,18 @@ export class MdzTokenParser {
 		this.#tokens = tokens;
 	}
 
+	/**
+	 * Rebind to a new token stream and rewind, so one parser instance can be
+	 * reused across inputs — the streaming table path reuses one across a row's
+	 * cells via `MdzTableCellParser`.
+	 *
+	 * @nodocs
+	 */
+	reset(tokens: Array<MdzToken>): void {
+		this.#tokens = tokens;
+		this.#index = 0;
+	}
+
 	parse(): Array<MdzNode> {
 		return this.#parse_block_stream(false);
 	}
