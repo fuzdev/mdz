@@ -347,6 +347,12 @@ export class MdzTokenParser {
 				children.push(this.#parse_blockquote());
 				continue;
 			}
+			if (t.type === 'table_open') {
+				flush();
+				in_paragraph = false;
+				children.push(this.#parse_table());
+				continue;
+			}
 			if (t.type === 'codeblock') {
 				flush();
 				in_paragraph = false;

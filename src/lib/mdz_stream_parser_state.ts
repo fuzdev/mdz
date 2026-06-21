@@ -210,9 +210,12 @@ export interface MdzStreamParserState {
 	/**
 	 * The open table, or null. While set, each line is consumed as a body row
 	 * (or ends the table) by `process_table_line`. Holds the `Table` frame's id
-	 * so the table can be closed when a non-row line or EOF ends it.
+	 * so the table can be closed when a non-row line or EOF ends it. `item_indent`
+	 * is `null` for a top-level table (column-0 rows) or the enclosing list item's
+	 * marker indent for a table nested as a block child (rows skip the indent and
+	 * a dedent to that indent ends the table, returning control to the list).
 	 */
-	table: {id: MdzNodeId} | null;
+	table: {id: MdzNodeId; item_indent: number | null} | null;
 	/**
 	 * Whether the innermost open ListItem's first inline run is current.
 	 * Content then flows directly into the ListItem frame — the sync AST

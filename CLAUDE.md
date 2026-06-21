@@ -150,7 +150,11 @@ inline-code spans and treats `\|` as a literal pipe (the only escape mdz
 recognizes, scoped to cells). Body rows then stream one per line. Because a row
 is always fully buffered before it emits, the streaming parser parses each
 cell's inline content with the sync reference and replays it as opcodes, so the
-two pipelines agree by construction.
+two pipelines agree by construction. Tables open at the top level, inside
+blockquotes (free via the recursive quote parser), and as list-item block
+children — a deeper pipe row whose delimiter is likewise indented, recognized on
+the fence/quote-in-item dispatch and ended by a dedent. They never start on a
+marker line (`- | a |` is inline text, like `` - ```ts ``).
 
 ### Parsing pipeline
 

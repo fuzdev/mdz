@@ -1,0 +1,123 @@
+[
+	{
+		"type": "List",
+		"ordered": false,
+		"children": [
+			{
+				"type": "ListItem",
+				"children": [
+					{
+						"type": "Text",
+						"content": "outer",
+						"start": 2,
+						"end": 7
+					},
+					{
+						"type": "List",
+						"ordered": false,
+						"children": [
+							{
+								"type": "ListItem",
+								"children": [
+									{
+										"type": "Text",
+										"content": "inner",
+										"start": 12,
+										"end": 17
+									},
+									{
+										"type": "Table",
+										"align": [
+											null,
+											null
+										],
+										"children": [
+											{
+												"type": "TableRow",
+												"header": true,
+												"children": [
+													{
+														"type": "TableCell",
+														"children": [
+															{
+																"type": "Text",
+																"content": "a",
+																"start": 25,
+																"end": 26
+															}
+														],
+														"start": 25,
+														"end": 26
+													},
+													{
+														"type": "TableCell",
+														"children": [
+															{
+																"type": "Text",
+																"content": "b",
+																"start": 29,
+																"end": 30
+															}
+														],
+														"start": 29,
+														"end": 30
+													}
+												],
+												"start": 23,
+												"end": 32
+											},
+											{
+												"type": "TableRow",
+												"header": false,
+												"children": [
+													{
+														"type": "TableCell",
+														"children": [
+															{
+																"type": "Text",
+																"content": "1",
+																"start": 53,
+																"end": 54
+															}
+														],
+														"start": 53,
+														"end": 54
+													},
+													{
+														"type": "TableCell",
+														"children": [
+															{
+																"type": "Text",
+																"content": "2",
+																"start": 57,
+																"end": 58
+															}
+														],
+														"start": 57,
+														"end": 58
+													}
+												],
+												"start": 51,
+												"end": 60
+											}
+										],
+										"start": 23,
+										"end": 60
+									}
+								],
+								"start": 10,
+								"end": 60
+							}
+						],
+						"start": 10,
+						"end": 60
+					}
+				],
+				"start": 0,
+				"end": 60
+			}
+		],
+		"start": 0,
+		"end": 60
+	}
+]

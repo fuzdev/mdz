@@ -759,6 +759,71 @@ export class MdzLexer {
 		this.#max_search_index = saved_max;
 	}
 
+	/**
+	 * Recognize an in-item table whose header row's leading `|` is at `first`
+	 * (the line's indent already skipped): a pipe row whose next line is a
+	 * delimiter row, both indented past `marker_indent` (so both stay inside the
+	 * item). Returns the parsed header/delimiter, or null. Pure — no emission.
+	 */
+	#match_item_table_head(
+		first: number,
+		marker_indent: number,
+	): {
+		header_cells: Array<{start: number; end: number}>;
+		header_end: number;
+		align: Array<MdzTableAlign>;
+		delim_end: number;
+	} | null {
+		const header_end = this.#index_of('\n', first);
+		if (header_end === -1) return null; // a header needs a delimiter line beneath it
+		const header_cells = mdz_split_table_row(this.#text, first, header_end);
+		if (header_cells === null) return null;
+		const delim_line_start = header_end + 1;
+		let dj = delim_line_start;
+		while (dj < this.#text.length && is_line_whitespace(this.#text.charCodeAt(dj))) dj++;
+		if (dj - delim_line_start <= marker_indent) return null; // delimiter dedented out of the item
+		let delim_end = this.#index_of('\n', dj);
+		if (delim_end === -1) delim_end = this.#text.length;
+		const align = mdz_parse_table_delimiter(this.#text, dj, delim_end);
+		if (align === null || align.length !== header_cells.length) return null;
+		return {header_cells, header_end, align, delim_end};
+	}
+
+	/** Whether a table opens at `first` as a block child of an item at `marker_indent`. */
+	#is_item_table_start(first: number, marker_indent: number): boolean {
+		return this.#match_item_table_head(first, marker_indent) !== null;
+	}
+
+	/**
+	 * Tokenize an in-item table at `first` (a recognized table start). Mirrors
+	 * `#tokenize_table` but per row skips the line's indent to the `|` and ends
+	 * when a row dedents to `marker_indent` or shallower, leaving `#index` at the
+	 * table's terminating newline so the list loop classifies what follows (no
+	 * `#skip_blank_lines` — the list owns blank-line containment).
+	 */
+	#tokenize_item_table(first: number, marker_indent: number): void {
+		const head = this.#match_item_table_head(first, marker_indent)!;
+		this.#tokens.push({type: 'table_open', align: head.align, start: first, end: head.header_end});
+		this.#emit_table_row(head.header_cells, true, first, head.header_end);
+		this.#index = head.delim_end;
+		let table_end = head.delim_end;
+		while (this.#index < this.#text.length) {
+			const row_line_start = this.#index + 1; // past the newline at #index
+			let rj = row_line_start;
+			while (rj < this.#text.length && is_line_whitespace(this.#text.charCodeAt(rj))) rj++;
+			if (rj - row_line_start <= marker_indent) break; // dedent ends the table
+			if (this.#text.charCodeAt(rj) !== PIPE) break;
+			let row_end = this.#index_of('\n', rj);
+			if (row_end === -1) row_end = this.#text.length;
+			const cells = mdz_split_table_row(this.#text, rj, row_end);
+			if (cells === null) break;
+			this.#emit_table_row(cells, false, rj, row_end);
+			this.#index = row_end;
+			table_end = row_end;
+		}
+		this.#tokens.push({type: 'table_close', start: table_end, end: table_end});
+	}
+
 	// -- List tokenizers --
 
 	/**
@@ -891,6 +956,23 @@ export class MdzLexer {
 					}
 					this.#tokenize_blockquote_at(first, levels[levels.length - 1]!.indent);
 					continue;
+				}
+			}
+
+			// a deeper pipe-row line whose next line is a delimiter becomes a
+			// table child of the item it would otherwise continue (the fence/quote
+			// precedent, but a two-line lookahead)
+			if (indent > 0 && this.#text.charCodeAt(first) === PIPE) {
+				const target_idx = this.#list_continuation_target(levels, indent);
+				if (target_idx !== -1) {
+					const marker_indent = levels[target_idx]!.indent;
+					if (this.#is_item_table_start(first, marker_indent)) {
+						while (levels.length - 1 > target_idx) {
+							this.#list_close(levels);
+						}
+						this.#tokenize_item_table(first, marker_indent);
+						continue;
+					}
 				}
 			}
 
@@ -1101,6 +1183,9 @@ export class MdzLexer {
 			}
 			if (this.#text.charCodeAt(j) === RIGHT_ANGLE && this.#is_blockquote_opener(j)) {
 				return nl; // a quote opener line interrupts the run
+			}
+			if (this.#text.charCodeAt(j) === PIPE && this.#is_item_table_start(j, deepest_indent)) {
+				return nl; // a table opener (pipe row + delimiter) interrupts the run
 			}
 			i = line_start; // continuation — keep scanning
 		}

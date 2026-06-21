@@ -1,0 +1,115 @@
+[
+	{
+		"type": "List",
+		"ordered": false,
+		"children": [
+			{
+				"type": "ListItem",
+				"children": [
+					{
+						"type": "Text",
+						"content": "item",
+						"start": 2,
+						"end": 6
+					},
+					{
+						"type": "Table",
+						"align": [
+							null,
+							null
+						],
+						"children": [
+							{
+								"type": "TableRow",
+								"header": true,
+								"children": [
+									{
+										"type": "TableCell",
+										"children": [
+											{
+												"type": "Text",
+												"content": "a",
+												"start": 11,
+												"end": 12
+											}
+										],
+										"start": 11,
+										"end": 12
+									},
+									{
+										"type": "TableCell",
+										"children": [
+											{
+												"type": "Text",
+												"content": "b",
+												"start": 15,
+												"end": 16
+											}
+										],
+										"start": 15,
+										"end": 16
+									}
+								],
+								"start": 9,
+								"end": 18
+							},
+							{
+								"type": "TableRow",
+								"header": false,
+								"children": [
+									{
+										"type": "TableCell",
+										"children": [
+											{
+												"type": "Text",
+												"content": "1",
+												"start": 35,
+												"end": 36
+											}
+										],
+										"start": 35,
+										"end": 36
+									},
+									{
+										"type": "TableCell",
+										"children": [
+											{
+												"type": "Text",
+												"content": "2",
+												"start": 39,
+												"end": 40
+											}
+										],
+										"start": 39,
+										"end": 40
+									}
+								],
+								"start": 33,
+								"end": 42
+							}
+						],
+						"start": 9,
+						"end": 42
+					}
+				],
+				"start": 0,
+				"end": 42
+			}
+		],
+		"start": 0,
+		"end": 42
+	},
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "after",
+				"start": 43,
+				"end": 48
+			}
+		],
+		"start": 43,
+		"end": 48
+	}
+]

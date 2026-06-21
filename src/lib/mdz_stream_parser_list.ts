@@ -21,6 +21,7 @@ import {
 	NEWLINE,
 	NINE,
 	PERIOD,
+	PIPE,
 	RIGHT_ANGLE,
 	SPACE,
 	ZERO,
@@ -28,6 +29,7 @@ import {
 	mdz_match_blockquote_prefix,
 	mdz_blockquote_line_has_content,
 } from './mdz_helpers.ts';
+import {match_table_in_item_head, open_table_in_item} from './mdz_stream_parser_table.ts';
 import {
 	type MdzStreamParserState,
 	type TryResult,
@@ -491,6 +493,26 @@ export const process_list_line = (
 					state.prev_char = NEWLINE;
 					return 'blockquote';
 				}
+			}
+		}
+	}
+
+	// a deeper pipe-row line whose next line is a delimiter becomes a table
+	// child of the item it would otherwise continue (the fence/quote precedent,
+	// a two-line lookahead held until the delimiter line arrives)
+	if (indent > 0 && buffer.charCodeAt(j) === PIPE) {
+		const target_idx = list_continuation_target(state, indent);
+		if (target_idx !== -1) {
+			const marker_indent = state.list_levels[target_idx]!.indent;
+			const head = match_table_in_item_head(state, j, marker_indent, forced);
+			if (head === 'pending') return false;
+			if (head !== null) {
+				close_list_run(state);
+				while (state.list_levels.length - 1 > target_idx) {
+					close_list_level(state);
+				}
+				open_table_in_item(state, j, marker_indent, head);
+				return true;
 			}
 		}
 	}

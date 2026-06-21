@@ -1,7 +1,11 @@
 [
 	{
 		"type": "Table",
-		"align": [null, null, null],
+		"align": [
+			null,
+			null,
+			null
+		],
 		"children": [
 			{
 				"type": "TableRow",

@@ -15,8 +15,14 @@
 
 import {DEV} from 'esm-env';
 
-import {NEWLINE, PIPE, mdz_split_table_row, mdz_parse_table_delimiter} from './mdz_helpers.ts';
-import {MdzTableCellParser, type MdzNode} from './mdz.ts';
+import {
+	NEWLINE,
+	PIPE,
+	is_line_whitespace,
+	mdz_split_table_row,
+	mdz_parse_table_delimiter,
+} from './mdz_helpers.ts';
+import {MdzTableCellParser, type MdzNode, type MdzTableAlign} from './mdz.ts';
 import {
 	type MdzStreamParserState,
 	type TryResult,
@@ -66,7 +72,7 @@ export const try_table_start = (state: MdzStreamParserState, forced: boolean): T
 	const table_start = offset(state, start);
 	emit(state, {type: 'open', id: table_id, node_type: 'Table', start: table_start, align});
 	push_stack_entry(state, table_id, 'Table', table_start);
-	state.table = {id: table_id};
+	state.table = {id: table_id, item_indent: null};
 
 	emit_table_row(state, header_cells, true, start, header_end);
 
@@ -87,6 +93,11 @@ export const try_table_start = (state: MdzStreamParserState, forced: boolean): T
  * @nodocs
  */
 export const process_table_line = (state: MdzStreamParserState, forced: boolean): boolean => {
+	const item_indent = state.table!.item_indent;
+	if (item_indent !== null) {
+		return process_table_line_in_item(state, forced, item_indent);
+	}
+
 	if (state.pos >= state.buffer.length) {
 		// the table may continue with more rows in a later chunk
 		if (forced) {
@@ -125,18 +136,157 @@ export const process_table_line = (state: MdzStreamParserState, forced: boolean)
 };
 
 /**
+ * Process body rows of an in-item table. Unlike the top-level path this keeps
+ * `state.pos` on the newline that ends each row — a row boundary the buffer
+ * never compacts past, since it's the active cursor. So when a dedent (to the
+ * item's `marker_indent` or shallower), a blank line, or a non-pipe line ends
+ * the table, `close_table` leaves the cursor on that newline and the list's
+ * newline handler re-classifies the following line — the same control-return
+ * shape as the in-item codeblock, robust across chunk boundaries.
+ */
+const process_table_line_in_item = (
+	state: MdzStreamParserState,
+	forced: boolean,
+	item_indent: number,
+): boolean => {
+	if (state.pos >= state.buffer.length) {
+		if (forced) {
+			close_table(state);
+			return true;
+		}
+		return false;
+	}
+	// `state.pos` sits on the newline ending the previous row (or the delimiter);
+	// the candidate next row is the line after it
+	const line_start = state.pos + 1;
+	let j = line_start;
+	while (j < state.buffer.length && is_line_whitespace(state.buffer.charCodeAt(j))) {
+		j++;
+	}
+	if (j >= state.buffer.length) {
+		if (forced) {
+			close_table(state);
+			return true;
+		}
+		return false; // indent-only / incomplete line — hold
+	}
+	if (j - line_start <= item_indent || state.buffer.charCodeAt(j) !== PIPE) {
+		// a dedent to the marker (or shallower), a blank line, or a non-pipe line
+		// ends the table; the cursor stays on the row-boundary newline so the
+		// list resumes via its newline handler
+		close_table(state);
+		return true;
+	}
+	let row_end = state.buffer.indexOf('\n', j);
+	if (row_end === -1) {
+		if (!forced) return false; // pipe-row line not complete — hold
+		row_end = state.buffer.length;
+	}
+	const cells = mdz_split_table_row(state.buffer, j, row_end);
+	if (cells === null) {
+		close_table(state);
+		return true;
+	}
+	emit_table_row(state, cells, false, j, row_end);
+	state.pos = row_end; // stay on this row's terminating newline (or EOF)
+	return true;
+};
+
+/**
  * Close the open table.
  *
  * @nodocs
  */
 export const close_table = (state: MdzStreamParserState): void => {
 	if (!state.table) return;
+	const {item_indent} = state.table;
 	const entry = pop_stack_entry(state);
 	emit(state, {type: 'close', id: entry.id, end: offset(state)});
 	state.table = null;
 	state.active_text_id = null;
-	// trailing newline + blank lines absorb at the process-loop top
-	state.skip_blank_lines = true;
+	if (item_indent === null) {
+		// top-level: the trailing newline + any blank lines absorb at the loop top
+		state.skip_blank_lines = true;
+	}
+	// in-item: the cursor is left on a row-boundary newline (or EOF). The list's
+	// newline handler re-classifies the following line; at EOF, `finish` closes
+	// the list. No skip_blank_lines — the list owns blank-line containment.
+};
+
+/** A recognized in-item table head: the header row's cells + the delimiter alignment. */
+export interface TableInItemHead {
+	header_cells: Array<{start: number; end: number}>;
+	header_end: number;
+	align: Array<MdzTableAlign>;
+	delim_end: number;
+}
+
+/**
+ * Recognize a table opening as a block child of a list item: a pipe row at
+ * `header_first` (the line's indent already skipped) whose next line is a
+ * delimiter row, both indented past `marker_indent` (so both stay inside the
+ * item). Returns the parsed head, `'pending'` when the two-line lookahead isn't
+ * fully buffered, or `null` when it isn't a table.
+ *
+ * @nodocs
+ */
+export const match_table_in_item_head = (
+	state: MdzStreamParserState,
+	header_first: number,
+	marker_indent: number,
+	forced: boolean,
+): TableInItemHead | 'pending' | null => {
+	const {buffer} = state;
+	const header_end = buffer.indexOf('\n', header_first);
+	if (header_end === -1) return forced ? null : 'pending'; // header needs its newline + a delimiter beneath
+	const header_cells = mdz_split_table_row(buffer, header_first, header_end);
+	if (header_cells === null) return null;
+	const delim_line_start = header_end + 1;
+	let dj = delim_line_start;
+	while (dj < buffer.length && is_line_whitespace(buffer.charCodeAt(dj))) dj++;
+	if (dj >= buffer.length) return forced ? null : 'pending'; // delimiter line not buffered yet
+	if (dj - delim_line_start <= marker_indent) return null; // delimiter dedented out of the item
+	let delim_end = buffer.indexOf('\n', dj);
+	if (delim_end === -1) {
+		if (!forced) return 'pending'; // delimiter line incomplete
+		delim_end = buffer.length;
+	}
+	const align = mdz_parse_table_delimiter(buffer, dj, delim_end);
+	if (align === null || align.length !== header_cells.length) return null;
+	return {header_cells, header_end, align, delim_end};
+};
+
+/**
+ * Open a table as a block child of a list item at `marker_indent`, given a
+ * `head` from `match_table_in_item_head`. Emits the `Table` open + header row
+ * and enters table mode (with `item_indent`), leaving `state.pos` at the first
+ * body line. The caller closes the item's run and pops to the attach level first.
+ *
+ * @nodocs
+ */
+export const open_table_in_item = (
+	state: MdzStreamParserState,
+	header_first: number,
+	marker_indent: number,
+	head: TableInItemHead,
+): void => {
+	const table_id = alloc_id(state);
+	const table_start = offset(state, header_first);
+	emit(state, {
+		type: 'open',
+		id: table_id,
+		node_type: 'Table',
+		start: table_start,
+		align: head.align,
+	});
+	push_stack_entry(state, table_id, 'Table', table_start);
+	state.table = {id: table_id, item_indent: marker_indent};
+	emit_table_row(state, head.header_cells, true, header_first, head.header_end);
+	// leave the cursor on the delimiter's newline (or EOF) — the in-item body-row
+	// handler reads from the line after it and hands back on this same convention
+	state.pos = head.delim_end;
+	state.column = 0;
+	state.prev_char = NEWLINE;
 };
 
 /** Emit one table row: open, each cell, close. */
