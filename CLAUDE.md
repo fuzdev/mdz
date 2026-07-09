@@ -256,7 +256,11 @@ documented surface is the parse/stream/render/preprocess API plus the
 
 Tests live in `src/test/` (not co-located). The runtime renderers are covered
 by SSR tests (`mdz_render.test.ts` — `svelte/server`'s `render`, no DOM
-environment). Fixture-based tests drive both the parser and the preprocessor:
+environment), and `mdz_to_svelte.render_parity.test.ts` binds `mdz_to_svelte`'s
+generated markup to the runtime renderer's actual SSR output across the whole
+fixture corpus (normalized), so the build-time and runtime render
+implementations can't drift silently. Fixture-based tests drive both the
+parser and the preprocessor:
 
 | Category                          | Input          | Tests                       |
 | --------------------------------- | -------------- | --------------------------- |
