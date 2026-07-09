@@ -259,8 +259,11 @@ by SSR tests (`mdz_render.test.ts` — `svelte/server`'s `render`, no DOM
 environment), and `mdz_to_svelte.render_parity.test.ts` binds `mdz_to_svelte`'s
 generated markup to the runtime renderer's actual SSR output across the whole
 fixture corpus (normalized), so the build-time and runtime render
-implementations can't drift silently. Fixture-based tests drive both the
-parser and the preprocessor:
+implementations can't drift silently. `mdz_scaling.test.ts` guards the
+parser's complexity invariants (nested-construct and streaming-hold inputs
+must stay sub-exponential/linear) with generous timeouts rather than
+wall-clock thresholds — the machine-state-independent way to gate CI.
+Fixture-based tests drive both the parser and the preprocessor:
 
 | Category                          | Input          | Tests                       |
 | --------------------------------- | -------------- | --------------------------- |
