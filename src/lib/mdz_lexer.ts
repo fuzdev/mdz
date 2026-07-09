@@ -59,6 +59,7 @@ import {
 } from './mdz_helpers.ts';
 
 import type {MdzTableAlign} from './mdz.ts';
+import {mdz_debug_work} from './mdz_debug_work.ts';
 
 //
 // Token types
@@ -388,6 +389,10 @@ export class MdzLexer {
 			return memo.result;
 		}
 		const result = this.#text.indexOf(needle, from);
+		if (mdz_debug_work.enabled) {
+			// scan span: `indexOf` examined [from, result] (found) or [from, EOF)
+			mdz_debug_work.total += (result === -1 ? this.#text.length : result) - from;
+		}
 		if (memo === undefined) {
 			this.#search_memo.set(needle, {from, result});
 		} else {
@@ -1991,6 +1996,8 @@ export class MdzLexer {
 
 			this.#index++;
 		}
+
+		if (mdz_debug_work.enabled) mdz_debug_work.total += this.#index - start;
 
 		// Ensure we always consume at least one character
 		if (this.#index === start && this.#index < this.#text.length) {

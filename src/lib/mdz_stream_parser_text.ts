@@ -23,6 +23,7 @@ import {
 	ensure_paragraph,
 	offset,
 } from './mdz_stream_parser_state.ts';
+import {mdz_debug_work} from './mdz_debug_work.ts';
 
 /**
  * Consume a delimiter at the current position as literal text — the shared
@@ -88,6 +89,7 @@ export const consume_text_run = (state: MdzStreamParserState): void => {
 		// backslash (or a non-starting path char) — ordinary text
 		state.pos++;
 	}
+	if (mdz_debug_work.enabled) mdz_debug_work.total += state.pos - start;
 	accumulate_text(state, state.buffer.slice(start, state.pos), offset(state, start));
 	state.prev_char = state.buffer.charCodeAt(state.pos - 1);
 	state.column += state.pos - start;

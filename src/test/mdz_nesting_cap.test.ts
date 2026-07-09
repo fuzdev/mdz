@@ -200,3 +200,50 @@ describe('inline nesting-depth cap', () => {
 		}
 	});
 });
+
+describe('cap-saturating asymmetric prefix — accepted sync↔stream divergence', () => {
+	// The cap counts OPTIMISTIC opens toward the streaming `open_link_tag_depth`,
+	// but the sync tag path prechecks for a closer before opening — so a run of
+	// CAP+ *unclosed* `<a>` (or a `[** ` chain) saturates the streaming cap and
+	// suppresses a following valid `[x](/u)` that the sync oracle still forms.
+	// Adversarial-only (unreachable in real content); streaming can't precheck
+	// closers (append-only), so this is documented, not fixed. It refutes the
+	// stronger reading that "both parsers agree at the cap" — they agree on
+	// pure/symmetric nesting (above), not here. The flip is at exactly the cap.
+	// See ../../../grimoire/lore/mdz/TODO_MDZ_BUGS.md Bug 5.
+	const CAP = MAX_INLINE_NESTING_DEPTH;
+
+	// each shape: a depth-saturating prefix of `n` opens, then a valid link
+	const shapes: Array<[string, (n: number) => string]> = [
+		['unclosed <a> prefix', (n) => '<a>'.repeat(n) + '[x](/u)'],
+		['[** delimiter chain', (n) => '[** '.repeat(n) + '[x](/u)'],
+	];
+
+	for (const [label, build] of shapes) {
+		test(`${label}: agreement flips at exactly the cap`, () => {
+			// below the cap both agree (streaming reverts the doomed opens, the
+			// trailing link forms in both)
+			const below = build(CAP - 1);
+			assert.strictEqual(
+				JSON.stringify(mdz_parse(below)),
+				JSON.stringify(stream_parse(below)),
+				`${label}: agree at n=${CAP - 1}`,
+			);
+			// at the cap they diverge (streaming's optimistic opens saturate it)
+			const at = build(CAP);
+			assert.notStrictEqual(
+				JSON.stringify(mdz_parse(at)),
+				JSON.stringify(stream_parse(at)),
+				`${label}: diverge at n=${CAP}`,
+			);
+		});
+	}
+
+	test('unclosed <a> prefix: sync forms the trailing Link, streaming suppresses it', () => {
+		// the clean case — the whole prefix is unclosed tags (no internal links),
+		// so the only Link either parser could produce is the trailing `[x](/u)`
+		const input = '<a>'.repeat(CAP) + '[x](/u)';
+		assert.isTrue(contains_type(mdz_parse(input), 'Link'), 'sync (oracle) forms it');
+		assert.isFalse(contains_type(stream_parse(input), 'Link'), 'streaming suppresses it');
+	});
+});

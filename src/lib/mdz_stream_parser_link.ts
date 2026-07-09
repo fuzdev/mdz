@@ -39,6 +39,7 @@ import {
 	revert_above,
 } from './mdz_stream_parser_state.ts';
 import {consume_delimiter_as_text} from './mdz_stream_parser_text.ts';
+import {mdz_debug_work} from './mdz_debug_work.ts';
 
 // -- Links --
 
@@ -289,6 +290,7 @@ export const try_close_tag = (state: MdzStreamParserState): TryResult => {
 	// find matching open tag on stack
 	let found_idx = -1;
 	for (let j = state.stack.length - 1; j >= 0; j--) {
+		if (mdz_debug_work.enabled) mdz_debug_work.total++; // frames walked (mismatched-tags guard)
 		const entry = state.stack[j]!;
 		if (
 			(entry.node_type === 'Element' || entry.node_type === 'Component') &&

@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type {SvelteHTMLElements} from 'svelte/elements';
+	import {DEV} from 'esm-env';
 
-	import {mdz_parse} from './mdz.ts';
+	import {mdz_parse, type MdzNode} from './mdz.ts';
 	import MdzNodeView from './MdzNodeView.svelte';
 	import {
 		mdz_base_context,
@@ -11,12 +12,12 @@
 
 	const {
 		content,
+		nodes: nodes_prop,
 		inline = false,
 		whitespace,
 		base,
 		...rest
 	}: (SvelteHTMLElements['div'] | SvelteHTMLElements['span']) & {
-		content: string;
 		inline?: boolean;
 		/**
 		 * Sets `white-space` on the wrapper. When omitted, whitespace collapses
@@ -25,11 +26,20 @@
 		 */
 		whitespace?: MdzWhitespace;
 		base?: string;
-	} = $props();
+	} & // pass `content` to parse at render, or `nodes` to render a pre-parsed
+		// tree (e.g. build-time-parsed docs content) and skip `mdz_parse` entirely
+		(| {content: string; nodes?: undefined}
+			| {content?: undefined; nodes: Array<MdzNode>}
+		) = $props();
 
 	mdz_set_context_with_fallback(mdz_base_context, () => base);
 
-	const nodes = $derived(mdz_parse(content));
+	const nodes = $derived.by(() => {
+		if (DEV && (content === undefined) === (nodes_prop === undefined)) {
+			throw new Error('Mdz: pass exactly one of `content` or `nodes`');
+		}
+		return nodes_prop ?? mdz_parse(content ?? '');
+	});
 </script>
 
 <svelte:element this={inline ? 'span' : 'div'} {...rest} style:white-space={whitespace}>

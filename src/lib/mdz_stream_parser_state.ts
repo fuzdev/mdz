@@ -11,6 +11,7 @@
 import type {MdzNodeTypeContainer, MdzNodeId, MdzOpcode} from './mdz_opcodes.ts';
 import type {MdzTableCellParser} from './mdz.ts';
 import {NEWLINE, has_non_whitespace, mdz_heading_id_from_text} from './mdz_helpers.ts';
+import {mdz_debug_work} from './mdz_debug_work.ts';
 
 /**
  * Tri-state result for `try_*` parser handlers.
@@ -251,7 +252,14 @@ export interface MdzStreamParserState {
 	 * counter (not a stack walk, which would reintroduce the deep-stack
 	 * quadratic `open_counts` exists to avoid) so `try_link_open`/`try_tag_open`
 	 * can cap nesting at `MAX_INLINE_NESTING_DEPTH` — rendering a deeper `[`/`<`
-	 * literal, matching the sync cap. Run-scoped for free like `open_counts`: a
+	 * literal, matching the sync cap on pure/symmetric nesting. It counts
+	 * **optimistic** opens, though, so it diverges from the sync `#inline_depth`
+	 * (which the sync tag path only bumps after a closer precheck) on an
+	 * asymmetric cap-saturating prefix — 100+ *unclosed* `<a>` before a valid
+	 * `[x](/u)` saturates this counter and suppresses the trailing link that sync
+	 * still forms. Adversarial-only, documented not fixed (streaming can't
+	 * precheck closers): see the flip-at-cap case in `mdz_nesting_cap.test.ts`.
+	 * Run-scoped for free like `open_counts`: a
 	 * run close reverts every inline frame above it, decrementing back to zero.
 	 */
 	open_link_tag_depth: number;
@@ -500,7 +508,11 @@ const memo_index_of = (
 			// rescan only the appended tail, overlapping the old boundary so a
 			// straddling needle isn't missed
 			const rescan_from = Math.max(global_from, memo.searched_to - (needle.length - 1));
-			const result = state.buffer.indexOf(needle, rescan_from - state.base_offset);
+			const local_from = rescan_from - state.base_offset;
+			const result = state.buffer.indexOf(needle, local_from);
+			if (mdz_debug_work.enabled) {
+				mdz_debug_work.total += (result === -1 ? state.buffer.length : result) - local_from;
+			}
 			memo.from = global_from;
 			memo.result = result === -1 ? -1 : state.base_offset + result;
 			memo.searched_to = global_end;
@@ -509,6 +521,9 @@ const memo_index_of = (
 		// found result already behind `from` — fall through to a fresh scan
 	}
 	const result = state.buffer.indexOf(needle, from);
+	if (mdz_debug_work.enabled) {
+		mdz_debug_work.total += (result === -1 ? state.buffer.length : result) - from;
+	}
 	memo.from = global_from;
 	memo.result = result === -1 ? -1 : state.base_offset + result;
 	memo.searched_to = global_end;
