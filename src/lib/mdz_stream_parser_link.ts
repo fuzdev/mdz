@@ -10,7 +10,6 @@ import {
 	A_UPPER,
 	LEFT_BRACKET,
 	LEFT_PAREN,
-	NEWLINE,
 	RIGHT_ANGLE,
 	RIGHT_BRACKET,
 	RIGHT_PAREN,
@@ -28,6 +27,7 @@ import {
 	type TryResult,
 	accumulate_text,
 	alloc_id,
+	buffer_index_of,
 	emit,
 	ensure_paragraph,
 	flush_text,
@@ -97,65 +97,69 @@ export const try_complete_link = (state: MdzStreamParserState, link_stack_idx: n
 		return true;
 	}
 
-	// found ]( — scan for )
-	let i = bracket_pos + 2; // past ](
-	while (i < state.buffer.length) {
-		const c = state.buffer.charCodeAt(i);
-		if (c === RIGHT_PAREN) {
-			const reference = state.buffer.slice(bracket_pos + 2, i);
-			// validate reference: non-empty and only valid path chars
-			if (!reference.trim()) {
-				abort_link_to_text(state, link_stack_idx, bracket_pos);
-				return true;
-			}
-			let valid = true;
-			for (let j = 0; j < reference.length; j++) {
-				if (!is_valid_path_char(reference.charCodeAt(j))) {
-					valid = false;
-					break;
-				}
-			}
-			if (!valid) {
-				abort_link_to_text(state, link_stack_idx, bracket_pos);
-				return true;
-			}
-			// Reject unsafe protocols (javascript:, data:, etc.) at parse time.
-			// `is_valid_path_char` permits `:` so we have to filter explicitly.
-			if (!mdz_is_safe_reference(reference)) {
-				abort_link_to_text(state, link_stack_idx, bracket_pos);
-				return true;
-			}
-
-			// success — close the link with reference
-			flush_text(state);
-			revert_above(state, link_stack_idx);
-			const entry = pop_stack_entry(state);
-			const link_type = mdz_is_url(reference) ? 'external' : 'internal';
-			emit(state, {
-				type: 'close',
-				id: entry.id,
-				end: offset(state, i + 1),
-				reference,
-				link_type,
-			});
-			state.active_text_id = null;
-			state.pos = i + 1;
-			state.column += i + 1 - bracket_pos;
-			state.prev_char = RIGHT_PAREN;
-			return true;
-		}
-		if (c === NEWLINE || c === SPACE) {
-			// invalid character in URL (simplified check)
-			break;
-		}
-		i++;
+	// found ]( — find the reference's terminator: `)` completes, a space or
+	// newline aborts. Memoized searches (see `buffer_index_of`) — a link whose
+	// URL arrives incrementally re-enters here on every feed with `pos` still
+	// at the `]`, and a raw scan would re-cover the growing reference each
+	// time, going quadratic on long streamed URLs.
+	const ref_start = bracket_pos + 2;
+	const close_pos = buffer_index_of(state, ')', ref_start);
+	const space_pos = buffer_index_of(state, ' ', ref_start);
+	const newline_pos = buffer_index_of(state, '\n', ref_start);
+	let invalid_pos = space_pos;
+	if (newline_pos !== -1 && (invalid_pos === -1 || newline_pos < invalid_pos)) {
+		invalid_pos = newline_pos;
 	}
 
-	// didn't find ) — need more input or invalid
-	if (i >= state.buffer.length) return false; // need more input
+	if (close_pos === -1) {
+		// didn't find ) — need more input or invalid
+		if (invalid_pos === -1) return false; // need more input
+		// found invalid char before any ) — revert
+		abort_link_to_text(state, link_stack_idx, bracket_pos);
+		return true;
+	}
+	if (invalid_pos !== -1 && invalid_pos < close_pos) {
+		// invalid character in URL (simplified check)
+		abort_link_to_text(state, link_stack_idx, bracket_pos);
+		return true;
+	}
 
-	// found invalid char before ) — revert
-	abort_link_to_text(state, link_stack_idx, bracket_pos);
+	const i = close_pos;
+	const reference = state.buffer.slice(ref_start, i);
+	// validate reference: non-empty and only valid path chars
+	if (!reference.trim()) {
+		abort_link_to_text(state, link_stack_idx, bracket_pos);
+		return true;
+	}
+	for (let j = 0; j < reference.length; j++) {
+		if (!is_valid_path_char(reference.charCodeAt(j))) {
+			abort_link_to_text(state, link_stack_idx, bracket_pos);
+			return true;
+		}
+	}
+	// Reject unsafe protocols (javascript:, data:, etc.) at parse time.
+	// `is_valid_path_char` permits `:` so we have to filter explicitly.
+	if (!mdz_is_safe_reference(reference)) {
+		abort_link_to_text(state, link_stack_idx, bracket_pos);
+		return true;
+	}
+
+	// success — close the link with reference
+	flush_text(state);
+	revert_above(state, link_stack_idx);
+	const entry = pop_stack_entry(state);
+	const link_type = mdz_is_url(reference) ? 'external' : 'internal';
+	emit(state, {
+		type: 'close',
+		id: entry.id,
+		end: offset(state, i + 1),
+		reference,
+		link_type,
+	});
+	state.active_text_id = null;
+	state.pos = i + 1;
+	state.column += i + 1 - bracket_pos;
+	state.prev_char = RIGHT_PAREN;
 	return true;
 };
 
@@ -177,6 +181,9 @@ export const try_tag_open = (state: MdzStreamParserState): TryResult => {
 	}
 
 	// collect tag name
+	// TODO the name/whitespace scans rescan from `start` on every held retry
+	// (hardening #21's open tail) — needs a hold watermark; a length cap would
+	// diverge from the sync parser on pathological multi-KB "tag names"
 	const name_start = i;
 	while (i < state.buffer.length && is_tag_name_char(state.buffer.charCodeAt(i))) {
 		i++;
@@ -254,6 +261,12 @@ export const try_close_tag = (state: MdzStreamParserState): TryResult => {
 
 	const name = state.buffer.slice(name_start, i);
 	i++; // past >
+
+	// O(1) bail when no tag of this name is open — without it, every `</name>`
+	// candidate walks the whole inline stack, which grows one frame per leaked
+	// unclosed `<Tag>` and goes quadratic on tag-dense input (the same shape
+	// `open_counts` guards for the delimiter inlines)
+	if (!state.open_tag_counts?.get(name)) return 'not_match';
 
 	// find matching open tag on stack
 	let found_idx = -1;

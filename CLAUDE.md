@@ -39,22 +39,40 @@ server.
 ## Benchmarks
 
 ```bash
-npm run benchmark         # run parser benchmarks, compare against baseline
-npm run benchmark:save    # save current results as the new baseline
-npm run benchmark:clean   # remove the local baseline (forces a fresh seed)
+npm run benchmark              # run parser benchmarks, compare against baseline
+npm run benchmark:save         # save current results as the new baseline
+npm run benchmark:clean        # remove the local baseline (forces a fresh seed)
+npm run benchmark:render       # run render benchmarks (SSR + MdzStreamState)
+npm run benchmark:render:save  # save render results as the new baseline
+npm run benchmark:render:clean # remove the local render baseline
 ```
 
-The baseline lives at `src/benchmarks/baseline.json` and is **gitignored** —
-local-only.
+The baselines live at `src/benchmarks/baseline.json` and
+`src/benchmarks/render/baseline.json` and are **gitignored** — local-only.
+Inputs are shared between the two suites via `benchmark_inputs.ts`.
 
-The suite compares the sync parser (`lexer-based`) against the streaming
-pipeline under several feed strategies: `streaming` / `opcodes-only`
-(one-shot feed, with and without the tree bridge), `streaming 64B` (64-byte
-chunks — exercises cross-chunk buffer compaction and search-memo
-invalidation), and `char-by-char` (small inputs only — large inputs would hit
-the known O(n²) buffer growth in `feed()` and stall the run). The "large
-dense inline" input guards against quadratic rescans on delimiter-dense
-single-paragraph docs.
+The parser suite (`mdz.benchmark.ts`, run via `gro run`) compares the sync
+parser (`lexer-based`) against the streaming pipeline under several feed
+strategies: `streaming` / `opcodes-only` (one-shot feed, with and without the
+tree bridge), `streaming 64B` (64-byte chunks — exercises cross-chunk buffer
+compaction and search-memo invalidation), and `char-by-char` (inputs up to
+30KB — linear on line-bounded input at ~4 MB/s, per-feed overhead dominates;
+the cap just keeps the suite's wall clock reasonable). Adversarial inputs
+guard specific non-linear failure modes: "large dense inline" (failed
+delimiter/closing-tag searches must not rescan — the sync `#index_of` memo),
+"mismatched tags" (`try_close_tag`'s `open_tag_counts` O(1) bail), and "hold
+line code" / "hold line link" (held candidates re-entered every feed must
+resume their terminator scans via the `buffer_index_of` memo, not rescan the
+growing line). A residual super-linear term remains when a hold pins the
+buffer against compaction (V8 rope flattening per feed) — only a chunked
+buffer abstraction would remove it, and it needs a multi-KB single line fed
+in small chunks to matter.
+
+The render suite (`render.benchmark.test.ts`) runs under vitest because the
+Svelte pipeline needs the compiler — it measures SSR through `Mdz` and
+`MdzStream` (via `svelte/server`'s `render`, no DOM needed) and the reactive
+consumer's `MdzStreamState.apply_batch` in isolation. It's gated behind the
+`BENCHMARK_RENDER` env var, so plain `gro test` skips it.
 
 ## Key dependencies
 
@@ -175,7 +193,11 @@ marker line (`- | a |` is inline text, like `` - ```ts ``).
 
 - `Mdz.svelte` — render static content: `<Mdz content="**hi**" />`
 - `MdzStream.svelte` — render streaming content from an `MdzStreamState`
-- `MdzNodeView.svelte` / `MdzStreamNodeView.svelte` — recursive node renderers
+- `MdzNodeView.svelte` / `MdzStreamNodeView.svelte` — recursive node
+  renderers; the recursion is **snippet-based** (a `render_node` snippet
+  calling itself), so a tree costs one component instance and one set of
+  context reads at its root rather than per node — contexts are therefore
+  resolved once per tree, not per subtree
 - `MdzRoot.svelte` — context provider for `base`, `components`, `elements`,
   `code`, and `codeblock`
 - `MdzPrecompiled.svelte` — wrapper for preprocessor output
@@ -232,8 +254,9 @@ documented surface is the parse/stream/render/preprocess API plus the
 
 ## Testing
 
-Tests live in `src/test/` (not co-located). Fixture-based tests drive both the
-parser and the preprocessor:
+Tests live in `src/test/` (not co-located). The runtime renderers are covered
+by SSR tests (`mdz_render.test.ts` — `svelte/server`'s `render`, no DOM
+environment). Fixture-based tests drive both the parser and the preprocessor:
 
 | Category                          | Input          | Tests                       |
 | --------------------------------- | -------------- | --------------------------- |

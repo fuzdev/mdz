@@ -547,6 +547,40 @@ const PATH_CHAR_TABLE: Uint8Array = (() => {
 export const is_valid_path_char = (char_code: number): boolean =>
 	char_code < 128 && PATH_CHAR_TABLE[char_code] === 1;
 
+// Character classes for the plain-text run scanners (the hottest loops in
+// both parsers) — one table load per character instead of a comparison chain.
+// A zero class is the common case: the char can't end or interrupt a text run.
+
+/** Always ends a text run: `` ` `` `*` `_` `~` `[` `]` `<`. @nodocs */
+export const TEXT_CLASS_STOP = 1;
+/** `\n` — run handling is context-dependent (soft break, paragraph break, block lookahead). @nodocs */
+export const TEXT_CLASS_NEWLINE = 2;
+/** `h`/`H` — potential URL scheme start, needs the prefix probe. @nodocs */
+export const TEXT_CLASS_URL = 4;
+/** `/` and `.` — potential path start, needs the boundary probe. @nodocs */
+export const TEXT_CLASS_PATH = 8;
+/** `\` — a literal-pipe escape candidate inside table cells only. @nodocs */
+export const TEXT_CLASS_BACKSLASH = 16;
+
+/** @nodocs */
+export const TEXT_SCAN_CLASS: Uint8Array = (() => {
+	const t = new Uint8Array(128);
+	t[BACKTICK] = TEXT_CLASS_STOP;
+	t[ASTERISK] = TEXT_CLASS_STOP;
+	t[UNDERSCORE] = TEXT_CLASS_STOP;
+	t[TILDE] = TEXT_CLASS_STOP;
+	t[LEFT_BRACKET] = TEXT_CLASS_STOP;
+	t[RIGHT_BRACKET] = TEXT_CLASS_STOP;
+	t[LEFT_ANGLE] = TEXT_CLASS_STOP;
+	t[NEWLINE] = TEXT_CLASS_NEWLINE;
+	t[H_LOWER] = TEXT_CLASS_URL;
+	t[H_UPPER] = TEXT_CLASS_URL;
+	t[SLASH] = TEXT_CLASS_PATH;
+	t[PERIOD] = TEXT_CLASS_PATH;
+	t[BACKSLASH] = TEXT_CLASS_BACKSLASH;
+	return t;
+})();
+
 /**
  * Trim trailing punctuation from URL/path per RFC 3986 and GFM rules.
  * - Trims simple trailing: .,;:!?]

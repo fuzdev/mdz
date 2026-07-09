@@ -9,6 +9,7 @@
  */
 
 import type {MdzNodeTypeContainer, MdzNodeId, MdzOpcode} from './mdz_opcodes.ts';
+import type {MdzTableCellParser} from './mdz.ts';
 import {NEWLINE, has_non_whitespace, mdz_heading_id_from_text} from './mdz_helpers.ts';
 
 /**
@@ -214,8 +215,9 @@ export interface MdzStreamParserState {
 	 * is `null` for a top-level table (column-0 rows) or the enclosing list item's
 	 * marker indent for a table nested as a block child (rows skip the indent and
 	 * a dedent to that indent ends the table, returning control to the list).
+	 * `cell_parser` is the table's shared cell parser, rebound per row.
 	 */
-	table: {id: MdzNodeId; item_indent: number | null} | null;
+	table: {id: MdzNodeId; item_indent: number | null; cell_parser: MdzTableCellParser} | null;
 	/**
 	 * Whether the innermost open ListItem's first inline run is current.
 	 * Content then flows directly into the ListItem frame — the sync AST
@@ -243,6 +245,15 @@ export interface MdzStreamParserState {
 	search_memo: Map<string, BufferSearchMemo> | null;
 	/** Open-container counts for `find_open`'s O(1) "nothing open" early exit. */
 	open_counts: OpenInlineCounts;
+	/**
+	 * Per-name counts of open Element/Component frames, the tag analogue of
+	 * `open_counts`: `try_close_tag` bails in O(1) when the closing name isn't
+	 * open, instead of walking a stack that grows one frame per leaked unclosed
+	 * `<Tag>`. Lazily created on the first tag open — tag-free inputs never
+	 * allocate the map. Run-scoped like `open_counts`: run closes revert every
+	 * inline frame above them, decrementing the counts back to zero.
+	 */
+	open_tag_counts: Map<string, number> | null;
 	/** Whether we're inside a heading (newline ends it). */
 	in_heading: boolean;
 	/** Whether we're inside an optimistic inline Code container. */
@@ -315,6 +326,7 @@ export const create_state = (): MdzStreamParserState => ({
 	base_offset: 0,
 	search_memo: null,
 	open_counts: {Bold: 0, Italic: 0, Strikethrough: 0, Link: 0},
+	open_tag_counts: null,
 	in_heading: false,
 	in_code: false,
 	in_paragraph: false,
@@ -362,6 +374,10 @@ export const push_stack_entry = (
 	} else {
 		bump_open_count(state, node_type, 1);
 	}
+	if (tag_name !== undefined) {
+		const counts = (state.open_tag_counts ??= new Map());
+		counts.set(tag_name, (counts.get(tag_name) ?? 0) + 1);
+	}
 };
 
 /**
@@ -394,6 +410,10 @@ const bump_open_count = (
 export const pop_stack_entry = (state: MdzStreamParserState): StackEntry => {
 	const entry = state.stack.pop()!;
 	bump_open_count(state, entry.node_type, -1);
+	if (entry.tag_name !== undefined) {
+		const counts = state.open_tag_counts!;
+		counts.set(entry.tag_name, counts.get(entry.tag_name)! - 1);
+	}
 	return entry;
 };
 
@@ -519,8 +539,13 @@ export const emit = (state: MdzStreamParserState, op: MdzOpcode): void => {
 		if (top) {
 			top.has_children = true;
 			// propagate non-whitespace marker to the nearest Paragraph so
-			// whitespace-only paragraphs can be discarded at close
-			if (op.type === 'void' || has_non_whitespace(op.content)) {
+			// whitespace-only paragraphs can be discarded at close — the O(1)
+			// no-paragraph check runs first so codeblock/table-cell emissions
+			// (never inside a Paragraph) skip the content scan entirely
+			if (
+				op.type === 'void' ||
+				(state.paragraph_stack_idx !== -1 && has_non_whitespace(op.content))
+			) {
 				mark_paragraph_non_whitespace(state);
 			}
 		}
@@ -744,6 +769,10 @@ export const revert_failed_close = (state: MdzStreamParserState, stack_idx: numb
 	const frames_above = state.stack.length - 1 - stack_idx;
 	state.stack.splice(stack_idx, 1);
 	bump_open_count(state, entry.node_type, -1);
+	if (entry.tag_name !== undefined) {
+		const counts = state.open_tag_counts!;
+		counts.set(entry.tag_name, counts.get(entry.tag_name)! - 1);
+	}
 	state.opcodes.push({
 		type: 'revert',
 		id: entry.id,

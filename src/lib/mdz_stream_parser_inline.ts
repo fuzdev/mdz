@@ -339,17 +339,24 @@ export const scan_closer_boundary = (
 /** @nodocs */
 export const try_code = (state: MdzStreamParserState, forced = false): boolean => {
 	const start = state.pos;
-	let i = start + 1; // past opening backtick
+	const search_start = start + 1; // past opening backtick
 
 	// compute search boundary: don't scan past open formatting delimiters
-	const search_limit = code_search_limit(state, start + 1);
+	const search_limit = code_search_limit(state, search_start);
 
-	// scan for closing backtick (must be before newline and search boundary)
-	while (i < state.buffer.length && i < search_limit) {
-		const c = state.buffer.charCodeAt(i);
-		if (c === BACKTICK) {
+	// find the first closing backtick or newline (memoized — a candidate that
+	// holds under open formatting re-enters here on every feed, and a raw scan
+	// would re-cover the same growing region each time, going quadratic on a
+	// single long line)
+	const close_pos = buffer_index_of(state, '`', search_start);
+	const newline_pos = buffer_index_of(state, '\n', search_start);
+	const terminator =
+		close_pos !== -1 && (newline_pos === -1 || close_pos < newline_pos) ? close_pos : newline_pos;
+
+	if (terminator !== -1 && terminator < search_limit) {
+		if (terminator === close_pos) {
 			// found close
-			const content = state.buffer.slice(start + 1, i);
+			const content = state.buffer.slice(search_start, terminator);
 			if (content.length === 0) {
 				// empty code — treat as text
 				consume_delimiter_as_text(state, '``');
@@ -364,20 +371,17 @@ export const try_code = (state: MdzStreamParserState, forced = false): boolean =
 				content,
 				text_type: 'Code',
 				start: offset(state, start),
-				end: offset(state, i + 1),
+				end: offset(state, terminator + 1),
 			});
 			state.active_text_id = null;
-			state.pos = i + 1;
-			state.column += i + 1 - start;
+			state.pos = terminator + 1;
+			state.column += terminator + 1 - start;
 			state.prev_char = BACKTICK;
 			return true;
 		}
-		if (c === NEWLINE) {
-			// inline code can't span lines — treat opening backtick as text
-			consume_delimiter_as_text(state, '`');
-			return true;
-		}
-		i++;
+		// newline before any close — inline code can't span lines
+		consume_delimiter_as_text(state, '`');
+		return true;
 	}
 
 	// hit search limit (open formatting delimiter boundary) — treat backtick as
@@ -386,7 +390,7 @@ export const try_code = (state: MdzStreamParserState, forced = false): boolean =
 	// processed), the one-shot parse rejects that italic and scans unbounded —
 	// see the `MdzStreamParser` TSDoc and the parity suite's expected-divergence
 	// battery
-	if (i < state.buffer.length && i >= search_limit) {
+	if (search_limit < state.buffer.length) {
 		consume_delimiter_as_text(state, '`');
 		return true;
 	}

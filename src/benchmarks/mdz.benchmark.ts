@@ -19,247 +19,15 @@ import {mdz_parse} from '../lib/mdz.ts';
 import {MdzStreamParser} from '../lib/mdz_stream_parser.ts';
 import {mdz_opcodes_to_nodes} from '../lib/mdz_opcodes_to_nodes.ts';
 import type {MdzOpcode} from '../lib/mdz_opcodes.ts';
+import {benchmark_inputs} from './benchmark_inputs.ts';
 
 const save_baseline = process.argv.includes('--save');
 const BASELINE_PATH = 'src/benchmarks';
 const BASELINE_FILE = `${BASELINE_PATH}/baseline.json`;
 
-// -- Benchmark inputs --
-
-// Generate a large synthetic input
-const generate_large_input = (): string => {
-	const sections: Array<string> = [];
-	for (let i = 0; i < 50; i++) {
-		sections.push(`## Section ${i + 1}
-
-This is paragraph ${i + 1} with **bold** and _italic_ text.
-Here's a \`code snippet\` and a [link](https://fuz.dev/${i}).
-
-\`\`\`
-code block ${i + 1}
-const value = ${i};
-\`\`\`
-
-Some more text with https://auto.link/${i} and ~~strikethrough~~ content.`);
-	}
-	return `# Large Document\n\n${sections.join('\n\n')}`;
-};
-
-// Blockquote-dense input: nesting depth changes, in-quote blanks, lists and
-// fences inside quotes, quotes inside items, and delimiter-dense quoted
-// paragraphs. Guards the nested-parser pipeline — per-line prefix matching,
-// one-level stripping, and (streaming) opcode forwarding with offset
-// remapping must all stay linear.
-const generate_blockquote_heavy_input = (): string => {
-	const sections: Array<string> = [];
-	for (let i = 0; i < 40; i++) {
-		sections.push(`## Quote group ${i + 1}
-
-> **Reviewer ${i}** wrote about snake_case_idents and ~/dev/path_${i}:
->
-> The earlier draft of section_${i} said something _different_ here,
-> with more_snake_case and x_${i} markers throughout the paragraph.
->
-> - first point about \`api_call_${i}\`
-> - second point with **bold** content
->   - a nested bullet under it
->
-> > and a nested quote quoting reply_${i}
-> > across two lines
->
-> \`\`\`ts
-> const value_${i} = compute(${i});
-> \`\`\`
-
-1. step with a quoted note
-   > attached to item ${i}
-   > continuing the quote
-2. follow-up step ${i}`);
-	}
-	return `# Blockquote Heavy\n\n${sections.join('\n\n')}`;
-};
-
-// List-heavy input: deep nesting, blank-line containment, in-item fences, and
-// delimiter-dense item content (snake_case `_` failed candidates; the `~/dev/`
-// path tildes take the single-`~` literal fast path). Locks in two costs:
-// per-line classification inside open lists must stay invisible, and the
-// inline closer scans' run-boundary probe must stay amortized-linear on
-// delimiter-dense items.
-const generate_list_heavy_input = (): string => {
-	const sections: Array<string> = [];
-	for (let i = 0; i < 40; i++) {
-		sections.push(`## Step group ${i + 1}
-
-1. **Setup ${i}**
-
-   Install the dependency_name_${i} package and set the env_var_${i} value
-   for the ~/dev/repo_${i} checkout before continuing.
-
-   \`\`\`bash
-   npm install pkg_${i}
-   \`\`\`
-
-2. **Run ${i}**
-   - nested bullet with snake_case_idents and ~/dev/path_${i} refs
-   - another _nested_ bullet with more_snake_case here
-     - deeper level with x_${i} and y_${i} markers
-   - back out to the sibling level
-
-3. Final step ${i} with trailing prose
-   continuing on an indented line`);
-	}
-	return `# List Heavy\n\n${sections.join('\n\n')}`;
-};
-
-// Table-heavy input: many pipe tables with inline-dense cells (bold, code,
-// links, strikethrough), code-span and `\|` literal pipes, and per-column
-// alignment. Locks in two costs: per-row cell splitting + cell inline parsing
-// must stay linear across hundreds of cells (the streaming path shares one
-// lexer/parser per row via `MdzTableCellParser`), and the streaming header hold
-// (a `|` row held until its delimiter line arrives) must not rescan
-// quadratically — the 64B feed strategy splits rows mid-line.
-const generate_table_heavy_input = (): string => {
-	const sections: Array<string> = [];
-	for (let i = 0; i < 40; i++) {
-		sections.push(`## Table group ${i + 1}
-
-| Name | \`Type\` | Default | Notes |
-| :--- | :----: | ------: | :---- |
-| field_${i}_a | \`string\` | \`""\` | a **bold** note with ./path_${i} |
-| field_${i}_b | \`number\` | \`0\` | union \`A_${i} | B_${i}\` protected |
-| field_${i}_c | \`boolean\` | \`false\` | escaped a \\| b literal |
-| field_${i}_d | \`Array<x>\` | \`[]\` | see [docs](/docs/${i}) and ~~old~~ |
-| field_${i}_e | \`Map\` | \`null\` | trailing _italic_ ${i} |`);
-	}
-	return `# Table Heavy\n\n${sections.join('\n\n')}`;
-};
-
-const inputs = [
-	{name: 'tiny', content: 'hello **bold** world'},
-	{
-		name: 'small',
-		content: `# Small Document
-
-This is a _simple_ paragraph with **bold** text and \`inline code\`.
-
-Here's a link: [click here](https://fuz.dev) and an auto-link https://fuz.dev/path.
-
-Some ~~strikethrough~~ text and more _italic_ words.`,
-	},
-	{
-		name: 'medium',
-		content: `# Medium Document
-
-## Introduction
-
-This is a **medium-sized** document that tests various mdz features.
-It has multiple paragraphs with _italic_, **bold**, and \`code\` formatting.
-
-## Code Examples
-
-Here's some inline \`code\` and a code block:
-
-\`\`\`typescript
-const x = 42;
-function hello() {
-  return 'world';
-}
-\`\`\`
-
-## Links and References
-
-Visit [the docs](https://docs.fuz.dev) for more info.
-Also see https://fuz.dev/api and /internal/path for details.
-
-## Formatting
-
-This paragraph has **bold with _nested italic_** and standalone ~~strikethrough~~ text.
-Multiple **bold** words in a **single** line with \`code\` mixed in.
-
----
-
-Final section after a horizontal rule.
-
-More content with [multiple](https://a.com) links [here](https://b.com) and [there](/c).`,
-	},
-	{name: 'large', content: generate_large_input()},
-	{
-		name: 'angle brackets',
-		// Angle brackets without closing tags — exercises tag bail-out paths.
-		// Before the pre-check fix, unclosed tags like <GodType> caused O(n*k)
-		// scanning through the rest of the document.
-		content: `# TypeScript-Heavy Document
-
-### Why object literals beat Pick<GodType>
-
-A \`Pick<AppRuntime, 'env_get'>\` pattern forces every consumer to import the
-god type. Small standalone interfaces have no such coupling.
-
-## Generic Signatures
-
-\`\`\`typescript
-export interface GitDeps {
-  checkout: (options: {branch: string}) => Promise<Result<object, {message: string}>>;
-  push: (options: {cwd?: string}) => Promise<Result<object, {message: string}>>;
-}
-
-export const update = async (
-  repos: Array<LocalRepo>,
-  updates: Map<string, string>,
-): Promise<void> => {};
-
-export const read_json = <T>(path: string): Promise<T | null> => {};
-\`\`\`
-
-### Narrowing with \`Pick<>\`
-
-\`Pick<>\` on small \`*Deps\` interfaces is fine:
-
-\`\`\`typescript
-password: Pick<PasswordHashDeps, 'hash_password'>;
-\`\`\`
-
-The anti-pattern is \`Pick<GodType>\` — coupling every consumer to a large type.
-
-## More Generics
-
-Functions with Array<string>, Promise<void>, and Map<string, number> in prose.
-
-| Type | Example |
-| --- | --- |
-| \`Array<string>\` | list of names |
-| \`Promise<Result<object>>\` | async result |
-| \`Pick<Deps, 'key'>\` | narrowed deps |`,
-	},
-	{
-		name: 'many angles',
-		// Many unclosed angle brackets in a single paragraph — worst case for
-		// repeated tag bail-outs within one parse unit
-		content: Array.from(
-			{length: 50},
-			(_, i) => `Item ${i}: Array<string> and Map<number, Result<object>> end.`,
-		).join('\n'),
-	},
-	{name: 'list heavy', content: generate_list_heavy_input()},
-	{name: 'blockquote heavy', content: generate_blockquote_heavy_input()},
-	{name: 'table heavy', content: generate_table_heavy_input()},
-	{
-		name: 'large dense inline',
-		// Large doc dense in unclosed delimiter candidates — `<Tag>`-shaped
-		// generics searching for closing tags that never exist. Each failed
-		// search must not rescan to the end of the document (the `#index_of`
-		// memo), or parsing goes quadratic and large real-world docs hang.
-		// The `~/dev` home paths used to be the other half of the pathology
-		// (single-`~` strikethrough scans); since strikethrough moved to GFM
-		// `~~`, a single `~` is literal with no scan at all, and the paths now
-		// exercise that fast path.
-		content: Array.from(
-			{length: 1600},
-			(_, i) =>
-				`The ~/dev/repo_${i} crate returns Vec<String> and Box<dyn Error> while ~/dev/other_${i} uses Option<Arc<Mutex<T>>> in its API surface. `,
-		).join('\n'),
-	},
-];
+// inputs live in `benchmark_inputs.ts`, shared with the render suite
+// (`render.benchmark.test.ts`)
+const inputs = benchmark_inputs;
 
 /** Parse via streaming parser (one-shot feed) + tree bridge. */
 const mdz_parse_stream = (content: string): unknown => {
@@ -308,13 +76,16 @@ const parsers: Array<BenchmarkParser> = [
 	{name: 'streaming', parse: mdz_parse_stream},
 	{name: 'opcodes-only', parse: mdz_parse_opcodes_only},
 	{name: 'streaming 64B', parse: (content) => mdz_parse_stream_chunked(content, 64)},
-	// char-by-char is the hardening-#14 worst case (O(n²) buffer string copies
-	// in feed) — restrict to small inputs so the benchmark stays fast until a
-	// buffer abstraction lands
+	// char-by-char is linear on line-bounded input (measured ~4 MB/s — per-feed
+	// overhead dominates) but still slow in absolute terms; the cap keeps the
+	// suite's wall clock reasonable while covering every input up to `large`
+	// and the adversarial hold lines. The residual super-linear term is V8
+	// rope flattening while a hold pins the buffer (no compaction), which only
+	// a chunked buffer abstraction would remove.
 	{
 		name: 'char-by-char',
 		parse: (content) => mdz_parse_stream_chunked(content, 1),
-		max_input_length: 1000,
+		max_input_length: 30_000,
 	},
 ];
 

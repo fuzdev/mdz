@@ -50,7 +50,11 @@ import {
 	mdz_split_table_row,
 	mdz_parse_table_delimiter,
 	PIPE,
-	BACKSLASH,
+	TEXT_CLASS_BACKSLASH,
+	TEXT_CLASS_NEWLINE,
+	TEXT_CLASS_STOP,
+	TEXT_CLASS_URL,
+	TEXT_SCAN_CLASS,
 } from './mdz_helpers.ts';
 
 import type {MdzTableAlign} from './mdz.ts';
@@ -307,6 +311,24 @@ export class MdzLexer {
 
 	constructor(text: string) {
 		this.#text = text;
+	}
+
+	/**
+	 * Rebind to a new text, so one lexer instance can be reused across inputs —
+	 * the streaming table path reuses one across a table's rows via
+	 * `MdzTableCellParser` instead of allocating a lexer (and its memo `Map`)
+	 * per row. The search memos survive when the text is identical (they're
+	 * valid over the immutable text — the common case for rows parsed from one
+	 * buffered chunk) and clear otherwise. Per-parse cursor state is reset by
+	 * `lex_table_cell` itself.
+	 *
+	 * @nodocs
+	 */
+	rebind(text: string): void {
+		if (this.#text === text) return;
+		this.#text = text;
+		this.#search_memo.clear();
+		this.#break_memo = null;
 	}
 
 	/**
@@ -1780,16 +1802,29 @@ export class MdzLexer {
 		let parts: Array<string> | null = null;
 		let part_start = start;
 
-		while (this.#index < this.#text.length) {
-			const char_code = this.#text.charCodeAt(this.#index);
+		// in a table cell the trimmed cell end is a hard stop (no newline to
+		// halt on mid-line) — hoisted to the loop bound
+		const scan_end = this.#in_table_cell
+			? Math.min(this.#max_search_index, this.#text.length)
+			: this.#text.length;
 
-			// in a table cell: the trimmed cell end is a hard stop (no newline to
-			// halt on mid-line), and `\|` is a literal pipe (the only mdz escape,
-			// scoped here)
-			if (this.#in_table_cell) {
-				if (this.#index >= this.#max_search_index) break;
+		while (this.#index < scan_end) {
+			const char_code = this.#text.charCodeAt(this.#index);
+			// one table load classifies the char; zero (the common case — the
+			// char can't end or interrupt the run) skips the dispatch below
+			const char_class = char_code < 128 ? TEXT_SCAN_CLASS[char_code]! : 0;
+			if (char_class === 0) {
+				this.#index++;
+				continue;
+			}
+
+			// Stop at special characters
+			if ((char_class & TEXT_CLASS_STOP) !== 0) break;
+
+			if ((char_class & TEXT_CLASS_BACKSLASH) !== 0) {
+				// `\|` is a literal pipe — the only mdz escape, scoped to table cells
 				if (
-					char_code === BACKSLASH &&
+					this.#in_table_cell &&
 					this.#index + 1 < this.#max_search_index &&
 					this.#text.charCodeAt(this.#index + 1) === PIPE
 				) {
@@ -1799,22 +1834,11 @@ export class MdzLexer {
 					part_start = this.#index;
 					continue;
 				}
+				this.#index++;
+				continue;
 			}
 
-			// Stop at special characters
-			if (
-				char_code === BACKTICK ||
-				char_code === ASTERISK ||
-				char_code === UNDERSCORE ||
-				char_code === TILDE ||
-				char_code === LEFT_BRACKET ||
-				char_code === RIGHT_BRACKET ||
-				char_code === LEFT_ANGLE
-			) {
-				break;
-			}
-
-			if (char_code === NEWLINE) {
+			if ((char_class & TEXT_CLASS_NEWLINE) !== 0) {
 				if (this.#list_run_strip) {
 					if (this.#index >= this.#max_search_index) break; // the run's terminator
 					// soft break: keep the newline, strip the next line's leading
@@ -1853,14 +1877,16 @@ export class MdzLexer {
 						break;
 					}
 				}
+				this.#index++; // single newline — ordinary text
+				continue;
 			}
 
-			// Check for URL or internal path mid-text (char code guard avoids startsWith on every char)
-			if (
-				((char_code === 104 /* h */ || char_code === 72) /* H */ && this.#is_at_url()) ||
-				(char_code === SLASH && is_at_absolute_path(this.#text, this.#index)) ||
-				(char_code === PERIOD && is_at_relative_path(this.#text, this.#index))
-			) {
+			// URL or internal path mid-text (class guard avoids probing every char)
+			if ((char_class & TEXT_CLASS_URL) !== 0) {
+				if (this.#is_at_url()) break;
+			} else if (char_code === SLASH) {
+				if (is_at_absolute_path(this.#text, this.#index)) break;
+			} else if (is_at_relative_path(this.#text, this.#index)) {
 				break;
 			}
 

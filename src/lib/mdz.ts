@@ -89,6 +89,15 @@ export class MdzTableCellParser {
 		this.#lexer = new MdzLexer(text);
 	}
 
+	/**
+	 * Rebind to a new buffer so one instance serves a whole table — the
+	 * streaming path rebinds per row (the buffer string changes across feeds;
+	 * the lexer's search memo survives when it doesn't).
+	 */
+	rebind(text: string): void {
+		this.#lexer.rebind(text);
+	}
+
 	parse(cell_start: number, cell_end: number): Array<MdzNode> {
 		this.#parser.reset(this.#lexer.lex_table_cell(cell_start, cell_end));
 		return this.#parser.parse_inline_run();

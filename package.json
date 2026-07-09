@@ -30,7 +30,10 @@
     "deploy": "gro deploy",
     "benchmark": "gro run src/benchmarks/mdz.benchmark.ts",
     "benchmark:save": "gro run src/benchmarks/mdz.benchmark.ts --save",
-    "benchmark:clean": "rm -f src/benchmarks/baseline.json"
+    "benchmark:clean": "rm -f src/benchmarks/baseline.json",
+    "benchmark:render": "BENCHMARK_RENDER=1 gro test render.benchmark",
+    "benchmark:render:save": "BENCHMARK_RENDER=save gro test render.benchmark",
+    "benchmark:render:clean": "rm -f src/benchmarks/render/baseline.json"
   },
   "type": "module",
   "engines": {
