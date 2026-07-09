@@ -55,7 +55,10 @@ export const consume_text_run = (state: MdzStreamParserState): void => {
 	while (state.pos < state.buffer.length) {
 		const c = state.buffer.charCodeAt(state.pos);
 		// one table load classifies the char; zero (the common case) continues
-		// the run without any further checks
+		// the run without any further checks. `TEXT_SCAN_CLASS` is shared with
+		// the sync lexer's `#tokenize_text` (`mdz_lexer.ts`); the dispatch bodies
+		// intentionally differ — that one handles `\|` escapes and list-run
+		// strip, this one URL speculation across chunk boundaries.
 		const char_class = c < 128 ? TEXT_SCAN_CLASS[c]! : 0;
 		if (char_class === 0) {
 			state.pos++;

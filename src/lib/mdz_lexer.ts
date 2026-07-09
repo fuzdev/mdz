@@ -1811,7 +1811,11 @@ export class MdzLexer {
 		while (this.#index < scan_end) {
 			const char_code = this.#text.charCodeAt(this.#index);
 			// one table load classifies the char; zero (the common case — the
-			// char can't end or interrupt the run) skips the dispatch below
+			// char can't end or interrupt the run) skips the dispatch below.
+			// `TEXT_SCAN_CLASS` is shared with the streaming scanner
+			// (`consume_text_run` in `mdz_stream_parser_text.ts`); the two dispatch
+			// bodies intentionally differ around it — this one handles `\|` escapes
+			// and list-run strip, that one URL speculation across chunk boundaries.
 			const char_class = char_code < 128 ? TEXT_SCAN_CLASS[char_code]! : 0;
 			if (char_class === 0) {
 				this.#index++;
