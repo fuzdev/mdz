@@ -8,7 +8,7 @@ For inline use in a Svelte template, with content known up front:
 <Mdz content="**bold** text" />
 ```
 
-Internally calls `mdz_parse` and renders via `MdzNodeView`. Best for: documentation pages, alerts, tooltips — anything where you have the full string before render. With /docs/svelte_preprocess_mdz this also compiles away at build time for static strings.
+Internally calls `mdz_parse` and renders via `MdzNodeView`. Best for: documentation pages, alerts, tooltips — anything where you have the full string before render. With /docs/svelte_preprocess_mdz this also compiles away at build time for static strings. To skip the parse, pass a pre-parsed tree instead of a string — `<Mdz nodes={tree} />` — for content parsed ahead of render (e.g. a docs site pre-parsing its markdown at build time).
 
 ### Path 2: `mdz_parse` + `MdzNodeView` (one-shot, manual)
 
