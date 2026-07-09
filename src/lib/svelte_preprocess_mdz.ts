@@ -37,7 +37,7 @@ import {
 } from '@fuzdev/fuz_util/svelte_preprocess_helpers.ts';
 
 import {mdz_parse} from './mdz.ts';
-import {mdz_to_svelte} from './mdz_to_svelte.ts';
+import {mdz_to_svelte, type MdzToSvelteResult} from './mdz_to_svelte.ts';
 
 /**
  * An estree `ImportDeclaration` augmented with Svelte's position data.
@@ -300,6 +300,33 @@ const collect_consumed_bindings = (
  * Walks the AST to find `Mdz` component usages with static `content` props
  * and generates transformations to replace them with `MdzPrecompiled` children.
  */
+/**
+ * Parse a static mdz string and render it to Svelte markup. Returns `null` to
+ * leave the usage for the runtime — either the content raised a parse error
+ * (reported via `on_error`) or it contains unconfigured tags (which the
+ * precompiler emits nothing for; the runtime renders the fallback chrome).
+ */
+const render_static_mdz = (
+	content: string,
+	base: string | undefined,
+	context: FindMdzUsagesContext,
+): MdzToSvelteResult | null => {
+	let result: MdzToSvelteResult;
+	try {
+		result = mdz_to_svelte(mdz_parse(content), {
+			components: context.components,
+			elements: context.elements,
+			base,
+			code_component_import: context.code_component_import,
+			codeblock_component_import: context.codeblock_component_import,
+		});
+	} catch (error) {
+		handle_preprocess_error(error, '[fuz-mdz]', context.filename, context.on_error);
+		return null;
+	}
+	return result.has_unconfigured_tags ? null : result;
+};
+
 const find_mdz_usages = (
 	ast: AST.Root,
 	mdz_names: Map<string, ResolvedComponentImport>,
@@ -346,24 +373,8 @@ const find_mdz_usages = (
 			// Extract static string value
 			const content_value = extract_static_string(content_attr.value, context.bindings);
 			if (content_value !== null) {
-				// Parse mdz content and render to Svelte markup
-				let result;
-				try {
-					const nodes = mdz_parse(content_value);
-					result = mdz_to_svelte(nodes, {
-						components: context.components,
-						elements: context.elements,
-						base,
-						code_component_import: context.code_component_import,
-						codeblock_component_import: context.codeblock_component_import,
-					});
-				} catch (error) {
-					handle_preprocess_error(error, '[fuz-mdz]', context.filename, context.on_error);
-					return;
-				}
-
-				// If content has unconfigured tags, skip this usage (fall back to runtime)
-				if (result.has_unconfigured_tags) return;
+				const result = render_static_mdz(content_value, base, context);
+				if (result === null) return; // parse error or unconfigured tags — leave for runtime
 
 				const consumed = collect_consumed_bindings(content_attr.value, context.bindings);
 				const replacement = build_replacement(node, exclude_attrs, result.markup, context.source);
@@ -390,22 +401,10 @@ const find_mdz_usages = (
 			// Parse and render each branch
 			const branch_results: Array<{markup: string; imports: Map<string, PreprocessImportInfo>}> =
 				[];
-			try {
-				for (const branch of chain) {
-					const nodes = mdz_parse(branch.value);
-					const result = mdz_to_svelte(nodes, {
-						components: context.components,
-						elements: context.elements,
-						base,
-						code_component_import: context.code_component_import,
-						codeblock_component_import: context.codeblock_component_import,
-					});
-					if (result.has_unconfigured_tags) return;
-					branch_results.push({markup: result.markup, imports: result.imports});
-				}
-			} catch (error) {
-				handle_preprocess_error(error, '[fuz-mdz]', context.filename, context.on_error);
-				return;
+			for (const branch of chain) {
+				const result = render_static_mdz(branch.value, base, context);
+				if (result === null) return; // parse error or unconfigured tags — leave for runtime
+				branch_results.push({markup: result.markup, imports: result.imports});
 			}
 
 			// Build {#if}/{:else if}/{:else} markup

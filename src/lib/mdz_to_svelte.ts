@@ -13,7 +13,7 @@ import {escape_svelte_text} from '@fuzdev/fuz_util/svelte_preprocess_helpers.ts'
 import {escape_js_string} from '@fuzdev/fuz_util/string.ts';
 
 import type {MdzNode, MdzNodeTableRow} from './mdz.ts';
-import {mdz_resolve_relative_path, mdz_is_void_element} from './mdz_helpers.ts';
+import {mdz_is_void_element, mdz_classify_link} from './mdz_helpers.ts';
 
 /**
  * Result of converting `MdzNode` arrays to Svelte markup.
@@ -131,26 +131,21 @@ export const mdz_to_svelte = (
 
 			case 'Link': {
 				const children_markup = render_nodes(node.children);
-				if (node.link_type === 'internal') {
-					if (node.reference.startsWith('.') && base) {
-						const resolved = mdz_resolve_relative_path(node.reference, base);
-						imports.set('resolve', {path: '$app/paths', kind: 'named'});
-						return `<a href={resolve('${escape_js_string(resolved)}')}>${children_markup}</a>`;
-					}
-					if (
-						node.reference.startsWith('#') ||
-						node.reference.startsWith('?') ||
-						node.reference.startsWith('.') ||
-						// Bare references (e.g. `foo`) aren't absolute — resolve() throws on them
-						!node.reference.startsWith('/')
-					) {
-						return `<a href={'${escape_js_string(node.reference)}'}>${children_markup}</a>`;
-					}
+				// safety gate + resolve-vs-raw classification shared with the runtime
+				// views via `mdz_classify_link`, so the three renderers can't drift
+				// (an unsafe `javascript:`/`data:` ref renders as plain children, no
+				// `<a>` — defense in depth, since `mdz_to_svelte` is a public entry
+				// callable with hand-built trees that never went through `mdz_parse`)
+				const link = mdz_classify_link(node.reference, node.link_type, base);
+				if (link.kind === 'unsafe') return children_markup;
+				if (link.kind === 'resolve') {
 					imports.set('resolve', {path: '$app/paths', kind: 'named'});
-					return `<a href={resolve('${escape_js_string(node.reference)}')}>${children_markup}</a>`;
+					return `<a href={resolve('${escape_js_string(link.href)}')}>${children_markup}</a>`;
 				}
-				// External link — matches MdzNodeView: target="_blank" rel="noopener"
-				return `<a href={'${escape_js_string(node.reference)}'} target="_blank" rel="noopener">${children_markup}</a>`;
+				if (link.kind === 'external') {
+					return `<a href={'${escape_js_string(link.href)}'} target="_blank" rel="noopener">${children_markup}</a>`;
+				}
+				return `<a href={'${escape_js_string(link.href)}'}>${children_markup}</a>`;
 			}
 
 			case 'Paragraph':

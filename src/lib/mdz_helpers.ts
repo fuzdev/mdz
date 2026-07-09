@@ -812,6 +812,52 @@ export const mdz_resolve_relative_path = (reference: string, base: string): stri
 };
 
 /**
+ * How a `Link` node's `reference` should render, shared by all three renderers
+ * (`MdzNodeView`, `MdzStreamNodeView`, `mdz_to_svelte`) so the safety gate and
+ * the resolve-vs-raw classification can't drift between them.
+ * @nodocs
+ */
+export type MdzLinkRender =
+	/** Unsafe protocol — render children only, no `<a>`. */
+	| {kind: 'unsafe'}
+	/** Route/relative path — wrap in `resolve()` (needs `$app/paths`). */
+	| {kind: 'resolve'; href: string}
+	/** Internal fragment/query/relative/bare ref — raw `href`, no `resolve()`. */
+	| {kind: 'internal'; href: string}
+	/** External link — raw `href` plus `target="_blank" rel="noopener"`. */
+	| {kind: 'external'; href: string};
+
+/**
+ * Classify a `Link` reference into how it should render. Pure — no rendering,
+ * no context; `base` is the resolved base path (or `undefined`).
+ * @nodocs
+ */
+export const mdz_classify_link = (
+	reference: string,
+	link_type: 'internal' | 'external' | undefined,
+	base: string | undefined,
+): MdzLinkRender => {
+	if (!mdz_is_safe_reference(reference)) return {kind: 'unsafe'};
+	if (link_type === 'internal') {
+		if (reference.startsWith('.') && base) {
+			return {kind: 'resolve', href: mdz_resolve_relative_path(reference, base)};
+		}
+		// fragment/query/relative/bare — `resolve()` only accepts absolute paths or
+		// route ids and throws on anything else
+		if (
+			reference.startsWith('#') ||
+			reference.startsWith('?') ||
+			reference.startsWith('.') ||
+			!reference.startsWith('/')
+		) {
+			return {kind: 'internal', href: reference};
+		}
+		return {kind: 'resolve', href: reference};
+	}
+	return {kind: 'external', href: reference};
+};
+
+/**
  * Push a node into a children array, coalescing with the previous Text node.
  * Mutates `prev.content` and `prev.end` when both are Text, avoiding array growth
  * and an extra allocation. Callers must own `dest` and not retain references to

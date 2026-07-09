@@ -2,11 +2,7 @@
 	import {resolve} from '$app/paths';
 
 	import type {MdzNode, MdzNodeTableRow, MdzTableAlign} from './mdz.ts';
-	import {
-		mdz_resolve_relative_path,
-		mdz_is_safe_reference,
-		mdz_is_void_element,
-	} from './mdz_helpers.ts';
+	import {mdz_classify_link, mdz_is_void_element} from './mdz_helpers.ts';
 	import {
 		mdz_components_context,
 		mdz_elements_context,
@@ -82,28 +78,19 @@ tree instead of per node. -->
 	{:else if node.type === 'Strikethrough'}
 		<s>{@render render_children(node.children)}</s>
 	{:else if node.type === 'Link'}
-		{@const {reference} = node}
-		{#if !mdz_is_safe_reference(reference)}
+		{@const link = mdz_classify_link(node.reference, node.link_type, get_mdz_base?.())}
+		{#if link.kind === 'unsafe'}
 			{@render render_children(node.children)}
-		{:else if node.link_type === 'internal'}
-			{@const skip_resolve = reference.startsWith('#') || reference.startsWith('?')}
-			{@const mdz_base = get_mdz_base?.()}
-			{#if reference.startsWith('.') && mdz_base}
-				{@const resolved = mdz_resolve_relative_path(reference, mdz_base)}
-				<a href={resolve(resolved as any)}>{@render render_children(node.children)}</a>
-			{:else if skip_resolve || reference.startsWith('.') || !reference.startsWith('/')}
-				<!-- Fragment, query, and relative links (including bare references like `foo`) skip resolve() -->
-				<!-- resolve() only accepts absolute pathnames or route IDs and throws on anything else -->
-				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-				<a href={reference}>{@render render_children(node.children)}</a>
-			{:else}
-				<a href={resolve(reference as any)}>{@render render_children(node.children)}</a>
-			{/if}
-		{:else}
-			<!-- external link -->
+		{:else if link.kind === 'resolve'}
+			<a href={resolve(link.href as any)}>{@render render_children(node.children)}</a>
+		{:else if link.kind === 'external'}
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-			<a href={reference} target="_blank" rel="noopener">{@render render_children(node.children)}</a
+			<a href={link.href} target="_blank" rel="noopener">{@render render_children(node.children)}</a
 			>
+		{:else}
+			<!-- fragment/query/relative/bare references skip resolve() (it accepts only absolute paths) -->
+			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+			<a href={link.href}>{@render render_children(node.children)}</a>
 		{/if}
 	{:else if node.type === 'Paragraph'}
 		<p>{@render render_children(node.children)}</p>
