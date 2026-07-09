@@ -8,7 +8,7 @@
  * ~linearly with input length — a super-linear regression (a lost memo, a
  * re-introduced rescan, a removed O(1) bail) makes the normalized ratio jump
  * from ~1 (linear) toward ~2 (quadratic) for a 2× step, well clear of the
- * threshold. See `../../grimoire/lore/mdz/perf.md` "Measurement robustness" #1.
+ * threshold.
  */
 
 import {describe, test, assert} from 'vitest';

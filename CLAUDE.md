@@ -106,7 +106,7 @@ mdz is a **markdown dialect and renderer**:
 - a deliberately small, unambiguous grammar (no setext headings, no reference
   links, intraword underscores stay literal, inline link/tag nesting capped so
   deeply nested `[`/`<tag>` render literal — a strict untrusted-content bound (both
-  parsers agree on pure nesting; on a cap-saturating prefix of *unclosed* tags
+  parsers agree on pure nesting; on a cap-saturating prefix of _unclosed_ tags
   they diverge, adversarial-only — see `MAX_INLINE_NESTING_DEPTH`); only
   pathological input reaches it)
 - an incremental streaming parser (`MdzStreamParser`) producing opcodes, for
@@ -124,19 +124,19 @@ mdz is a **markdown dialect and renderer**:
 
 ## Syntax
 
-| Feature                | Syntax                                                                                                                                                              |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Inline code            | `` `code` ``                                                                                                                                                        |
-| Bold / italic / strike | `**bold**`, `_italic_`, `~~strike~~` (single `~` is literal)                                                                                                        |
-| Links                  | auto-detected URLs, `/internal/path`, `./relative`, `[text](url)`                                                                                                   |
-| Headings               | `# Heading` (column 0; gets a slugified `id` for fragment links)                                                                                                    |
-| Lists                  | `- item` / `1. item` (column 0 starts; indent nests, blank lines contained, items hold paragraphs/lists/code blocks/blockquotes/tables on their own indented lines; marker-line remainder is inline-only)            |
-| Blockquotes            | `> ` per line (no lazy continuation); nesting via `>>` or `> > `; bare `>` is the in-quote paragraph break; a blank line ends the quote; content is a mini-document |
-| Code blocks            | fenced with optional language hints; an unclosed fence consumes to EOF (or to the end of its enclosing blockquote)                                                  |
-| Horizontal rule        | `---` on its own line                                                                                                                                               |
+| Feature                | Syntax                                                                                                                                                                                                                                                                                                    |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Inline code            | `` `code` ``                                                                                                                                                                                                                                                                                              |
+| Bold / italic / strike | `**bold**`, `_italic_`, `~~strike~~` (single `~` is literal)                                                                                                                                                                                                                                              |
+| Links                  | auto-detected URLs, `/internal/path`, `./relative`, `[text](url)`                                                                                                                                                                                                                                         |
+| Headings               | `# Heading` (column 0; gets a slugified `id` for fragment links)                                                                                                                                                                                                                                          |
+| Lists                  | `- item` / `1. item` (column 0 starts; indent nests, blank lines contained, items hold paragraphs/lists/code blocks/blockquotes/tables on their own indented lines; marker-line remainder is inline-only)                                                                                                 |
+| Blockquotes            | `> ` per line (no lazy continuation); nesting via `>>` or `> > `; bare `>` is the in-quote paragraph break; a blank line ends the quote; content is a mini-document                                                                                                                                       |
+| Code blocks            | fenced with optional language hints; an unclosed fence consumes to EOF (or to the end of its enclosing blockquote)                                                                                                                                                                                        |
+| Horizontal rule        | `---` on its own line                                                                                                                                                                                                                                                                                     |
 | Tables                 | `\| a \| b \|` rows + a `\| --- \| :-: \|` delimiter row (colons set per-column alignment); leading **and** trailing `\|` required; inline-only cells (`` `code` `` protects pipes, `\|` is a literal pipe); a header/delimiter column-count mismatch stays a paragraph; body rows pad/truncate at render |
-| Components / elements  | `<Alert>…</Alert>` / `<aside>…</aside>` (must be registered)                                                                                                        |
-| Paragraphs / breaks    | blank line between paragraphs; single newlines are soft breaks; `<br />` (registered) for hard breaks                                                               |
+| Components / elements  | `<Alert>…</Alert>` / `<aside>…</aside>` (must be registered)                                                                                                                                                                                                                                              |
+| Paragraphs / breaks    | blank line between paragraphs; single newlines are soft breaks; `<br />` (registered) for hard breaks                                                                                                                                                                                                     |
 
 Whitespace follows standard markdown semantics: the parser preserves
 whitespace in text nodes (literal `\n`, no `<br>` nodes), but the default
@@ -178,7 +178,7 @@ two pipelines agree by construction. Tables open at the top level, inside
 blockquotes (free via the recursive quote parser), and as list-item block
 children — a deeper pipe row whose delimiter is likewise indented, recognized on
 the fence/quote-in-item dispatch and ended by a dedent. They never start on a
-marker line (`- | a |` is inline text, like `` - ```ts ``).
+marker line (`- | a |` is inline text, like `- ```ts`).
 
 ### Parsing pipeline
 
@@ -197,7 +197,9 @@ marker line (`- | a |` is inline text, like `` - ```ts ``).
 
 ### Rendering
 
-- `Mdz.svelte` — render static content: `<Mdz content="**hi**" />`
+- `Mdz.svelte` — render static content: `<Mdz content="**hi**" />`, or a
+  pre-parsed tree via `<Mdz nodes={parsed} />` to skip `mdz_parse` at render
+  (e.g. build-time-parsed docs content); pass exactly one of `content`/`nodes`
 - `MdzStream.svelte` — render streaming content from an `MdzStreamState`
 - `MdzNodeView.svelte` / `MdzStreamNodeView.svelte` — recursive node
   renderers; the recursion is **snippet-based** (a `render_node` snippet
@@ -262,13 +264,17 @@ documented surface is the parse/stream/render/preprocess API plus the
 
 Tests live in `src/test/` (not co-located). The runtime renderers are covered
 by SSR tests (`mdz_render.test.ts` — `svelte/server`'s `render`, no DOM
-environment), and `mdz_to_svelte.render_parity.test.ts` binds `mdz_to_svelte`'s
-generated markup to the runtime renderer's actual SSR output across the whole
-fixture corpus (normalized), so the build-time and runtime render
-implementations can't drift silently. `mdz_scaling.test.ts` guards the
-parser's complexity invariants (nested-construct and streaming-hold inputs
-must stay sub-exponential/linear) with generous timeouts rather than
-wall-clock thresholds — the machine-state-independent way to gate CI.
+environment); `mdz_to_svelte.render_parity.test.ts` binds `mdz_to_svelte`'s
+generated markup to the runtime renderer's SSR output across the whole fixture
+corpus (normalized), and `mdz_render.stream_parity.test.ts` binds `MdzStream`'s
+SSR to `Mdz`'s — so the build-time, sync, and streaming render paths can't
+drift silently. Complexity invariants are guarded two ways:
+`mdz_scaling.test.ts` runs nested-construct and streaming-hold inputs at large
+`n` under generous timeouts (a regression overflows or times out), and
+`mdz_scaling_ratio.test.ts` asserts machine-independent work ratios via the
+`mdz_debug_work` counter (2× input → ~2× work is linear, ~4× quadratic — a
+ratio, so thermal drift cancels); `mdz_nesting_cap.test.ts` locks the
+`MAX_INLINE_NESTING_DEPTH` boundary and the sync/stream differential battery.
 Fixture-based tests drive both the parser and the preprocessor:
 
 | Category                          | Input          | Tests                       |

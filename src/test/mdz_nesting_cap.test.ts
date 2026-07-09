@@ -210,7 +210,6 @@ describe('cap-saturating asymmetric prefix — accepted sync↔stream divergence
 	// closers (append-only), so this is documented, not fixed. It refutes the
 	// stronger reading that "both parsers agree at the cap" — they agree on
 	// pure/symmetric nesting (above), not here. The flip is at exactly the cap.
-	// See ../../../grimoire/lore/mdz/TODO_MDZ_BUGS.md Bug 5.
 	const CAP = MAX_INLINE_NESTING_DEPTH;
 
 	// each shape: a depth-saturating prefix of `n` opens, then a valid link

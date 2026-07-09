@@ -1712,7 +1712,12 @@ export class MdzLexer {
 	}
 
 	#revert_tokens_from_link_open(start: number): void {
-		// record the failure so a re-lex from before this `[` short-circuits
+		// record the failure so a re-lex from before this `[` short-circuits.
+		// Keyed by `start` alone — unlike `#failed_tag`'s `start:bound` — because a
+		// link's outcome is bound-independent: the `]`-terminator scan (the children
+		// loop) runs to `text.length` and never consults `#max_search_index`, so a
+		// wider-bound re-lex can't move it. The bound reaches nested tags inside the
+		// link text, but re-attempting those wider never flips the link's net result.
 		this.#failed_link_starts.add(start);
 		// Find and remove link_text_open and all tokens after it
 		let open_idx = -1;
