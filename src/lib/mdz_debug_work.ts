@@ -5,8 +5,8 @@
  * walked) into `total`. Unlike wall-clock timing this is a pure function of
  * input + algorithm — invariant across machines, runs, and thermal state — so a
  * super-linear regression shows up as a work ratio > ~linear regardless of the
- * ~2× machine variance that makes absolute timing unusable here (see
- * `../../grimoire/lore/mdz/perf.md` "Measurement robustness").
+ * ~2× machine variance that makes absolute timing unusable here. Its sole
+ * consumer is `mdz_scaling_ratio.test.ts`.
  *
  * Zero store when disabled: each instrumented site guards on `enabled` (a single
  * branch-predicted property load, the same category as the shipped `DEV`

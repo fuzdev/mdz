@@ -297,10 +297,6 @@ const collect_consumed_bindings = (
 };
 
 /**
- * Walks the AST to find `Mdz` component usages with static `content` props
- * and generates transformations to replace them with `MdzPrecompiled` children.
- */
-/**
  * Parse a static mdz string and render it to Svelte markup. Returns `null` to
  * leave the usage for the runtime — either the content raised a parse error
  * (reported via `on_error`) or it contains unconfigured tags (which the
@@ -327,6 +323,10 @@ const render_static_mdz = (
 	return result.has_unconfigured_tags ? null : result;
 };
 
+/**
+ * Walks the AST to find `Mdz` component usages with static `content` props
+ * and generates transformations to replace them with `MdzPrecompiled` children.
+ */
 const find_mdz_usages = (
 	ast: AST.Root,
 	mdz_names: Map<string, ResolvedComponentImport>,

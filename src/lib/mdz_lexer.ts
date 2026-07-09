@@ -444,6 +444,9 @@ export class MdzLexer {
 	 */
 	lex_table_cell(cell_start: number, cell_end: number): Array<MdzToken> {
 		this.#tokens = [];
+		// depth is balanced back to 0 per cell, but pin it so a future early-return
+		// between an `#inline_depth++` and its decrement can't leak into the next cell
+		this.#inline_depth = 0;
 		this.#tokenize_cell_inline(cell_start, cell_end);
 		return this.#tokens;
 	}

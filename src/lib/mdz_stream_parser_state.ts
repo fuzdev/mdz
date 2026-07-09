@@ -434,7 +434,12 @@ export const pop_stack_entry = (state: MdzStreamParserState): StackEntry => {
 	bump_open_count(state, entry.node_type, -1);
 	if (entry.tag_name !== undefined) {
 		const counts = state.open_tag_counts!;
-		counts.set(entry.tag_name, counts.get(entry.tag_name)! - 1);
+		// drop zero-count keys so a long stream of many distinct tag names can't
+		// grow the map unboundedly — the `!counts.get(name)` bail in `try_close_tag`
+		// treats a missing key and a 0 count identically, so this is behavior-neutral
+		const remaining = counts.get(entry.tag_name)! - 1;
+		if (remaining === 0) counts.delete(entry.tag_name);
+		else counts.set(entry.tag_name, remaining);
 	}
 	if (entry.node_type === 'Link' || entry.tag_name !== undefined) state.open_link_tag_depth--;
 	return entry;
@@ -801,7 +806,12 @@ export const revert_failed_close = (state: MdzStreamParserState, stack_idx: numb
 	bump_open_count(state, entry.node_type, -1);
 	if (entry.tag_name !== undefined) {
 		const counts = state.open_tag_counts!;
-		counts.set(entry.tag_name, counts.get(entry.tag_name)! - 1);
+		// drop zero-count keys so a long stream of many distinct tag names can't
+		// grow the map unboundedly — the `!counts.get(name)` bail in `try_close_tag`
+		// treats a missing key and a 0 count identically, so this is behavior-neutral
+		const remaining = counts.get(entry.tag_name)! - 1;
+		if (remaining === 0) counts.delete(entry.tag_name);
+		else counts.set(entry.tag_name, remaining);
 	}
 	// only ever reverts an Italic today, but keep the depth counter honest if a
 	// Link/Element/Component is ever failed-closed mid-stack
