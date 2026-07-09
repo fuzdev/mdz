@@ -17,9 +17,10 @@
 
 	const {
 		node,
-	}: {
-		node: MdzNode;
-	} = $props();
+		nodes,
+	}: // exactly one of `node`/`nodes` — the array form renders a whole tree
+		// through this single component instance (used by `Mdz`)
+		{node: MdzNode; nodes?: undefined} | {node?: undefined; nodes: Array<MdzNode>} = $props();
 
 	const get_components = mdz_components_context.get_maybe();
 	const get_elements = mdz_elements_context.get_maybe();
@@ -30,8 +31,12 @@
 
 <!-- The tree renders through recursive snippets rather than recursive
 component instances — one component (and one set of context reads) per
-subtree root instead of per node. -->
-{@render render_node(node)}
+tree instead of per node. -->
+{#if nodes}
+	{@render render_children(nodes)}
+{:else if node}
+	{@render render_node(node)}
+{/if}
 
 {#snippet render_node(node: MdzNode)}
 	{#if node.type === 'Element'}
@@ -115,20 +120,23 @@ subtree root instead of per node. -->
 	{:else if node.type === 'Blockquote'}
 		<blockquote>{@render render_children(node.children)}</blockquote>
 	{:else if node.type === 'Table'}
-		{@const header_rows = node.children.filter((r) => r.header)}
-		{@const body_rows = node.children.filter((r) => !r.header)}
+		<!-- by grammar the header row is always first (and the only one) — read
+		it by index and skip it per-row in the body, rather than filtering
+		twice (matches the streaming view, where a filter would go O(n²)
+		across a streamed table) -->
+		{@const header_row = node.children[0]?.header ? node.children[0] : undefined}
 		<table>
-			{#if header_rows.length > 0}
+			{#if header_row}
 				<thead>
-					{#each header_rows as row (row)}
-						<tr>{@render render_cells(row, 'th', node.align)}</tr>
-					{/each}
+					<tr>{@render render_cells(header_row, 'th', node.align)}</tr>
 				</thead>
 			{/if}
-			{#if body_rows.length > 0}
+			{#if node.children.length > (header_row ? 1 : 0)}
 				<tbody>
-					{#each body_rows as row (row)}
-						<tr>{@render render_cells(row, 'td', node.align)}</tr>
+					{#each node.children as row (row)}
+						{#if !row.header}
+							<tr>{@render render_cells(row, 'td', node.align)}</tr>
+						{/if}
 					{/each}
 				</tbody>
 			{/if}
