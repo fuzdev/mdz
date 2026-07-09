@@ -99,6 +99,23 @@ export const MIN_CODEBLOCK_BACKTICKS = 3; // Code blocks require minimum 3 backt
 export const MAX_LIST_NUMBER_DIGITS = 9; // Ordered list markers cap at 9 digits (CommonMark's cap)
 /** @nodocs */
 export const MAX_HEADING_LEVEL = 6; // Headings support levels 1-6
+/**
+ * Cap on inline link/tag nesting depth. Reached at this many open
+ * `Link`/`Element`/`Component` containers, a further `[` or `<tag>` opener
+ * renders as literal text in both parsers rather than opening — a strict
+ * untrusted-content dialect's bound on pathological nesting (CommonMark
+ * permits such a limit). It bounds both the sync lexer's recursion depth (no
+ * stack overflow) and, with the failure memo, its revert re-scan work (linear
+ * instead of quadratic) on adversarial nested `[`/`<`. Deliberately far above
+ * any real content (inline nesting rarely exceeds a handful); only pathological
+ * input reaches it. Mirrored in the streaming parser so the two agree on where
+ * the cap bites. Delimiters (`**`/`_`/`~~`/`` ` ``) are uncounted: first-closer-wins
+ * keeps them from nesting deeply on their own, and mixed delimiter/link chains
+ * only deep-nest through the links, which this bounds.
+ *
+ * @nodocs
+ */
+export const MAX_INLINE_NESTING_DEPTH = 100;
 /** @nodocs */
 export const HTTPS_PREFIX_LENGTH = 8; // Length of "https://"
 /** @nodocs */

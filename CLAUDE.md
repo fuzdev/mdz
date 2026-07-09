@@ -102,7 +102,9 @@ code render through an injection seam (see below).
 mdz is a **markdown dialect and renderer**:
 
 - a deliberately small, unambiguous grammar (no setext headings, no reference
-  links, intraword underscores stay literal, etc.)
+  links, intraword underscores stay literal, inline link/tag nesting capped so
+  deeply nested `[`/`<tag>` render literal — a strict untrusted-content bound, both
+  parsers agree, see `MAX_INLINE_NESTING_DEPTH`; only pathological input reaches it)
 - an incremental streaming parser (`MdzStreamParser`) producing opcodes, for
   rendering partial/streaming input
 - a synchronous parser (`mdz_parse`) producing an `MdzNode` tree

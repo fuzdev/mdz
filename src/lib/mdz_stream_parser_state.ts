@@ -246,6 +246,16 @@ export interface MdzStreamParserState {
 	/** Open-container counts for `find_open`'s O(1) "nothing open" early exit. */
 	open_counts: OpenInlineCounts;
 	/**
+	 * Count of open `Link`/`Element`/`Component` frames in the current run — the
+	 * streaming analogue of the sync lexer's `#inline_depth`. Kept as an O(1)
+	 * counter (not a stack walk, which would reintroduce the deep-stack
+	 * quadratic `open_counts` exists to avoid) so `try_link_open`/`try_tag_open`
+	 * can cap nesting at `MAX_INLINE_NESTING_DEPTH` — rendering a deeper `[`/`<`
+	 * literal, matching the sync cap. Run-scoped for free like `open_counts`: a
+	 * run close reverts every inline frame above it, decrementing back to zero.
+	 */
+	open_link_tag_depth: number;
+	/**
 	 * Per-name counts of open Element/Component frames, the tag analogue of
 	 * `open_counts`: `try_close_tag` bails in O(1) when the closing name isn't
 	 * open, instead of walking a stack that grows one frame per leaked unclosed
@@ -326,6 +336,7 @@ export const create_state = (): MdzStreamParserState => ({
 	base_offset: 0,
 	search_memo: null,
 	open_counts: {Bold: 0, Italic: 0, Strikethrough: 0, Link: 0},
+	open_link_tag_depth: 0,
 	open_tag_counts: null,
 	in_heading: false,
 	in_code: false,
@@ -378,6 +389,9 @@ export const push_stack_entry = (
 		const counts = (state.open_tag_counts ??= new Map());
 		counts.set(tag_name, (counts.get(tag_name) ?? 0) + 1);
 	}
+	// Link/Element/Component contribute to the nesting-depth cap (tag_name is
+	// set for Element/Component only, so `Link || tag_name` is exactly the three)
+	if (node_type === 'Link' || tag_name !== undefined) state.open_link_tag_depth++;
 };
 
 /**
@@ -414,6 +428,7 @@ export const pop_stack_entry = (state: MdzStreamParserState): StackEntry => {
 		const counts = state.open_tag_counts!;
 		counts.set(entry.tag_name, counts.get(entry.tag_name)! - 1);
 	}
+	if (entry.node_type === 'Link' || entry.tag_name !== undefined) state.open_link_tag_depth--;
 	return entry;
 };
 
@@ -773,6 +788,9 @@ export const revert_failed_close = (state: MdzStreamParserState, stack_idx: numb
 		const counts = state.open_tag_counts!;
 		counts.set(entry.tag_name, counts.get(entry.tag_name)! - 1);
 	}
+	// only ever reverts an Italic today, but keep the depth counter honest if a
+	// Link/Element/Component is ever failed-closed mid-stack
+	if (entry.node_type === 'Link' || entry.tag_name !== undefined) state.open_link_tag_depth--;
 	state.opcodes.push({
 		type: 'revert',
 		id: entry.id,

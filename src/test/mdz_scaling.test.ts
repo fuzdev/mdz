@@ -40,20 +40,30 @@ const feed_once = (content: string): number => {
 	return parser.take_opcodes().length;
 };
 
-// Bug 5 — nested unclosed `[` / same-name `<tag>` must not blow up
-// exponentially in the sync lexer (a ~30-byte input hung it for seconds
-// before the failure memo). At n=28 the fixed lexer is instant; a reverted
-// (2ⁿ) lexer would need ~2^28 tokenizer calls and time out. n stays well
-// below the recursion-depth ceiling so this tests time-complexity, not stack.
-describe('nested inline constructs are not exponential (Bug 5)', () => {
-	test('sync: nested unclosed [', {timeout: GUARD_TIMEOUT}, () => {
-		assert.isArray(mdz_parse('['.repeat(28) + 'text'));
+// Bug 5 — nested unclosed `[` / same-name `<tag>` in the sync lexer. The
+// failure memo killed the 2ⁿ blowup; the `MAX_INLINE_NESTING_DEPTH` cap then
+// made the sync path linear AND stack-safe (deeper opens render literal instead
+// of recursing, bounding both the recursion depth and the number of reverting
+// re-scans). At n=50_000 the fixed lexer runs in well under a second; any
+// regression fails fast: dropping the cap stack-overflows (a thrown RangeError,
+// not a hang), and dropping the memo re-descends exponentially — both overflow
+// long before n=50_000. So this now guards time-complexity AND recursion depth,
+// matching the streaming guards below (also n=50_000). The generous timeout is
+// the linear-case ceiling, not the regression trigger.
+const SYNC_DEEP_TIMEOUT = 8000;
+describe('nested inline constructs are linear and stack-safe (Bug 5)', () => {
+	test('sync: nested unclosed [', {timeout: SYNC_DEEP_TIMEOUT}, () => {
+		assert.isArray(mdz_parse('['.repeat(50_000) + 'text'));
 	});
-	test('sync: nested same-name <tag>', {timeout: GUARD_TIMEOUT}, () => {
-		assert.isArray(mdz_parse('<a>'.repeat(28) + 'X</a>'));
+	test('sync: nested same-name <tag>', {timeout: SYNC_DEEP_TIMEOUT}, () => {
+		assert.isArray(mdz_parse('<a>'.repeat(50_000) + 'X</a>'));
 	});
-	test('streaming table cell (delegates to the sync lexer)', {timeout: GUARD_TIMEOUT}, () => {
-		const table = `| ${'['.repeat(28)}X | b |\n| --- | --- |\n| c | d |\n`;
+	test('sync: nested closed links to the cap and beyond', {timeout: SYNC_DEEP_TIMEOUT}, () => {
+		const n = 50_000;
+		assert.isArray(mdz_parse('['.repeat(n) + 'x' + ']'.repeat(n) + '(/u)'));
+	});
+	test('streaming table cell (delegates to the sync lexer)', {timeout: SYNC_DEEP_TIMEOUT}, () => {
+		const table = `| ${'['.repeat(50_000)}X | b |\n| --- | --- |\n| c | d |\n`;
 		assert.isAbove(feed_once(table), 0);
 	});
 });

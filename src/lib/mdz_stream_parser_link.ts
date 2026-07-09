@@ -10,6 +10,7 @@ import {
 	A_UPPER,
 	LEFT_BRACKET,
 	LEFT_PAREN,
+	MAX_INLINE_NESTING_DEPTH,
 	RIGHT_ANGLE,
 	RIGHT_BRACKET,
 	RIGHT_PAREN,
@@ -37,11 +38,19 @@ import {
 	push_stack_entry,
 	revert_above,
 } from './mdz_stream_parser_state.ts';
+import {consume_delimiter_as_text} from './mdz_stream_parser_text.ts';
 
 // -- Links --
 
 /** @nodocs */
 export const try_link_open = (state: MdzStreamParserState): boolean => {
+	// nesting-depth cap: too deep to open — render `[` literal, matching the
+	// sync lexer's `#tokenize_markdown_link` cap (keeps the two parsers agreeing
+	// on where deep `[` stops nesting)
+	if (state.open_link_tag_depth >= MAX_INLINE_NESTING_DEPTH) {
+		consume_delimiter_as_text(state, '[');
+		return true;
+	}
 	flush_text(state);
 	ensure_paragraph(state);
 
@@ -178,6 +187,15 @@ export const try_tag_open = (state: MdzStreamParserState): TryResult => {
 	if (i >= state.buffer.length) return 'need_more';
 	if (!is_letter(state.buffer.charCodeAt(i))) {
 		return 'not_match';
+	}
+
+	// nesting-depth cap: `<letter…` is a tag open, but we're too deep to nest —
+	// render `<` literal, matching the sync lexer's `#tokenize_tag` cap. Checked
+	// after the closer/hold cases above (a `</…>` closer still closes; a `<` at
+	// the buffer end still holds), so only genuine opens are suppressed.
+	if (state.open_link_tag_depth >= MAX_INLINE_NESTING_DEPTH) {
+		consume_delimiter_as_text(state, '<');
+		return 'consumed';
 	}
 
 	// collect tag name

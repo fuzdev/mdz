@@ -38,6 +38,7 @@ import {
 	HR_HYPHEN_COUNT,
 	MIN_CODEBLOCK_BACKTICKS,
 	MAX_HEADING_LEVEL,
+	MAX_INLINE_NESTING_DEPTH,
 	MAX_LIST_NUMBER_DIGITS,
 	match_url_prefix_case_insensitive,
 	is_at_absolute_path,
@@ -326,6 +327,25 @@ export class MdzLexer {
 	 * the bound is part of the key.
 	 */
 	#failed_tag: Set<string> = new Set();
+	/**
+	 * Current link/tag nesting depth — the number of open
+	 * `link_text_open`/`tag_open` containers being recursed into. Bumped around
+	 * `#tokenize_markdown_link`/`#tokenize_tag`'s children loops (not by
+	 * delimiters, which can't nest deeply — see `MAX_INLINE_NESTING_DEPTH`). At
+	 * the cap a further `[`/`<` renders literal instead of opening, bounding
+	 * recursion depth (no stack overflow) and, with the failure memos, the
+	 * revert re-scan (linear, not quadratic) on adversarial nesting.
+	 */
+	#inline_depth: number = 0;
+	/**
+	 * Start offsets of `[`/`<` openers suppressed by the nesting-depth cap
+	 * (`#inline_depth >= MAX_INLINE_NESTING_DEPTH`) — position-keyed like
+	 * `#failed_link_starts` so a re-lex from a shallower depth short-circuits to
+	 * literal text rather than re-opening the construct (which would reintroduce
+	 * the quadratic the cap removes). A suppression is bound-independent, so
+	 * `start` alone keys it; cleared on `rebind`.
+	 */
+	#depth_capped: Set<number> = new Set();
 
 	constructor(text: string) {
 		this.#text = text;
@@ -349,6 +369,7 @@ export class MdzLexer {
 		this.#break_memo = null;
 		this.#failed_link_starts.clear();
 		this.#failed_tag.clear();
+		this.#depth_capped.clear();
 	}
 
 	/**
@@ -1583,11 +1604,19 @@ export class MdzLexer {
 
 	#tokenize_markdown_link(): void {
 		const start = this.#index;
-		// a link open at this offset already failed — emit `[` as text instead
-		// of re-descending into the same failing children (exponential on
-		// nested `[`, Bug 5); the short-circuit reproduces the revert's exact
-		// net effect (`[` text, cursor at start + 1)
-		if (this.#failed_link_starts.has(start)) {
+		// a link open at this offset already failed, or was suppressed by the
+		// nesting cap — emit `[` as text instead of re-descending into the same
+		// failing children (exponential on nested `[`, Bug 5); the short-circuit
+		// reproduces the revert's exact net effect (`[` text, cursor at start + 1)
+		if (this.#failed_link_starts.has(start) || this.#depth_capped.has(start)) {
+			this.#index = start + 1;
+			this.#emit_text('[', start);
+			return;
+		}
+		// nesting-depth cap: too deep to open — render literal and record the
+		// suppression so a shallower re-lex short-circuits here too
+		if (this.#inline_depth >= MAX_INLINE_NESTING_DEPTH) {
+			this.#depth_capped.add(start);
 			this.#index = start + 1;
 			this.#emit_text('[', start);
 			return;
@@ -1600,11 +1629,13 @@ export class MdzLexer {
 		// Tokenize children until ] — only `]` delimits link text; a bare `)`
 		// is ordinary content (matching the streaming parser, which has no `)`
 		// dispatch case — the reference scan finds its own `)` after `](`)
+		this.#inline_depth++;
 		while (this.#index < this.#text.length) {
 			if (this.#text.charCodeAt(this.#index) === RIGHT_BRACKET) break;
 			if (this.#is_at_paragraph_break()) break;
 			this.#tokenize_inline();
 		}
+		this.#inline_depth--;
 
 		// Check for ]
 		if (this.#index >= this.#text.length || this.#text.charCodeAt(this.#index) !== RIGHT_BRACKET) {
@@ -1701,7 +1732,19 @@ export class MdzLexer {
 		// input); prose never allocates it. The short-circuit reproduces a
 		// revert's exact net effect (`<` text, cursor at start + 1).
 		const bound = this.#max_search_index;
-		if (this.#failed_tag.size !== 0 && this.#failed_tag.has(`${start}:${bound}`)) {
+		if (
+			this.#depth_capped.has(start) ||
+			(this.#failed_tag.size !== 0 && this.#failed_tag.has(`${start}:${bound}`))
+		) {
+			this.#index = start + 1;
+			this.#emit_text('<', start);
+			return;
+		}
+		// nesting-depth cap: too deep to open a tag — render literal and record
+		// the suppression (position-keyed) so a shallower re-lex short-circuits
+		// here too, keeping the revert re-scan linear
+		if (this.#inline_depth >= MAX_INLINE_NESTING_DEPTH) {
+			this.#depth_capped.add(start);
 			this.#index = start + 1;
 			this.#emit_text('<', start);
 			return;
@@ -1793,8 +1836,10 @@ export class MdzLexer {
 		// the code span). Recomputed per iteration because a nested same-name
 		// tag legitimately consumes the nearest closer (`<b>x<b>y</b></b>`).
 		const saved_max = this.#max_search_index;
+		this.#inline_depth++;
 		while (this.#index < this.#text.length) {
 			if (this.#match(closing_tag)) {
+				this.#inline_depth--;
 				this.#max_search_index = saved_max;
 				const close_start = this.#index;
 				this.#index += closing_tag.length;
@@ -1817,6 +1862,7 @@ export class MdzLexer {
 			this.#max_search_index = next_close;
 			this.#tokenize_inline();
 		}
+		this.#inline_depth--;
 
 		// No valid closer left — revert: drop the open token and all consumed
 		// children tokens, emit `<` as text, and re-lex from the next char
