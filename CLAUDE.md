@@ -60,10 +60,12 @@ compaction and search-memo invalidation), and `char-by-char` (inputs up to
 the cap just keeps the suite's wall clock reasonable). Adversarial inputs
 guard specific non-linear failure modes: "large dense inline" (failed
 delimiter/closing-tag searches must not rescan — the sync `#index_of` memo),
-"mismatched tags" (`try_close_tag`'s `open_tag_counts` O(1) bail), and "hold
+"mismatched tags" (`try_close_tag`'s `open_tag_counts` O(1) bail), "hold
 line code" / "hold line link" (held candidates re-entered every feed must
 resume their terminator scans via the `buffer_index_of` memo, not rescan the
-growing line). A residual super-linear term remains when a hold pins the
+growing line), and "nested inline cap" (deep `[`/`<a>` past the inline nesting
+cap — the sync lexer's revert re-scan and the streaming `open_link_tag_depth`
+cap must keep both parsers linear and overflow-free). A residual super-linear term remains when a hold pins the
 buffer against compaction (V8 rope flattening per feed) — only a chunked
 buffer abstraction would remove it, and it needs a multi-KB single line fed
 in small chunks to matter.

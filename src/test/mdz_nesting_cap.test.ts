@@ -46,6 +46,17 @@ const stream_parse = (text: string): Array<MdzNode> => {
 	return mdz_opcodes_to_nodes(p.take_opcodes());
 };
 
+const stream_parse_chunked = (text: string, chunk: number): Array<MdzNode> => {
+	const p = new MdzStreamParser();
+	for (let i = 0; i < text.length; i += chunk) p.feed(text.slice(i, i + chunk));
+	p.finish();
+	return mdz_opcodes_to_nodes(p.take_opcodes());
+};
+
+/** Whether the tree contains a node of the given type at any depth. */
+const contains_type = (nodes: Array<MdzNode>, type: string): boolean =>
+	nodes.some((n) => n.type === type || ('children' in n && contains_type(n.children, type)));
+
 /** Deepest `Element`/`Component`/`Link` nesting in a tree (0 for none). */
 const max_container_depth = (nodes: Array<MdzNode>): number => {
 	let max = 0;
@@ -133,6 +144,58 @@ describe('inline nesting-depth cap', () => {
 					JSON.stringify(stream_parse(input)),
 					`parity at n=${n}: ${JSON.stringify(input.slice(0, 12))}…`,
 				);
+			}
+		}
+	});
+
+	test('the cap is per-run — a nest past it does not suppress a later run', () => {
+		// depth resets when the paragraph closes: the second paragraph's link
+		// still forms even though the first blew past the cap
+		const input = '['.repeat(CAP + 50) + 'a\n\n[link](/u)';
+		const nodes = mdz_parse(input);
+		assert.isTrue(contains_type(nodes, 'Link'));
+		assert.strictEqual(JSON.stringify(nodes), JSON.stringify(stream_parse(input)));
+	});
+
+	test('the cap applies (and resets) in every inline context', () => {
+		// heading, list item, table cell, and blockquote all reach inline
+		// tokenization through the same cap; a deep nest in each must not throw
+		// and must stay in sync/stream parity. The blockquote sub-lexes on a
+		// fresh lexer, so its depth is independent of any outer context.
+		const deep_bracket = '['.repeat(CAP + 20) + 'x';
+		const deep_tag = '<a>'.repeat(CAP + 20) + 'X';
+		for (const input of [
+			`# ${deep_bracket}`,
+			`- ${deep_tag}`,
+			`| ${deep_bracket} | b |\n| --- | --- |\n| c | d |\n`,
+			`> ${deep_bracket}\n\n[after](/u)`,
+			`> ${'<a>'.repeat(CAP)}X${'</a>'.repeat(CAP)}`, // exactly-cap nesting inside a quote
+		]) {
+			const nodes = mdz_parse(input);
+			assert.isArray(nodes);
+			assert.strictEqual(
+				JSON.stringify(nodes),
+				JSON.stringify(stream_parse(input)),
+				`context parity: ${JSON.stringify(input.slice(0, 16))}…`,
+			);
+		}
+	});
+
+	test('sync and streaming agree across the cap under chunked feeding', () => {
+		for (const n of [CAP - 1, CAP, CAP + 1, CAP + 2, 150]) {
+			for (const input of [
+				'['.repeat(n) + 'text',
+				'<a>'.repeat(n) + 'X' + '</a>'.repeat(n),
+				'[** '.repeat(n) + 'x', // mixed link/delimiter chain (overflowed pre-cap)
+			]) {
+				const expected = JSON.stringify(mdz_parse(input));
+				for (const chunk of [1, 3, 7, 64]) {
+					assert.strictEqual(
+						JSON.stringify(stream_parse_chunked(input, chunk)),
+						expected,
+						`chunk=${chunk} n=${n}: ${JSON.stringify(input.slice(0, 12))}…`,
+					);
+				}
 			}
 		}
 	});

@@ -294,4 +294,22 @@ Functions with Array<string>, Promise<void>, and Map<string, number> in prose.
 				`<Callout>Section ${i} has <Badge>**${i}**</Badge> and <Link>a \`ref\`</Link> inside.</Callout>`,
 		).join('\n\n'),
 	},
+	{
+		name: 'nested inline cap',
+		// The Bug 5 pathology: deeply nested `[` and same-name `<a>` past the
+		// inline nesting cap (`MAX_INLINE_NESTING_DEPTH`). Uncapped, the sync
+		// lexer's rewind-and-retokenize failure path is O(n²) and stack-overflows
+		// here; the cap bounds it to ≤ cap opens (≤ cap reverts, each re-scanning
+		// a bounded tail) and the streaming parser caps via `open_link_tag_depth`.
+		// Tracks the cap path's throughput — the tag half carries a larger
+		// revert-rescan constant than the bracket half (successful inner tags are
+		// re-tokenized on each outer revert; see perf.md lead #13). Each unit
+		// nests ~2× the cap, so every feed strategy exercises both suppression
+		// and the bounded reverts (cap correctness itself is in
+		// `mdz_nesting_cap.test.ts`).
+		content: Array.from(
+			{length: 12},
+			(_, i) => '['.repeat(200) + `text ${i} ` + '<a>'.repeat(200) + `X${i}` + '</a>'.repeat(200),
+		).join('\n\n'),
+	},
 ];
