@@ -1614,7 +1614,7 @@ export class MdzLexer {
 		const start = this.#index;
 		// a link open at this offset already failed, or was suppressed by the
 		// nesting cap — emit `[` as text instead of re-descending into the same
-		// failing children (exponential on nested `[`, Bug 5); the short-circuit
+		// failing children (exponential on nested `[`); the short-circuit
 		// reproduces the revert's exact net effect (`[` text, cursor at start + 1)
 		if (this.#failed_link_starts.has(start) || this.#depth_capped.has(start)) {
 			this.#index = start + 1;
@@ -1738,7 +1738,7 @@ export class MdzLexer {
 		const start = this.#index;
 		// short-circuit a re-attempt of a tag open that already failed at this
 		// offset+bound — re-descending into the same failing children is
-		// exponential on nested same-name tags (Bug 5). Keyed by
+		// exponential on nested same-name tags. Keyed by
 		// `#max_search_index` (captured as `bound`) because the closer search is
 		// bound-sensitive, so a wider-bound re-lex can legitimately succeed. The
 		// key string is built only when the memo is non-empty (adversarial

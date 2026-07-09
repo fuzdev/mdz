@@ -201,7 +201,7 @@ export const try_tag_open = (state: MdzStreamParserState): TryResult => {
 
 	// collect tag name
 	// TODO the name/whitespace scans rescan from `start` on every held retry
-	// (hardening #21's open tail) — needs a hold watermark; a length cap would
+	// of an unclosed tag's open tail — needs a hold watermark; a length cap would
 	// diverge from the sync parser on pathological multi-KB "tag names"
 	const name_start = i;
 	while (i < state.buffer.length && is_tag_name_char(state.buffer.charCodeAt(i))) {
