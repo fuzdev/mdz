@@ -184,19 +184,16 @@ export const mdz_to_svelte = (
 					}
 					return `<tr>${cells}</tr>`;
 				};
+				// by grammar the header row is always first (and the only one) —
+				// read it by index and skip it in the body, mirroring the node
+				// views (a `.filter()` pair re-partitions every row; see
+				// `MdzNodeView.svelte`'s "Table rendering de-quadratified" note)
 				let out = '<table>';
-				const header_rows = node.children.filter((r) => r.header);
-				const body_rows = node.children.filter((r) => !r.header);
-				if (header_rows.length > 0) {
-					out += '<thead>';
-					for (const row of header_rows) out += render_row(row, 'th');
-					out += '</thead>';
-				}
-				if (body_rows.length > 0) {
-					out += '<tbody>';
-					for (const row of body_rows) out += render_row(row, 'td');
-					out += '</tbody>';
-				}
+				const header_row = node.children[0]?.header ? node.children[0] : undefined;
+				if (header_row) out += '<thead>' + render_row(header_row, 'th') + '</thead>';
+				let body = '';
+				for (const row of node.children) if (!row.header) body += render_row(row, 'td');
+				if (body) out += '<tbody>' + body + '</tbody>';
 				return out + '</table>';
 			}
 

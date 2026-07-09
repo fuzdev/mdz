@@ -150,7 +150,13 @@ console.log(bench.summary());
 
 const comparison = await benchmark_baseline_compare(bench.results(), {
 	path: BASELINE_PATH,
-	regression_threshold: 1.1, // 10% threshold — system-level variance (thermal, scheduler) easily causes 5-8% swings
+	// Informational only (nothing gates CI on it). Cross-run absolute compare
+	// can't resolve sub-~2× effects on this hardware — a zero-change re-run has
+	// flagged most tasks as "regressions" (thermal/scheduler drift, invisible to
+	// the within-run `noise_warning`). The real signal is within-run scaling /
+	// same-run ratios (see perf.md "Measurement robustness"); this threshold
+	// just filters the noisiest local rows.
+	regression_threshold: 1.1,
 	staleness_warning_days: 30,
 });
 

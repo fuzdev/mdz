@@ -46,6 +46,13 @@ const mode = process.env.BENCHMARK_RENDER; // undefined | '1' | 'save'
 // renderer's cell normalization (table heavy), and list/blockquote nesting
 const INPUT_NAMES = ['medium', 'large', 'table heavy', 'list heavy', 'blockquote heavy'];
 const inputs = benchmark_inputs.filter((i) => INPUT_NAMES.includes(i.name));
+// `name` is a plain string, so a rename/typo in either list silently shrinks
+// (or empties) `inputs` with no error — assert the filter matched every name
+if (inputs.length !== INPUT_NAMES.length) {
+	throw new Error(
+		`render benchmark: INPUT_NAMES matched ${inputs.length}/${INPUT_NAMES.length} inputs — a name drifted`,
+	);
+}
 
 const parse_opcodes = (content: string): Array<MdzOpcode> => {
 	const parser = new MdzStreamParser();
@@ -106,7 +113,12 @@ describe.skipIf(!mode)('render benchmarks', () => {
 
 		const comparison = await benchmark_baseline_compare(bench.results(), {
 			path: BASELINE_PATH,
-			regression_threshold: 1.1, // matches the parser suite — machine variance easily swings 5-8%
+			// Informational only (nothing gates CI on it). Cross-run absolute
+			// compare can't resolve sub-~2× effects on this hardware — a zero-change
+			// re-run has flagged most tasks as "regressions". The real signal is
+			// within-run scaling / same-run ratios (see perf.md "Measurement
+			// robustness"); this threshold just filters the noisiest local rows.
+			regression_threshold: 1.1,
 			staleness_warning_days: 30,
 		});
 		print('\n Baseline Comparison\n');

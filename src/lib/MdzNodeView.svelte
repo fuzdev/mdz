@@ -133,7 +133,7 @@ tree instead of per node. -->
 			{/if}
 			{#if node.children.length > (header_row ? 1 : 0)}
 				<tbody>
-					{#each node.children as row (row)}
+					{#each node.children as row, i (i)}
 						{#if !row.header}
 							<tr>{@render render_cells(row, 'td', node.align)}</tr>
 						{/if}
@@ -158,7 +158,11 @@ tree instead of per node. -->
 {/snippet}
 
 {#snippet render_children(nodes: Array<MdzNode>)}
-	{#each nodes as node (node)}
+	<!-- index keys, not object identity: `mdz_parse` yields a fresh node graph
+	on every `content` change, so identity keys never match and Svelte rebuilds
+	the whole subtree; positional keys let it patch in place. (Sync nodes have
+	no stable id; the stream view keys by `node.id`.) -->
+	{#each nodes as node, i (i)}
 		{@render render_node(node)}
 	{/each}
 {/snippet}

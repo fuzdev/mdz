@@ -308,6 +308,24 @@ export class MdzLexer {
 	 * and `\|` unescapes to a literal pipe.
 	 */
 	#in_table_cell: boolean = false;
+	/**
+	 * Start offsets of markdown-link opens (`[`) that definitively failed — so
+	 * a re-lex from before the `[` short-circuits to literal text instead of
+	 * re-attempting (and re-descending into) the same failing link. Without it,
+	 * the revert-and-re-tokenize failure path is exponential on nested `[`
+	 * (a ~30-byte `[`×n input hangs). A link's outcome (does a valid `](ref)`
+	 * follow?) is independent of `#max_search_index`, so `start` alone keys it.
+	 * The outcome is a pure function of the immutable text, so the memo is valid
+	 * for the whole lex and across table-cell ranges; cleared on `rebind`.
+	 */
+	#failed_link_starts: Set<number> = new Set();
+	/**
+	 * The tag analogue of `#failed_link_starts`, keyed `${start}:${bound}`. A
+	 * tag's closer search respects `#max_search_index`, so the same `start` can
+	 * fail under a narrow bound yet succeed under the wider one a re-lex uses —
+	 * the bound is part of the key.
+	 */
+	#failed_tag: Set<string> = new Set();
 
 	constructor(text: string) {
 		this.#text = text;
@@ -329,6 +347,8 @@ export class MdzLexer {
 		this.#text = text;
 		this.#search_memo.clear();
 		this.#break_memo = null;
+		this.#failed_link_starts.clear();
+		this.#failed_tag.clear();
 	}
 
 	/**
@@ -1563,6 +1583,15 @@ export class MdzLexer {
 
 	#tokenize_markdown_link(): void {
 		const start = this.#index;
+		// a link open at this offset already failed — emit `[` as text instead
+		// of re-descending into the same failing children (exponential on
+		// nested `[`, Bug 5); the short-circuit reproduces the revert's exact
+		// net effect (`[` text, cursor at start + 1)
+		if (this.#failed_link_starts.has(start)) {
+			this.#index = start + 1;
+			this.#emit_text('[', start);
+			return;
+		}
 		this.#index++; // consume [ (dispatch guarantees it)
 
 		// Emit link_text_open
@@ -1644,6 +1673,8 @@ export class MdzLexer {
 	}
 
 	#revert_tokens_from_link_open(start: number): void {
+		// record the failure so a re-lex from before this `[` short-circuits
+		this.#failed_link_starts.add(start);
 		// Find and remove link_text_open and all tokens after it
 		let open_idx = -1;
 		for (let i = this.#tokens.length - 1; i >= 0; i--) {
@@ -1661,6 +1692,20 @@ export class MdzLexer {
 
 	#tokenize_tag(): void {
 		const start = this.#index;
+		// short-circuit a re-attempt of a tag open that already failed at this
+		// offset+bound — re-descending into the same failing children is
+		// exponential on nested same-name tags (Bug 5). Keyed by
+		// `#max_search_index` (captured as `bound`) because the closer search is
+		// bound-sensitive, so a wider-bound re-lex can legitimately succeed. The
+		// key string is built only when the memo is non-empty (adversarial
+		// input); prose never allocates it. The short-circuit reproduces a
+		// revert's exact net effect (`<` text, cursor at start + 1).
+		const bound = this.#max_search_index;
+		if (this.#failed_tag.size !== 0 && this.#failed_tag.has(`${start}:${bound}`)) {
+			this.#index = start + 1;
+			this.#emit_text('<', start);
+			return;
+		}
 		this.#index++; // consume <
 
 		// Tag name must start with a letter
@@ -1707,6 +1752,7 @@ export class MdzLexer {
 
 		// Check for >
 		if (this.#index >= this.#text.length || this.#text.charCodeAt(this.#index) !== RIGHT_ANGLE) {
+			this.#failed_tag.add(`${start}:${bound}`);
 			this.#index = start + 1;
 			this.#emit_text('<', start);
 			return;
@@ -1725,11 +1771,13 @@ export class MdzLexer {
 		const search_limit = Math.min(this.#max_search_index, this.#text.length);
 		const closing_tag_pos = this.#index_of(closing_tag, this.#index);
 		if (closing_tag_pos === -1 || closing_tag_pos > search_limit) {
+			this.#failed_tag.add(`${start}:${bound}`);
 			this.#index = start + 1;
 			this.#emit_text('<', start);
 			return;
 		}
 		if (this.#has_paragraph_break_between(this.#index, closing_tag_pos)) {
+			this.#failed_tag.add(`${start}:${bound}`);
 			this.#index = start + 1;
 			this.#emit_text('<', start);
 			return;
@@ -1775,6 +1823,7 @@ export class MdzLexer {
 		// (the `#revert_tokens_from_link_open` pattern; the old fallthrough
 		// left a dangling `tag_open` whose parser fallback discarded content)
 		this.#max_search_index = saved_max;
+		this.#failed_tag.add(`${start}:${bound}`);
 		this.#tokens.splice(open_token_index);
 		this.#index = start + 1;
 		this.#emit_text('<', start);

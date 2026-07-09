@@ -268,4 +268,30 @@ Functions with Array<string>, Promise<void>, and Map<string, number> in prose.
 		// terminator scan must be memoized or chunked feeds go quadratic.
 		content: '[text](https://example.com/' + 'x'.repeat(16_000),
 	},
+	{
+		name: 'dense inline code',
+		// mdz's TSDoc/API-docs shipping workload: many short `` `identifier` ``
+		// spans per line across many lines. The rest of the corpus has no
+		// backtick-dense input, yet the streaming `try_code` memoized dual-search
+		// is tuned for exactly this case (see perf.md's Shipped try_code finding).
+		content: Array.from(
+			{length: 400},
+			(_, i) =>
+				`The \`parse_${i}()\` helper takes an \`MdzNode\` and returns \`Array<Token>\`; ` +
+				`see \`mdz_lexer.ts\` and \`try_code\` for the \`buffer_index_of\` memo.`,
+		).join('\n'),
+	},
+	{
+		name: 'nested components',
+		// The Svelte-component authoring use case (correctly closed
+		// `<Tag>…</Tag>`, nested) — the success-path counterpart to the
+		// adversarial `mismatched tags` / `many angles` inputs, which only
+		// exercise the never-matching failure path. This drives `try_close_tag`'s
+		// matching branch and the tag stack under valid nesting.
+		content: Array.from(
+			{length: 300},
+			(_, i) =>
+				`<Callout>Section ${i} has <Badge>**${i}**</Badge> and <Link>a \`ref\`</Link> inside.</Callout>`,
+		).join('\n\n'),
+	},
 ];
