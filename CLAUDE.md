@@ -199,7 +199,8 @@ marker line (`- | a |` is inline text, like `- ```ts`).
 
 - `Mdz.svelte` — render static content: `<Mdz content="**hi**" />`, or a
   pre-parsed tree via `<Mdz nodes={parsed} />` to skip `mdz_parse` at render
-  (e.g. build-time-parsed docs content); pass exactly one of `content`/`nodes`
+  (for a tree the consumer already holds — see § Pre-computation); pass
+  exactly one of `content`/`nodes`
 - `MdzStream.svelte` — render streaming content from an `MdzStreamState`
 - `MdzNodeView.svelte` / `MdzStreamNodeView.svelte` — recursive node
   renderers; the recursion is **snippet-based** (a `render_node` snippet
@@ -242,6 +243,44 @@ dev dependencies.
 `code_component_import` and `codeblock_component_import` options. When unset,
 precompiled output is plain, identical to the runtime default; when set to the
 same components used at runtime, precompiled and runtime output stay identical.
+
+## Trust and render targets
+
+mdz renders untrusted content, and the escaping story is deliberately
+Svelte-shaped: the runtime views emit text through Svelte expressions
+(auto-escaped) and the preprocessor emits Svelte markup escaped by fuz_util's
+`escape_svelte_text` — there is **no raw-HTML output path and no `{@html}`
+anywhere**. Unregistered components/elements render nothing, and link
+references pass the `mdz_is_safe_reference` protocol gate before becoming an
+`href`. Any future raw-HTML emission (e.g. collapsing static subtrees to
+pre-rendered HTML strings rendered via `{@html}`) would move XSS-escaping out
+of Svelte and into mdz's own emitter — a trust-boundary change to design
+deliberately, not an incremental optimization.
+
+The three renderers (`MdzNodeView`, `MdzStreamNodeView`, `mdz_to_svelte`)
+share one grammar and stay in sync by construction: rendering *decisions*
+(link safety + resolve-vs-raw classification via `mdz_classify_link`, void
+elements, heading ids, table header/body normalization) live in
+`mdz_helpers.ts`, and the parity tests bind their outputs. `mdz_to_svelte`
+emits **Svelte markup, not HTML** — `{`/`}` escape to Svelte expressions and
+attribute values are expressions — so its output cannot be repurposed as raw
+HTML. A fourth render target (say an HTML-string emitter) should be added by
+parameterizing the emission over a target interface, not as another
+hand-synced switch.
+
+### Pre-computation
+
+Static content is already fully optimized: `svelte_preprocess_mdz` compiles
+it to Svelte markup and the Svelte compiler turns the static parts into
+template HTML, with registered components staying live; the preprocessor
+falls back to runtime rendering (rather than degrading) when content isn't
+representable. Dynamic content parses at render, and that's the intended
+path — the parser is fast (microseconds for a typical doc-comment field)
+while pre-parsed `MdzNode` JSON serializes several times larger than its
+source string, so shipping pre-parsed trees or pre-rendered HTML tends to
+cost more in payload and renderer-sync risk than the parse it saves. The
+`nodes` prop on `Mdz` serves consumers that already hold a tree; it is not
+an invitation to pre-parse. Measure before pre-computing.
 
 ## Documentation system
 

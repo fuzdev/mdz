@@ -27,7 +27,8 @@
 		whitespace?: MdzWhitespace;
 		base?: string;
 	} & // pass `content` to parse at render, or `nodes` to render a pre-parsed
-		// tree (e.g. build-time-parsed docs content) and skip `mdz_parse` entirely
+		// tree (e.g. one parsed once and rendered in several places) and skip
+		// `mdz_parse` entirely
 		(| {content: string; nodes?: undefined}
 			| {content?: undefined; nodes: Array<MdzNode>}
 		) = $props();
