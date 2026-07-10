@@ -351,6 +351,8 @@ A non-self-closing tag commits only if its exact closing tag exists later in the
 
 **Tag scoping.** A tag's children are a bounded region, like a heading line or a list-item run: an inline delimiter inside the tag never pairs across the closing tag (in ``<b>`a</b>x` ``, the backtick is literal — a code span can't swallow `</b>`), and a nested same-name tag consumes the nearest closer, leaving the outer tag to find its own later (`<b>x<b>y</b></b>` nests; when no closer remains for the outer tag, it degrades to literal `<` and the rest re-parses).
 
+**Inline nesting is bounded.** Link and tag containers nest only so deep — past a fixed cap, a further `[` or `<tag>` renders as literal text instead of opening a new container. It's a strict untrusted-content bound (CommonMark permits such a limit), set deliberately far above any real content, so only pathological input reaches it. Delimiters (`**`, `_`, `~~`, `` ` ``) don't count toward the cap — first-closer-wins keeps them from deep-nesting on their own.
+
 Components and elements must be registered (via `MdzRoot` or the contexts directly) to render; unregistered tags render as inert `<Name />` placeholders. See /docs/usage for the registration API.
 
 HTML void elements (`br`, `img`, `hr`, …) always render self-closing. The grammar still parses the open/close form (`<br>x</br>` is an element with children — the parser doesn't know void-ness), but renderers drop the children, matching HTML, where a `</br>` closer is ignored.

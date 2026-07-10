@@ -7,8 +7,9 @@
  * whole header emits at once. Body rows then stream one per line. Because a row
  * is always fully buffered before it emits (no within-row streaming), each
  * cell's inline content is parsed with the sync reference (`MdzTableCellParser`,
- * one `MdzLexer`/`MdzTokenParser` shared across the row's cells) and replayed
- * as opcodes — guaranteeing sync↔stream parity by construction.
+ * one `MdzLexer`/`MdzTokenParser` shared across the whole table's cells,
+ * rebound per row) and replayed as opcodes — guaranteeing sync↔stream parity
+ * by construction.
  *
  * @module
  */
@@ -72,7 +73,11 @@ export const try_table_start = (state: MdzStreamParserState, forced: boolean): T
 	const table_start = offset(state, start);
 	emit(state, {type: 'open', id: table_id, node_type: 'Table', start: table_start, align});
 	push_stack_entry(state, table_id, 'Table', table_start);
-	state.table = {id: table_id, item_indent: null};
+	state.table = {
+		id: table_id,
+		item_indent: null,
+		cell_parser: new MdzTableCellParser(state.buffer),
+	};
 
 	emit_table_row(state, header_cells, true, start, header_end);
 
@@ -280,7 +285,11 @@ export const open_table_in_item = (
 		align: head.align,
 	});
 	push_stack_entry(state, table_id, 'Table', table_start);
-	state.table = {id: table_id, item_indent: marker_indent};
+	state.table = {
+		id: table_id,
+		item_indent: marker_indent,
+		cell_parser: new MdzTableCellParser(state.buffer),
+	};
 	emit_table_row(state, head.header_cells, true, header_first, head.header_end);
 	// leave the cursor on the delimiter's newline (or EOF) — the in-item body-row
 	// handler reads from the line after it and hands back on this same convention
@@ -301,9 +310,11 @@ const emit_table_row = (
 	const row_off = offset(state, row_start);
 	emit(state, {type: 'open', id: row_id, node_type: 'TableRow', start: row_off, header});
 	push_stack_entry(state, row_id, 'TableRow', row_off);
-	// one lexer/parser shared across the row's cells (all index into the same
-	// buffer) rather than allocated per cell
-	const cell_parser = new MdzTableCellParser(state.buffer);
+	// one lexer/parser shared across the whole table rather than allocated per
+	// row (or per cell) — rebound per row because the buffer string changes
+	// across feeds; the lexer's search memo survives when it doesn't
+	const cell_parser = state.table!.cell_parser;
+	cell_parser.rebind(state.buffer);
 	for (const cell of cells) {
 		emit_table_cell(state, cell_parser, cell.start, cell.end);
 	}

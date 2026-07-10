@@ -199,6 +199,14 @@
 				>
 			</tr>
 			<tr>
+				<td>inline nesting depth</td>
+				<td>no depth limit</td>
+				<td
+					>link/tag containers cap out — deeply nested <code>[</code>/<code>&lt;tag&gt;</code> render
+					literal (a strict untrusted-content bound)</td
+				>
+			</tr>
+			<tr>
 				<td>hard breaks</td>
 				<td>trailing double-space or <code>\</code></td>
 				<td><code>&lt;br /&gt;</code> (registered element)</td>

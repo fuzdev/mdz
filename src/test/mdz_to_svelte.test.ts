@@ -2,7 +2,7 @@ import {test, assert, describe} from 'vitest';
 
 import {escape_svelte_text} from '@fuzdev/fuz_util/svelte_preprocess_helpers.ts';
 
-import {mdz_parse} from '$lib/mdz.ts';
+import {mdz_parse, type MdzNode} from '$lib/mdz.ts';
 import {
 	mdz_to_svelte,
 	type MdzToSvelteOptions,
@@ -279,6 +279,29 @@ describe('mdz_to_svelte', () => {
 		test('escapes special chars in link children', () => {
 			const result = convert('[a & b](/path)');
 			assert.ok(result.markup.includes('>a &amp; b</a>'));
+		});
+
+		test('unsafe reference renders as plain children, no <a> (defense in depth)', () => {
+			// `mdz_parse` rejects unsafe references at parse time, so build the node by
+			// hand — `mdz_to_svelte` is a public entry and must not trust its input,
+			// matching `MdzNodeView`/`MdzStreamNodeView`. render_parity can't cover this
+			// (its fixtures are all `mdz_parse` output, which never carries an unsafe ref).
+			const nodes: Array<MdzNode> = [
+				{
+					type: 'Link',
+					// eslint-disable-next-line no-script-url -- the unsafe protocol under test
+					reference: 'javascript:alert(1)',
+					link_type: 'external',
+					children: [{type: 'Text', content: 'click', start: 0, end: 5}],
+					start: 0,
+					end: 20,
+				},
+			];
+			const result = mdz_to_svelte(nodes, {components: {}, elements: {}});
+			assert.equal(result.markup, 'click');
+			// eslint-disable-next-line no-script-url -- asserting the unsafe protocol is absent
+			assert.notInclude(result.markup, 'javascript:');
+			assert.notInclude(result.markup, '<a');
 		});
 	});
 

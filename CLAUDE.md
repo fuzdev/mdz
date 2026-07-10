@@ -39,22 +39,42 @@ server.
 ## Benchmarks
 
 ```bash
-npm run benchmark         # run parser benchmarks, compare against baseline
-npm run benchmark:save    # save current results as the new baseline
-npm run benchmark:clean   # remove the local baseline (forces a fresh seed)
+npm run benchmark              # run parser benchmarks, compare against baseline
+npm run benchmark:save         # save current results as the new baseline
+npm run benchmark:clean        # remove the local baseline (forces a fresh seed)
+npm run benchmark:render       # run render benchmarks (SSR + MdzStreamState)
+npm run benchmark:render:save  # save render results as the new baseline
+npm run benchmark:render:clean # remove the local render baseline
 ```
 
-The baseline lives at `src/benchmarks/baseline.json` and is **gitignored** —
-local-only.
+The baselines live at `src/benchmarks/baseline.json` and
+`src/benchmarks/render/baseline.json` and are **gitignored** — local-only.
+Inputs are shared between the two suites via `benchmark_inputs.ts`.
 
-The suite compares the sync parser (`lexer-based`) against the streaming
-pipeline under several feed strategies: `streaming` / `opcodes-only`
-(one-shot feed, with and without the tree bridge), `streaming 64B` (64-byte
-chunks — exercises cross-chunk buffer compaction and search-memo
-invalidation), and `char-by-char` (small inputs only — large inputs would hit
-the known O(n²) buffer growth in `feed()` and stall the run). The "large
-dense inline" input guards against quadratic rescans on delimiter-dense
-single-paragraph docs.
+The parser suite (`mdz.benchmark.ts`, run via `gro run`) compares the sync
+parser (`lexer-based`) against the streaming pipeline under several feed
+strategies: `streaming` / `opcodes-only` (one-shot feed, with and without the
+tree bridge), `streaming 64B` (64-byte chunks — exercises cross-chunk buffer
+compaction and search-memo invalidation), and `char-by-char` (inputs up to
+30KB — linear on line-bounded input at ~4 MB/s, per-feed overhead dominates;
+the cap just keeps the suite's wall clock reasonable). Adversarial inputs
+guard specific non-linear failure modes: "large dense inline" (failed
+delimiter/closing-tag searches must not rescan — the sync `#index_of` memo),
+"mismatched tags" (`try_close_tag`'s `open_tag_counts` O(1) bail), "hold
+line code" / "hold line link" (held candidates re-entered every feed must
+resume their terminator scans via the `buffer_index_of` memo, not rescan the
+growing line), and "nested inline cap" (deep `[`/`<a>` past the inline nesting
+cap — the sync lexer's revert re-scan and the streaming `open_link_tag_depth`
+cap must keep both parsers linear and overflow-free). A residual super-linear term remains when a hold pins the
+buffer against compaction (V8 rope flattening per feed) — only a chunked
+buffer abstraction would remove it, and it needs a multi-KB single line fed
+in small chunks to matter.
+
+The render suite (`render.benchmark.test.ts`) runs under vitest because the
+Svelte pipeline needs the compiler — it measures SSR through `Mdz` and
+`MdzStream` (via `svelte/server`'s `render`, no DOM needed) and the reactive
+consumer's `MdzStreamState.apply_batch` in isolation. It's gated behind the
+`BENCHMARK_RENDER` env var, so plain `gro test` skips it.
 
 ## Key dependencies
 
@@ -84,7 +104,11 @@ code render through an injection seam (see below).
 mdz is a **markdown dialect and renderer**:
 
 - a deliberately small, unambiguous grammar (no setext headings, no reference
-  links, intraword underscores stay literal, etc.)
+  links, intraword underscores stay literal, inline link/tag nesting capped so
+  deeply nested `[`/`<tag>` render literal — a strict untrusted-content bound (both
+  parsers agree on pure nesting; on a cap-saturating prefix of _unclosed_ tags
+  they diverge, adversarial-only — see `MAX_INLINE_NESTING_DEPTH`); only
+  pathological input reaches it)
 - an incremental streaming parser (`MdzStreamParser`) producing opcodes, for
   rendering partial/streaming input
 - a synchronous parser (`mdz_parse`) producing an `MdzNode` tree
@@ -100,19 +124,19 @@ mdz is a **markdown dialect and renderer**:
 
 ## Syntax
 
-| Feature                | Syntax                                                                                                                                                              |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Inline code            | `` `code` ``                                                                                                                                                        |
-| Bold / italic / strike | `**bold**`, `_italic_`, `~~strike~~` (single `~` is literal)                                                                                                        |
-| Links                  | auto-detected URLs, `/internal/path`, `./relative`, `[text](url)`                                                                                                   |
-| Headings               | `# Heading` (column 0; gets a slugified `id` for fragment links)                                                                                                    |
-| Lists                  | `- item` / `1. item` (column 0 starts; indent nests, blank lines contained, items hold paragraphs/lists/code blocks/blockquotes/tables on their own indented lines; marker-line remainder is inline-only)            |
-| Blockquotes            | `> ` per line (no lazy continuation); nesting via `>>` or `> > `; bare `>` is the in-quote paragraph break; a blank line ends the quote; content is a mini-document |
-| Code blocks            | fenced with optional language hints; an unclosed fence consumes to EOF (or to the end of its enclosing blockquote)                                                  |
-| Horizontal rule        | `---` on its own line                                                                                                                                               |
+| Feature                | Syntax                                                                                                                                                                                                                                                                                                    |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Inline code            | `` `code` ``                                                                                                                                                                                                                                                                                              |
+| Bold / italic / strike | `**bold**`, `_italic_`, `~~strike~~` (single `~` is literal)                                                                                                                                                                                                                                              |
+| Links                  | auto-detected URLs, `/internal/path`, `./relative`, `[text](url)`                                                                                                                                                                                                                                         |
+| Headings               | `# Heading` (column 0; gets a slugified `id` for fragment links)                                                                                                                                                                                                                                          |
+| Lists                  | `- item` / `1. item` (column 0 starts; indent nests, blank lines contained, items hold paragraphs/lists/code blocks/blockquotes/tables on their own indented lines; marker-line remainder is inline-only)                                                                                                 |
+| Blockquotes            | `> ` per line (no lazy continuation); nesting via `>>` or `> > `; bare `>` is the in-quote paragraph break; a blank line ends the quote; content is a mini-document                                                                                                                                       |
+| Code blocks            | fenced with optional language hints; an unclosed fence consumes to EOF (or to the end of its enclosing blockquote)                                                                                                                                                                                        |
+| Horizontal rule        | `---` on its own line                                                                                                                                                                                                                                                                                     |
 | Tables                 | `\| a \| b \|` rows + a `\| --- \| :-: \|` delimiter row (colons set per-column alignment); leading **and** trailing `\|` required; inline-only cells (`` `code` `` protects pipes, `\|` is a literal pipe); a header/delimiter column-count mismatch stays a paragraph; body rows pad/truncate at render |
-| Components / elements  | `<Alert>…</Alert>` / `<aside>…</aside>` (must be registered)                                                                                                        |
-| Paragraphs / breaks    | blank line between paragraphs; single newlines are soft breaks; `<br />` (registered) for hard breaks                                                               |
+| Components / elements  | `<Alert>…</Alert>` / `<aside>…</aside>` (must be registered)                                                                                                                                                                                                                                              |
+| Paragraphs / breaks    | blank line between paragraphs; single newlines are soft breaks; `<br />` (registered) for hard breaks                                                                                                                                                                                                     |
 
 Whitespace follows standard markdown semantics: the parser preserves
 whitespace in text nodes (literal `\n`, no `<br>` nodes), but the default
@@ -154,7 +178,7 @@ two pipelines agree by construction. Tables open at the top level, inside
 blockquotes (free via the recursive quote parser), and as list-item block
 children — a deeper pipe row whose delimiter is likewise indented, recognized on
 the fence/quote-in-item dispatch and ended by a dedent. They never start on a
-marker line (`- | a |` is inline text, like `` - ```ts ``).
+marker line (`- | a |` is inline text, like `- ```ts`).
 
 ### Parsing pipeline
 
@@ -173,9 +197,15 @@ marker line (`- | a |` is inline text, like `` - ```ts ``).
 
 ### Rendering
 
-- `Mdz.svelte` — render static content: `<Mdz content="**hi**" />`
+- `Mdz.svelte` — render static content: `<Mdz content="**hi**" />`, or a
+  pre-parsed tree via `<Mdz nodes={parsed} />` to skip `mdz_parse` at render
+  (e.g. build-time-parsed docs content); pass exactly one of `content`/`nodes`
 - `MdzStream.svelte` — render streaming content from an `MdzStreamState`
-- `MdzNodeView.svelte` / `MdzStreamNodeView.svelte` — recursive node renderers
+- `MdzNodeView.svelte` / `MdzStreamNodeView.svelte` — recursive node
+  renderers; the recursion is **snippet-based** (a `render_node` snippet
+  calling itself), so a tree costs one component instance and one set of
+  context reads at its root rather than per node — contexts are therefore
+  resolved once per tree, not per subtree
 - `MdzRoot.svelte` — context provider for `base`, `components`, `elements`,
   `code`, and `codeblock`
 - `MdzPrecompiled.svelte` — wrapper for preprocessor output
@@ -232,8 +262,20 @@ documented surface is the parse/stream/render/preprocess API plus the
 
 ## Testing
 
-Tests live in `src/test/` (not co-located). Fixture-based tests drive both the
-parser and the preprocessor:
+Tests live in `src/test/` (not co-located). The runtime renderers are covered
+by SSR tests (`mdz_render.test.ts` — `svelte/server`'s `render`, no DOM
+environment); `mdz_to_svelte.render_parity.test.ts` binds `mdz_to_svelte`'s
+generated markup to the runtime renderer's SSR output across the whole fixture
+corpus (normalized), and `mdz_render.stream_parity.test.ts` binds `MdzStream`'s
+SSR to `Mdz`'s — so the build-time, sync, and streaming render paths can't
+drift silently. Complexity invariants are guarded two ways:
+`mdz_scaling.test.ts` runs nested-construct and streaming-hold inputs at large
+`n` under generous timeouts (a regression overflows or times out), and
+`mdz_scaling_ratio.test.ts` asserts machine-independent work ratios via the
+`mdz_debug_work` counter (2× input → ~2× work is linear, ~4× quadratic — a
+ratio, so thermal drift cancels); `mdz_nesting_cap.test.ts` locks the
+`MAX_INLINE_NESTING_DEPTH` boundary and the sync/stream differential battery.
+Fixture-based tests drive both the parser and the preprocessor:
 
 | Category                          | Input          | Tests                       |
 | --------------------------------- | -------------- | --------------------------- |

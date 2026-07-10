@@ -47,6 +47,21 @@ import {
 } from './mdz_lexer.ts';
 
 /**
+ * Whether a token type ends the current inline context — the block-boundary
+ * set shared by the delimiter-pair and link children loops (an unclosed
+ * inline never swallows block structure).
+ */
+const token_is_block_boundary = (type: MdzToken['type']): boolean =>
+	type === 'paragraph_break' ||
+	type === 'heading_start' ||
+	type === 'hr' ||
+	type === 'codeblock' ||
+	type === 'list_open' ||
+	type === 'list_item_close' ||
+	type === 'blockquote_open' ||
+	type === 'table_open';
+
+/**
  * Builds an `MdzNode[]` tree from a lexed `MdzToken[]` stream.
  * Used by `mdz_parse`, which should be preferred for simple usage.
  */
@@ -490,16 +505,7 @@ export class MdzTokenParser {
 				this.#index++;
 				return {type: node_type, children, start, end: t.end};
 			}
-			if (
-				t.type === 'paragraph_break' ||
-				t.type === 'heading_start' ||
-				t.type === 'hr' ||
-				t.type === 'codeblock' ||
-				t.type === 'list_open' ||
-				t.type === 'list_item_close' ||
-				t.type === 'blockquote_open' ||
-				t.type === 'table_open'
-			) {
+			if (token_is_block_boundary(t.type)) {
 				break;
 			}
 			const node = this.#parse_inline();
@@ -539,16 +545,7 @@ export class MdzTokenParser {
 				// No link_ref - treat as text
 				return {type: 'Text', content: '[', start, end: start + 1};
 			}
-			if (
-				t.type === 'paragraph_break' ||
-				t.type === 'heading_start' ||
-				t.type === 'hr' ||
-				t.type === 'codeblock' ||
-				t.type === 'list_open' ||
-				t.type === 'list_item_close' ||
-				t.type === 'blockquote_open' ||
-				t.type === 'table_open'
-			) {
+			if (token_is_block_boundary(t.type)) {
 				break;
 			}
 			const node = this.#parse_inline();

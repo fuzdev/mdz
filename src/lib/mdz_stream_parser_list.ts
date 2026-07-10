@@ -418,10 +418,16 @@ export const process_list_line = (
 
 	if (marker !== null && marker.empty) {
 		// empty item: only at an indent exactly matching an open level of the
-		// same marker type — anything else degrades below
-		const level_idx = state.list_levels.findIndex(
-			(l) => l.indent === indent && l.ordered === marker.ordered,
-		);
+		// same marker type — anything else degrades below (manual loop like
+		// `list_continuation_target` — no per-line closure allocation)
+		let level_idx = -1;
+		for (let li = 0; li < state.list_levels.length; li++) {
+			const l = state.list_levels[li]!;
+			if (l.indent === indent && l.ordered === marker.ordered) {
+				level_idx = li;
+				break;
+			}
+		}
 		if (level_idx !== -1) {
 			close_list_run(state);
 			while (state.list_levels.length - 1 > level_idx) {

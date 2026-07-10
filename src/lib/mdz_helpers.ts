@@ -99,6 +99,23 @@ export const MIN_CODEBLOCK_BACKTICKS = 3; // Code blocks require minimum 3 backt
 export const MAX_LIST_NUMBER_DIGITS = 9; // Ordered list markers cap at 9 digits (CommonMark's cap)
 /** @nodocs */
 export const MAX_HEADING_LEVEL = 6; // Headings support levels 1-6
+/**
+ * Cap on inline link/tag nesting depth. Reached at this many open
+ * `Link`/`Element`/`Component` containers, a further `[` or `<tag>` opener
+ * renders as literal text in both parsers rather than opening — a strict
+ * untrusted-content dialect's bound on pathological nesting (CommonMark
+ * permits such a limit). It bounds both the sync lexer's recursion depth (no
+ * stack overflow) and, with the failure memo, its revert re-scan work (linear
+ * instead of quadratic) on adversarial nested `[`/`<`. Deliberately far above
+ * any real content (inline nesting rarely exceeds a handful); only pathological
+ * input reaches it. Mirrored in the streaming parser so the two agree on where
+ * the cap bites. Delimiters (`**`/`_`/`~~`/`` ` ``) are uncounted: first-closer-wins
+ * keeps them from nesting deeply on their own, and mixed delimiter/link chains
+ * only deep-nest through the links, which this bounds.
+ *
+ * @nodocs
+ */
+export const MAX_INLINE_NESTING_DEPTH = 100;
 /** @nodocs */
 export const HTTPS_PREFIX_LENGTH = 8; // Length of "https://"
 /** @nodocs */
@@ -547,6 +564,40 @@ const PATH_CHAR_TABLE: Uint8Array = (() => {
 export const is_valid_path_char = (char_code: number): boolean =>
 	char_code < 128 && PATH_CHAR_TABLE[char_code] === 1;
 
+// Character classes for the plain-text run scanners (the hottest loops in
+// both parsers) — one table load per character instead of a comparison chain.
+// A zero class is the common case: the char can't end or interrupt a text run.
+
+/** Always ends a text run: `` ` `` `*` `_` `~` `[` `]` `<`. @nodocs */
+export const TEXT_CLASS_STOP = 1;
+/** `\n` — run handling is context-dependent (soft break, paragraph break, block lookahead). @nodocs */
+export const TEXT_CLASS_NEWLINE = 2;
+/** `h`/`H` — potential URL scheme start, needs the prefix probe. @nodocs */
+export const TEXT_CLASS_URL = 4;
+/** `/` and `.` — potential path start, needs the boundary probe. @nodocs */
+export const TEXT_CLASS_PATH = 8;
+/** `\` — a literal-pipe escape candidate inside table cells only. @nodocs */
+export const TEXT_CLASS_BACKSLASH = 16;
+
+/** @nodocs */
+export const TEXT_SCAN_CLASS: Uint8Array = (() => {
+	const t = new Uint8Array(128);
+	t[BACKTICK] = TEXT_CLASS_STOP;
+	t[ASTERISK] = TEXT_CLASS_STOP;
+	t[UNDERSCORE] = TEXT_CLASS_STOP;
+	t[TILDE] = TEXT_CLASS_STOP;
+	t[LEFT_BRACKET] = TEXT_CLASS_STOP;
+	t[RIGHT_BRACKET] = TEXT_CLASS_STOP;
+	t[LEFT_ANGLE] = TEXT_CLASS_STOP;
+	t[NEWLINE] = TEXT_CLASS_NEWLINE;
+	t[H_LOWER] = TEXT_CLASS_URL;
+	t[H_UPPER] = TEXT_CLASS_URL;
+	t[SLASH] = TEXT_CLASS_PATH;
+	t[PERIOD] = TEXT_CLASS_PATH;
+	t[BACKSLASH] = TEXT_CLASS_BACKSLASH;
+	return t;
+})();
+
 /**
  * Trim trailing punctuation from URL/path per RFC 3986 and GFM rules.
  * - Trims simple trailing: .,;:!?]
@@ -758,6 +809,52 @@ export const mdz_resolve_relative_path = (reference: string, base: string): stri
 	}
 	if (trailing) segments.push('');
 	return segments.join('/');
+};
+
+/**
+ * How a `Link` node's `reference` should render, shared by all three renderers
+ * (`MdzNodeView`, `MdzStreamNodeView`, `mdz_to_svelte`) so the safety gate and
+ * the resolve-vs-raw classification can't drift between them.
+ * @nodocs
+ */
+export type MdzLinkRender =
+	/** Unsafe protocol — render children only, no `<a>`. */
+	| {kind: 'unsafe'}
+	/** Route/relative path — wrap in `resolve()` (needs `$app/paths`). */
+	| {kind: 'resolve'; href: string}
+	/** Internal fragment/query/relative/bare ref — raw `href`, no `resolve()`. */
+	| {kind: 'internal'; href: string}
+	/** External link — raw `href` plus `target="_blank" rel="noopener"`. */
+	| {kind: 'external'; href: string};
+
+/**
+ * Classify a `Link` reference into how it should render. Pure — no rendering,
+ * no context; `base` is the resolved base path (or `undefined`).
+ * @nodocs
+ */
+export const mdz_classify_link = (
+	reference: string,
+	link_type: 'internal' | 'external' | undefined,
+	base: string | undefined,
+): MdzLinkRender => {
+	if (!mdz_is_safe_reference(reference)) return {kind: 'unsafe'};
+	if (link_type === 'internal') {
+		if (reference.startsWith('.') && base) {
+			return {kind: 'resolve', href: mdz_resolve_relative_path(reference, base)};
+		}
+		// fragment/query/relative/bare — `resolve()` only accepts absolute paths or
+		// route ids and throws on anything else
+		if (
+			reference.startsWith('#') ||
+			reference.startsWith('?') ||
+			reference.startsWith('.') ||
+			!reference.startsWith('/')
+		) {
+			return {kind: 'internal', href: reference};
+		}
+		return {kind: 'resolve', href: reference};
+	}
+	return {kind: 'external', href: reference};
 };
 
 /**

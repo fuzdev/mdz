@@ -9,7 +9,9 @@
  */
 
 import type {MdzNodeTypeContainer, MdzNodeId, MdzOpcode} from './mdz_opcodes.ts';
+import type {MdzTableCellParser} from './mdz.ts';
 import {NEWLINE, has_non_whitespace, mdz_heading_id_from_text} from './mdz_helpers.ts';
+import {mdz_debug_work} from './mdz_debug_work.ts';
 
 /**
  * Tri-state result for `try_*` parser handlers.
@@ -214,8 +216,9 @@ export interface MdzStreamParserState {
 	 * is `null` for a top-level table (column-0 rows) or the enclosing list item's
 	 * marker indent for a table nested as a block child (rows skip the indent and
 	 * a dedent to that indent ends the table, returning control to the list).
+	 * `cell_parser` is the table's shared cell parser, rebound per row.
 	 */
-	table: {id: MdzNodeId; item_indent: number | null} | null;
+	table: {id: MdzNodeId; item_indent: number | null; cell_parser: MdzTableCellParser} | null;
 	/**
 	 * Whether the innermost open ListItem's first inline run is current.
 	 * Content then flows directly into the ListItem frame — the sync AST
@@ -243,6 +246,32 @@ export interface MdzStreamParserState {
 	search_memo: Map<string, BufferSearchMemo> | null;
 	/** Open-container counts for `find_open`'s O(1) "nothing open" early exit. */
 	open_counts: OpenInlineCounts;
+	/**
+	 * Count of open `Link`/`Element`/`Component` frames in the current run — the
+	 * streaming analogue of the sync lexer's `#inline_depth`. Kept as an O(1)
+	 * counter (not a stack walk, which would reintroduce the deep-stack
+	 * quadratic `open_counts` exists to avoid) so `try_link_open`/`try_tag_open`
+	 * can cap nesting at `MAX_INLINE_NESTING_DEPTH` — rendering a deeper `[`/`<`
+	 * literal, matching the sync cap on pure/symmetric nesting. It counts
+	 * **optimistic** opens, though, so it diverges from the sync `#inline_depth`
+	 * (which the sync tag path only bumps after a closer precheck) on an
+	 * asymmetric cap-saturating prefix — 100+ *unclosed* `<a>` before a valid
+	 * `[x](/u)` saturates this counter and suppresses the trailing link that sync
+	 * still forms. Adversarial-only, documented not fixed (streaming can't
+	 * precheck closers): see the flip-at-cap case in `mdz_nesting_cap.test.ts`.
+	 * Run-scoped for free like `open_counts`: a
+	 * run close reverts every inline frame above it, decrementing back to zero.
+	 */
+	open_link_tag_depth: number;
+	/**
+	 * Per-name counts of open Element/Component frames, the tag analogue of
+	 * `open_counts`: `try_close_tag` bails in O(1) when the closing name isn't
+	 * open, instead of walking a stack that grows one frame per leaked unclosed
+	 * `<Tag>`. Lazily created on the first tag open — tag-free inputs never
+	 * allocate the map. Run-scoped like `open_counts`: run closes revert every
+	 * inline frame above them, decrementing the counts back to zero.
+	 */
+	open_tag_counts: Map<string, number> | null;
 	/** Whether we're inside a heading (newline ends it). */
 	in_heading: boolean;
 	/** Whether we're inside an optimistic inline Code container. */
@@ -315,6 +344,8 @@ export const create_state = (): MdzStreamParserState => ({
 	base_offset: 0,
 	search_memo: null,
 	open_counts: {Bold: 0, Italic: 0, Strikethrough: 0, Link: 0},
+	open_link_tag_depth: 0,
+	open_tag_counts: null,
 	in_heading: false,
 	in_code: false,
 	in_paragraph: false,
@@ -362,6 +393,13 @@ export const push_stack_entry = (
 	} else {
 		bump_open_count(state, node_type, 1);
 	}
+	if (tag_name !== undefined) {
+		const counts = (state.open_tag_counts ??= new Map());
+		counts.set(tag_name, (counts.get(tag_name) ?? 0) + 1);
+	}
+	// Link/Element/Component contribute to the nesting-depth cap (tag_name is
+	// set for Element/Component only, so `Link || tag_name` is exactly the three)
+	if (node_type === 'Link' || tag_name !== undefined) state.open_link_tag_depth++;
 };
 
 /**
@@ -394,6 +432,16 @@ const bump_open_count = (
 export const pop_stack_entry = (state: MdzStreamParserState): StackEntry => {
 	const entry = state.stack.pop()!;
 	bump_open_count(state, entry.node_type, -1);
+	if (entry.tag_name !== undefined) {
+		const counts = state.open_tag_counts!;
+		// drop zero-count keys so a long stream of many distinct tag names can't
+		// grow the map unboundedly — the `!counts.get(name)` bail in `try_close_tag`
+		// treats a missing key and a 0 count identically, so this is behavior-neutral
+		const remaining = counts.get(entry.tag_name)! - 1;
+		if (remaining === 0) counts.delete(entry.tag_name);
+		else counts.set(entry.tag_name, remaining);
+	}
+	if (entry.node_type === 'Link' || entry.tag_name !== undefined) state.open_link_tag_depth--;
 	return entry;
 };
 
@@ -465,7 +513,11 @@ const memo_index_of = (
 			// rescan only the appended tail, overlapping the old boundary so a
 			// straddling needle isn't missed
 			const rescan_from = Math.max(global_from, memo.searched_to - (needle.length - 1));
-			const result = state.buffer.indexOf(needle, rescan_from - state.base_offset);
+			const local_from = rescan_from - state.base_offset;
+			const result = state.buffer.indexOf(needle, local_from);
+			if (mdz_debug_work.enabled) {
+				mdz_debug_work.total += (result === -1 ? state.buffer.length : result) - local_from;
+			}
 			memo.from = global_from;
 			memo.result = result === -1 ? -1 : state.base_offset + result;
 			memo.searched_to = global_end;
@@ -474,6 +526,9 @@ const memo_index_of = (
 		// found result already behind `from` — fall through to a fresh scan
 	}
 	const result = state.buffer.indexOf(needle, from);
+	if (mdz_debug_work.enabled) {
+		mdz_debug_work.total += (result === -1 ? state.buffer.length : result) - from;
+	}
 	memo.from = global_from;
 	memo.result = result === -1 ? -1 : state.base_offset + result;
 	memo.searched_to = global_end;
@@ -519,8 +574,13 @@ export const emit = (state: MdzStreamParserState, op: MdzOpcode): void => {
 		if (top) {
 			top.has_children = true;
 			// propagate non-whitespace marker to the nearest Paragraph so
-			// whitespace-only paragraphs can be discarded at close
-			if (op.type === 'void' || has_non_whitespace(op.content)) {
+			// whitespace-only paragraphs can be discarded at close — the O(1)
+			// no-paragraph check runs first so codeblock/table-cell emissions
+			// (never inside a Paragraph) skip the content scan entirely
+			if (
+				op.type === 'void' ||
+				(state.paragraph_stack_idx !== -1 && has_non_whitespace(op.content))
+			) {
 				mark_paragraph_non_whitespace(state);
 			}
 		}
@@ -744,6 +804,18 @@ export const revert_failed_close = (state: MdzStreamParserState, stack_idx: numb
 	const frames_above = state.stack.length - 1 - stack_idx;
 	state.stack.splice(stack_idx, 1);
 	bump_open_count(state, entry.node_type, -1);
+	if (entry.tag_name !== undefined) {
+		const counts = state.open_tag_counts!;
+		// drop zero-count keys so a long stream of many distinct tag names can't
+		// grow the map unboundedly — the `!counts.get(name)` bail in `try_close_tag`
+		// treats a missing key and a 0 count identically, so this is behavior-neutral
+		const remaining = counts.get(entry.tag_name)! - 1;
+		if (remaining === 0) counts.delete(entry.tag_name);
+		else counts.set(entry.tag_name, remaining);
+	}
+	// only ever reverts an Italic today, but keep the depth counter honest if a
+	// Link/Element/Component is ever failed-closed mid-stack
+	if (entry.node_type === 'Link' || entry.tag_name !== undefined) state.open_link_tag_depth--;
 	state.opcodes.push({
 		type: 'revert',
 		id: entry.id,

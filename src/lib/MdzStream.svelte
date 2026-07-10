@@ -31,7 +31,7 @@
 </script>
 
 <svelte:element this={inline ? 'span' : 'div'} {...rest} style:white-space={whitespace}>
-	{#each stream.root as node (node.id)}
-		<MdzStreamNodeView {node} />
-	{/each}
+	<!-- the array form renders the whole stream through one MdzStreamNodeView
+	instance (one set of context reads) instead of one per top-level block -->
+	<MdzStreamNodeView nodes={stream.root} />
 </svelte:element>

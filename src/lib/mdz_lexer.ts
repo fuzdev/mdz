@@ -38,6 +38,7 @@ import {
 	HR_HYPHEN_COUNT,
 	MIN_CODEBLOCK_BACKTICKS,
 	MAX_HEADING_LEVEL,
+	MAX_INLINE_NESTING_DEPTH,
 	MAX_LIST_NUMBER_DIGITS,
 	match_url_prefix_case_insensitive,
 	is_at_absolute_path,
@@ -50,10 +51,15 @@ import {
 	mdz_split_table_row,
 	mdz_parse_table_delimiter,
 	PIPE,
-	BACKSLASH,
+	TEXT_CLASS_BACKSLASH,
+	TEXT_CLASS_NEWLINE,
+	TEXT_CLASS_STOP,
+	TEXT_CLASS_URL,
+	TEXT_SCAN_CLASS,
 } from './mdz_helpers.ts';
 
 import type {MdzTableAlign} from './mdz.ts';
+import {mdz_debug_work} from './mdz_debug_work.ts';
 
 //
 // Token types
@@ -304,9 +310,67 @@ export class MdzLexer {
 	 * and `\|` unescapes to a literal pipe.
 	 */
 	#in_table_cell: boolean = false;
+	/**
+	 * Start offsets of markdown-link opens (`[`) that definitively failed — so
+	 * a re-lex from before the `[` short-circuits to literal text instead of
+	 * re-attempting (and re-descending into) the same failing link. Without it,
+	 * the revert-and-re-tokenize failure path is exponential on nested `[`
+	 * (a ~30-byte `[`×n input hangs). A link's outcome (does a valid `](ref)`
+	 * follow?) is independent of `#max_search_index`, so `start` alone keys it.
+	 * The outcome is a pure function of the immutable text, so the memo is valid
+	 * for the whole lex and across table-cell ranges; cleared on `rebind`.
+	 */
+	#failed_link_starts: Set<number> = new Set();
+	/**
+	 * The tag analogue of `#failed_link_starts`, keyed `${start}:${bound}`. A
+	 * tag's closer search respects `#max_search_index`, so the same `start` can
+	 * fail under a narrow bound yet succeed under the wider one a re-lex uses —
+	 * the bound is part of the key.
+	 */
+	#failed_tag: Set<string> = new Set();
+	/**
+	 * Current link/tag nesting depth — the number of open
+	 * `link_text_open`/`tag_open` containers being recursed into. Bumped around
+	 * `#tokenize_markdown_link`/`#tokenize_tag`'s children loops (not by
+	 * delimiters, which can't nest deeply — see `MAX_INLINE_NESTING_DEPTH`). At
+	 * the cap a further `[`/`<` renders literal instead of opening, bounding
+	 * recursion depth (no stack overflow) and, with the failure memos, the
+	 * revert re-scan (linear, not quadratic) on adversarial nesting.
+	 */
+	#inline_depth: number = 0;
+	/**
+	 * Start offsets of `[`/`<` openers suppressed by the nesting-depth cap
+	 * (`#inline_depth >= MAX_INLINE_NESTING_DEPTH`) — position-keyed like
+	 * `#failed_link_starts` so a re-lex from a shallower depth short-circuits to
+	 * literal text rather than re-opening the construct (which would reintroduce
+	 * the quadratic the cap removes). A suppression is bound-independent, so
+	 * `start` alone keys it; cleared on `rebind`.
+	 */
+	#depth_capped: Set<number> = new Set();
 
 	constructor(text: string) {
 		this.#text = text;
+	}
+
+	/**
+	 * Rebind to a new text, so one lexer instance can be reused across inputs —
+	 * the streaming table path reuses one across a table's rows via
+	 * `MdzTableCellParser` instead of allocating a lexer (and its memo `Map`)
+	 * per row. The search memos survive when the text is identical (they're
+	 * valid over the immutable text — the common case for rows parsed from one
+	 * buffered chunk) and clear otherwise. Per-parse cursor state is reset by
+	 * `lex_table_cell` itself.
+	 *
+	 * @nodocs
+	 */
+	rebind(text: string): void {
+		if (this.#text === text) return;
+		this.#text = text;
+		this.#search_memo.clear();
+		this.#break_memo = null;
+		this.#failed_link_starts.clear();
+		this.#failed_tag.clear();
+		this.#depth_capped.clear();
 	}
 
 	/**
@@ -325,6 +389,10 @@ export class MdzLexer {
 			return memo.result;
 		}
 		const result = this.#text.indexOf(needle, from);
+		if (mdz_debug_work.enabled) {
+			// scan span: `indexOf` examined [from, result] (found) or [from, EOF)
+			mdz_debug_work.total += (result === -1 ? this.#text.length : result) - from;
+		}
 		if (memo === undefined) {
 			this.#search_memo.set(needle, {from, result});
 		} else {
@@ -376,6 +444,9 @@ export class MdzLexer {
 	 */
 	lex_table_cell(cell_start: number, cell_end: number): Array<MdzToken> {
 		this.#tokens = [];
+		// depth is balanced back to 0 per cell, but pin it so a future early-return
+		// between an `#inline_depth++` and its decrement can't leak into the next cell
+		this.#inline_depth = 0;
 		this.#tokenize_cell_inline(cell_start, cell_end);
 		return this.#tokens;
 	}
@@ -1541,6 +1612,23 @@ export class MdzLexer {
 
 	#tokenize_markdown_link(): void {
 		const start = this.#index;
+		// a link open at this offset already failed, or was suppressed by the
+		// nesting cap — emit `[` as text instead of re-descending into the same
+		// failing children (exponential on nested `[`); the short-circuit
+		// reproduces the revert's exact net effect (`[` text, cursor at start + 1)
+		if (this.#failed_link_starts.has(start) || this.#depth_capped.has(start)) {
+			this.#index = start + 1;
+			this.#emit_text('[', start);
+			return;
+		}
+		// nesting-depth cap: too deep to open — render literal and record the
+		// suppression so a shallower re-lex short-circuits here too
+		if (this.#inline_depth >= MAX_INLINE_NESTING_DEPTH) {
+			this.#depth_capped.add(start);
+			this.#index = start + 1;
+			this.#emit_text('[', start);
+			return;
+		}
 		this.#index++; // consume [ (dispatch guarantees it)
 
 		// Emit link_text_open
@@ -1549,11 +1637,13 @@ export class MdzLexer {
 		// Tokenize children until ] — only `]` delimits link text; a bare `)`
 		// is ordinary content (matching the streaming parser, which has no `)`
 		// dispatch case — the reference scan finds its own `)` after `](`)
+		this.#inline_depth++;
 		while (this.#index < this.#text.length) {
 			if (this.#text.charCodeAt(this.#index) === RIGHT_BRACKET) break;
 			if (this.#is_at_paragraph_break()) break;
 			this.#tokenize_inline();
 		}
+		this.#inline_depth--;
 
 		// Check for ]
 		if (this.#index >= this.#text.length || this.#text.charCodeAt(this.#index) !== RIGHT_BRACKET) {
@@ -1622,6 +1712,13 @@ export class MdzLexer {
 	}
 
 	#revert_tokens_from_link_open(start: number): void {
+		// record the failure so a re-lex from before this `[` short-circuits.
+		// Keyed by `start` alone — unlike `#failed_tag`'s `start:bound` — because a
+		// link's outcome is bound-independent: the `]`-terminator scan (the children
+		// loop) runs to `text.length` and never consults `#max_search_index`, so a
+		// wider-bound re-lex can't move it. The bound reaches nested tags inside the
+		// link text, but re-attempting those wider never flips the link's net result.
+		this.#failed_link_starts.add(start);
 		// Find and remove link_text_open and all tokens after it
 		let open_idx = -1;
 		for (let i = this.#tokens.length - 1; i >= 0; i--) {
@@ -1639,6 +1736,32 @@ export class MdzLexer {
 
 	#tokenize_tag(): void {
 		const start = this.#index;
+		// short-circuit a re-attempt of a tag open that already failed at this
+		// offset+bound — re-descending into the same failing children is
+		// exponential on nested same-name tags. Keyed by
+		// `#max_search_index` (captured as `bound`) because the closer search is
+		// bound-sensitive, so a wider-bound re-lex can legitimately succeed. The
+		// key string is built only when the memo is non-empty (adversarial
+		// input); prose never allocates it. The short-circuit reproduces a
+		// revert's exact net effect (`<` text, cursor at start + 1).
+		const bound = this.#max_search_index;
+		if (
+			this.#depth_capped.has(start) ||
+			(this.#failed_tag.size !== 0 && this.#failed_tag.has(`${start}:${bound}`))
+		) {
+			this.#index = start + 1;
+			this.#emit_text('<', start);
+			return;
+		}
+		// nesting-depth cap: too deep to open a tag — render literal and record
+		// the suppression (position-keyed) so a shallower re-lex short-circuits
+		// here too, keeping the revert re-scan linear
+		if (this.#inline_depth >= MAX_INLINE_NESTING_DEPTH) {
+			this.#depth_capped.add(start);
+			this.#index = start + 1;
+			this.#emit_text('<', start);
+			return;
+		}
 		this.#index++; // consume <
 
 		// Tag name must start with a letter
@@ -1685,6 +1808,7 @@ export class MdzLexer {
 
 		// Check for >
 		if (this.#index >= this.#text.length || this.#text.charCodeAt(this.#index) !== RIGHT_ANGLE) {
+			this.#failed_tag.add(`${start}:${bound}`);
 			this.#index = start + 1;
 			this.#emit_text('<', start);
 			return;
@@ -1703,11 +1827,13 @@ export class MdzLexer {
 		const search_limit = Math.min(this.#max_search_index, this.#text.length);
 		const closing_tag_pos = this.#index_of(closing_tag, this.#index);
 		if (closing_tag_pos === -1 || closing_tag_pos > search_limit) {
+			this.#failed_tag.add(`${start}:${bound}`);
 			this.#index = start + 1;
 			this.#emit_text('<', start);
 			return;
 		}
 		if (this.#has_paragraph_break_between(this.#index, closing_tag_pos)) {
+			this.#failed_tag.add(`${start}:${bound}`);
 			this.#index = start + 1;
 			this.#emit_text('<', start);
 			return;
@@ -1723,8 +1849,10 @@ export class MdzLexer {
 		// the code span). Recomputed per iteration because a nested same-name
 		// tag legitimately consumes the nearest closer (`<b>x<b>y</b></b>`).
 		const saved_max = this.#max_search_index;
+		this.#inline_depth++;
 		while (this.#index < this.#text.length) {
 			if (this.#match(closing_tag)) {
+				this.#inline_depth--;
 				this.#max_search_index = saved_max;
 				const close_start = this.#index;
 				this.#index += closing_tag.length;
@@ -1747,12 +1875,14 @@ export class MdzLexer {
 			this.#max_search_index = next_close;
 			this.#tokenize_inline();
 		}
+		this.#inline_depth--;
 
 		// No valid closer left — revert: drop the open token and all consumed
 		// children tokens, emit `<` as text, and re-lex from the next char
 		// (the `#revert_tokens_from_link_open` pattern; the old fallthrough
 		// left a dangling `tag_open` whose parser fallback discarded content)
 		this.#max_search_index = saved_max;
+		this.#failed_tag.add(`${start}:${bound}`);
 		this.#tokens.splice(open_token_index);
 		this.#index = start + 1;
 		this.#emit_text('<', start);
@@ -1780,16 +1910,33 @@ export class MdzLexer {
 		let parts: Array<string> | null = null;
 		let part_start = start;
 
-		while (this.#index < this.#text.length) {
-			const char_code = this.#text.charCodeAt(this.#index);
+		// in a table cell the trimmed cell end is a hard stop (no newline to
+		// halt on mid-line) — hoisted to the loop bound
+		const scan_end = this.#in_table_cell
+			? Math.min(this.#max_search_index, this.#text.length)
+			: this.#text.length;
 
-			// in a table cell: the trimmed cell end is a hard stop (no newline to
-			// halt on mid-line), and `\|` is a literal pipe (the only mdz escape,
-			// scoped here)
-			if (this.#in_table_cell) {
-				if (this.#index >= this.#max_search_index) break;
+		while (this.#index < scan_end) {
+			const char_code = this.#text.charCodeAt(this.#index);
+			// one table load classifies the char; zero (the common case — the
+			// char can't end or interrupt the run) skips the dispatch below.
+			// `TEXT_SCAN_CLASS` is shared with the streaming scanner
+			// (`consume_text_run` in `mdz_stream_parser_text.ts`); the two dispatch
+			// bodies intentionally differ around it — this one handles `\|` escapes
+			// and list-run strip, that one URL speculation across chunk boundaries.
+			const char_class = char_code < 128 ? TEXT_SCAN_CLASS[char_code]! : 0;
+			if (char_class === 0) {
+				this.#index++;
+				continue;
+			}
+
+			// Stop at special characters
+			if ((char_class & TEXT_CLASS_STOP) !== 0) break;
+
+			if ((char_class & TEXT_CLASS_BACKSLASH) !== 0) {
+				// `\|` is a literal pipe — the only mdz escape, scoped to table cells
 				if (
-					char_code === BACKSLASH &&
+					this.#in_table_cell &&
 					this.#index + 1 < this.#max_search_index &&
 					this.#text.charCodeAt(this.#index + 1) === PIPE
 				) {
@@ -1799,22 +1946,11 @@ export class MdzLexer {
 					part_start = this.#index;
 					continue;
 				}
+				this.#index++;
+				continue;
 			}
 
-			// Stop at special characters
-			if (
-				char_code === BACKTICK ||
-				char_code === ASTERISK ||
-				char_code === UNDERSCORE ||
-				char_code === TILDE ||
-				char_code === LEFT_BRACKET ||
-				char_code === RIGHT_BRACKET ||
-				char_code === LEFT_ANGLE
-			) {
-				break;
-			}
-
-			if (char_code === NEWLINE) {
+			if ((char_class & TEXT_CLASS_NEWLINE) !== 0) {
 				if (this.#list_run_strip) {
 					if (this.#index >= this.#max_search_index) break; // the run's terminator
 					// soft break: keep the newline, strip the next line's leading
@@ -1853,19 +1989,23 @@ export class MdzLexer {
 						break;
 					}
 				}
+				this.#index++; // single newline — ordinary text
+				continue;
 			}
 
-			// Check for URL or internal path mid-text (char code guard avoids startsWith on every char)
-			if (
-				((char_code === 104 /* h */ || char_code === 72) /* H */ && this.#is_at_url()) ||
-				(char_code === SLASH && is_at_absolute_path(this.#text, this.#index)) ||
-				(char_code === PERIOD && is_at_relative_path(this.#text, this.#index))
-			) {
+			// URL or internal path mid-text (class guard avoids probing every char)
+			if ((char_class & TEXT_CLASS_URL) !== 0) {
+				if (this.#is_at_url()) break;
+			} else if (char_code === SLASH) {
+				if (is_at_absolute_path(this.#text, this.#index)) break;
+			} else if (is_at_relative_path(this.#text, this.#index)) {
 				break;
 			}
 
 			this.#index++;
 		}
+
+		if (mdz_debug_work.enabled) mdz_debug_work.total += this.#index - start;
 
 		// Ensure we always consume at least one character
 		if (this.#index === start && this.#index < this.#text.length) {
