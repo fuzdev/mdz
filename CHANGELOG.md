@@ -1,5 +1,11 @@
 # @fuzdev/mdz
 
+## 0.3.0
+
+### Minor Changes
+
+- perf: add an optional `nodes` prop to `Mdz` for rendering a pre-parsed `MdzNode` tree, skips `mdz_parse` ([#6](https://github.com/fuzdev/mdz/pull/6))
+
 ## 0.2.0
 
 ### Minor Changes
