@@ -1,1 +1,0 @@
-import{t as e}from"../chunks/DnBea6Xh2.js";export{e as component};
