@@ -43,7 +43,5 @@
 </script>
 
 <svelte:element this={inline ? 'span' : 'div'} {...rest} style:white-space={whitespace}>
-	<!-- the array form renders the whole document through one MdzNodeView
-	instance (one set of context reads) instead of one per top-level block -->
 	<MdzNodeView {nodes} />
 </svelte:element>
