@@ -1,6 +1,10 @@
 <script lang="ts">
+	// the CSS Custom Highlight API rules for the editable source live in theme_highlight.css
+	import '@fuzdev/fuz_code/theme_highlight.css';
+
 	import {onMount} from 'svelte';
 	import Code from '@fuzdev/fuz_code/Code.svelte';
+	import CodeTextarea from '@fuzdev/fuz_code/CodeTextarea.svelte';
 	import DocsLink from '@fuzdev/fuz_ui/DocsLink.svelte';
 	import DocsFooter from '@fuzdev/fuz_ui/DocsFooter.svelte';
 	import Card from '@fuzdev/fuz_ui/Card.svelte';
@@ -22,7 +26,7 @@
 	const library = new Library(library_json);
 	library_context.set(() => library);
 
-	const demo_content = `**mdz** is a strict markdown dialect built for streaming, [Svelte](https://svelte.dev/) authoring, docs websites, and untrusted content. This text is rendering through \`MdzStreamParser\` right now, character by character.
+	const DEMO_CONTENT_DEFAULT = `**mdz** is a strict markdown dialect built for streaming, [Svelte](https://svelte.dev/) authoring, docs websites, and untrusted content. This text is rendering through \`MdzStreamParser\` right now, character by character.
 
 It supports markdown basics like **bold**, _italic_, ~~strikethrough~~, \`inline code\`, headings, and auto-detected links like https://www.fuz.dev. Svelte components too!
 
@@ -43,6 +47,11 @@ const nodes = mdz_parse('**hello world**');
 \`\`\`
 
 For more see the /docs.`;
+
+	let demo_content = $state(DEMO_CONTENT_DEFAULT);
+
+	// enables the reset control once the source diverges from the shipped sample
+	const demo_modified = $derived(demo_content !== DEMO_CONTENT_DEFAULT);
 
 	const DEMO_INTERVAL_MS = 15;
 
@@ -86,6 +95,14 @@ For more see the /docs.`;
 		}
 	};
 
+	// resume streaming from wherever the scrubber left off — playing is the resting state,
+	// so releasing the scrubber (or committing a keyboard step) picks back up. no-op if
+	// already playing or the stream has already reached the end.
+	const demo_resume = (): void => {
+		if (demo_timer !== undefined || demo_pos >= demo_content.length) return;
+		demo_timer = setInterval(demo_step, DEMO_INTERVAL_MS);
+	};
+
 	// the parser/state are append-only — seeking backwards requires replay from 0.
 	const demo_seek = (target_pos: number): void => {
 		demo_pause();
@@ -105,6 +122,26 @@ For more see the /docs.`;
 			demo_state.apply_batch(demo_parser.take_opcodes());
 			demo_finished = true;
 		}
+	};
+
+	// editing the source stops the animation and renders the full new content at once
+	// (a fresh append-only parser fed the whole string); `replay` re-streams it char by char.
+	const demo_apply_source = (source: string): void => {
+		demo_content = source;
+		demo_pause();
+		demo_parser = new MdzStreamParser();
+		demo_state = new MdzStreamState();
+		demo_parser.feed(source);
+		demo_parser.finish();
+		demo_state.apply_batch(demo_parser.take_opcodes());
+		demo_pos = source.length;
+		demo_finished = true;
+	};
+
+	// restore the shipped sample and re-stream it from the start
+	const demo_reset = (): void => {
+		demo_content = DEMO_CONTENT_DEFAULT;
+		demo_play();
 	};
 
 	onMount(() => {
@@ -128,6 +165,9 @@ For more see the /docs.`;
 			</div>
 			<div class="my_lg row gap_md width:100%">
 				<button type="button" class="plain" onclick={demo_play}> replay </button>
+				<button type="button" class="plain" onclick={demo_reset} disabled={!demo_modified}>
+					reset
+				</button>
 				<input
 					type="range"
 					class="plain"
@@ -135,12 +175,26 @@ For more see the /docs.`;
 					max={demo_content.length}
 					step="1"
 					value={demo_pos}
+					onpointerdown={demo_pause}
 					oninput={(e) => demo_seek(+e.currentTarget.value)}
+					onpointerup={demo_resume}
+					onpointercancel={demo_resume}
+					onchange={demo_resume}
 					aria-label="scrub demo position"
 					style:flex="1"
 				/>
 			</div>
-			<Code lang="md" content={demo_content} wrap />
+			<div class="demo-source width:100%">
+				<p class="mb_xs">
+					<small>Edit the source — the preview re-renders live; replay to stream it.</small>
+				</p>
+				<CodeTextarea
+					value={demo_content}
+					lang="md"
+					oninput={(e) => demo_apply_source(e.currentTarget.value)}
+					aria-label="editable mdz source"
+				/>
+			</div>
 		</section>
 		<section>
 			<Card href={DOCS_PATH} icon="">docs</Card>
@@ -150,3 +204,11 @@ For more see the /docs.`;
 		</section>
 	</div>
 </main>
+
+<style>
+	/* the editor mirrors the preview panel's height; fuz_css's default textarea is too short */
+	.demo-source :global(.code_textarea textarea) {
+		height: 500px;
+		resize: vertical;
+	}
+</style>
