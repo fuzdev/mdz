@@ -88,3 +88,19 @@ describe('streaming held-candidate scans stay linear', () => {
 		assert.isAbove(feed_once('['.repeat(50_000) + 'x'), 0);
 	});
 });
+
+// A single tag with a huge number of distinct attributes. The `Set`-based
+// duplicate-name check is O(1) per attribute, so the sync parse stays linear in
+// the attribute count; a reverted O(n) rescan of the collected list would be
+// O(n²) and blow past the timeout. The guard uses the sync parser: there the
+// dedup is the only super-linear risk, whereas the streaming-chunked path also
+// re-scans the held open-tag prefix per feed (the acknowledged residual term for
+// a long single line in small chunks, unrelated to the dedup).
+describe('tag attributes stay linear', () => {
+	const many_attributes = (n: number): string =>
+		'<Callout ' + Array.from({length: n}, (_, i) => `a${i}="${i}"`).join(' ') + '>x</Callout>';
+
+	test('sync: many distinct attributes on one tag', {timeout: GUARD_TIMEOUT}, () => {
+		assert.isArray(mdz_parse(many_attributes(50_000)));
+	});
+});

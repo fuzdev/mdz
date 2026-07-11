@@ -13,7 +13,23 @@ import {escape_svelte_text} from '@fuzdev/fuz_util/svelte_preprocess_helpers.ts'
 import {escape_js_string} from '@fuzdev/fuz_util/string.ts';
 
 import type {MdzNode, MdzNodeTableRow} from './mdz.ts';
-import {mdz_is_void_element, mdz_classify_link} from './mdz_helpers.ts';
+import {
+	mdz_is_void_element,
+	mdz_classify_link,
+	mdz_filter_element_attributes,
+	ALLOWED_ELEMENT_ATTRIBUTES,
+} from './mdz_helpers.ts';
+
+// emits parsed attributes as Svelte markup (strings as JS-expression attributes,
+// booleans bare), matching the file's `name={'...'}` idiom for string attrs. Each
+// entry gets a leading space, so the result splices straight after the tag name.
+const format_attributes = (entries: Array<[string, string | true]>): string => {
+	let out = '';
+	for (const [name, value] of entries) {
+		out += value === true ? ` ${name}` : ` ${name}={'${escape_js_string(value)}'}`;
+	}
+	return out;
+};
 
 /**
  * Result of converting `MdzNode` arrays to Svelte markup.
@@ -208,15 +224,22 @@ export const mdz_to_svelte = (
 			}
 
 			case 'Element': {
-				if (elements[node.name] === undefined) {
+				if (elements[node.name] !== true) {
 					has_unconfigured_tags = true;
 					return '';
 				}
+				// filter via the SAME helper the node views use, so precompiled and
+				// runtime output stay identical (its DEV-warn fires at build time too)
+				const attrs_str = format_attributes(
+					Object.entries(
+						mdz_filter_element_attributes(node.name, node.attributes, ALLOWED_ELEMENT_ATTRIBUTES),
+					),
+				);
 				if (mdz_is_void_element(node.name)) {
 					// void elements cannot have content — any parsed children are dropped
-					return `<${node.name} />`;
+					return `<${node.name}${attrs_str} />`;
 				}
-				return `<${node.name}>${render_nodes(node.children)}</${node.name}>`;
+				return `<${node.name}${attrs_str}>${render_nodes(node.children)}</${node.name}>`;
 			}
 
 			case 'Component': {
@@ -226,7 +249,11 @@ export const mdz_to_svelte = (
 					return '';
 				}
 				imports.set(node.name, {path: import_path, kind: 'default'});
-				return `<${node.name}>${render_nodes(node.children)}</${node.name}>`;
+				// pass-through — every attribute becomes a prop, no filtering
+				const attrs_str = format_attributes(
+					node.attributes.map((a): [string, string | true] => [a.name, a.value]),
+				);
+				return `<${node.name}${attrs_str}>${render_nodes(node.children)}</${node.name}>`;
 			}
 
 			default:

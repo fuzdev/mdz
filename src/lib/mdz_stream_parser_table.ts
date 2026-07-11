@@ -402,7 +402,14 @@ const emit_inline_nodes = (state: MdzStreamParserState, nodes: Array<MdzNode>): 
 			case 'Component': {
 				const id = alloc_id(state);
 				const s = offset(state, node.start);
-				emit(state, {type: 'open', id, node_type: node.type, start: s, name: node.name});
+				emit(state, {
+					type: 'open',
+					id,
+					node_type: node.type,
+					start: s,
+					name: node.name,
+					attributes: node.attributes,
+				});
 				push_stack_entry(state, id, node.type, s, '', node.name);
 				emit_inline_nodes(state, node.children);
 				pop_stack_entry(state);

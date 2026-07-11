@@ -5,11 +5,13 @@ import {create_context} from './context_helpers.ts';
 /**
  * Component registry for custom Svelte components that can be used in mdz content.
  *
- * For example, registering 'Alert' allows using `<Alert>...</Alert>` in mdz content.
+ * For example, registering 'Alert' allows using `<Alert status="error">...</Alert>`
+ * in mdz content; parsed attributes pass through as props.
  *
  * The Map values are Svelte components.
  */
-export type MdzComponents = Map<string, Component<any, any>>; // TODO support params
+// props pass through untyped (`string | true`); a typed registry is a separate concern
+export type MdzComponents = Map<string, Component<any, any>>;
 
 /**
  * Element registry for HTML elements that can be used in mdz content.

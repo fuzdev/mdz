@@ -20,6 +20,7 @@
 import {DEV} from 'esm-env';
 
 import type {
+	MdzAttribute,
 	MdzNode,
 	MdzNodeText,
 	MdzNodeLink,
@@ -42,6 +43,7 @@ interface StackFrame {
 	// metadata from open opcode
 	level?: number;
 	name?: string;
+	attributes?: Array<MdzAttribute>;
 	lang?: string | null;
 	ordered?: boolean;
 	start_number?: number;
@@ -77,6 +79,7 @@ export const mdz_opcodes_to_nodes = (opcodes: Array<MdzOpcode>): Array<MdzNode> 
 					start: op.start,
 					level: op.level,
 					name: op.name,
+					attributes: op.attributes,
 					lang: op.lang,
 					ordered: op.ordered,
 					start_number: op.start_number,
@@ -484,6 +487,7 @@ const build_node = (frame: StackFrame, frame_children: Array<MdzNode>): MdzNode 
 			return {
 				type: 'Element',
 				name: frame.name ?? '',
+				attributes: frame.attributes ?? [],
 				children: mdz_merge_adjacent_text(frame_children),
 				start: frame.start,
 				end: frame.end!,
@@ -493,6 +497,7 @@ const build_node = (frame: StackFrame, frame_children: Array<MdzNode>): MdzNode 
 			return {
 				type: 'Component',
 				name: frame.name ?? '',
+				attributes: frame.attributes ?? [],
 				children: mdz_merge_adjacent_text(frame_children),
 				start: frame.start,
 				end: frame.end!,

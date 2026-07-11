@@ -2,6 +2,7 @@
 	{
 		"type": "Component",
 		"name": "Alert",
+		"attributes": [],
 		"children": [
 			{
 				"type": "Text",
@@ -16,6 +17,7 @@
 	{
 		"type": "Component",
 		"name": "Card",
+		"attributes": [],
 		"children": [
 			{
 				"type": "Text",

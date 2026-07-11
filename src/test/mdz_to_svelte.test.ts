@@ -1,6 +1,7 @@
 import {test, assert, describe} from 'vitest';
 
 import {escape_svelte_text} from '@fuzdev/fuz_util/svelte_preprocess_helpers.ts';
+import {escape_js_string} from '@fuzdev/fuz_util/string.ts';
 
 import {mdz_parse, type MdzNode} from '$lib/mdz.ts';
 import {
@@ -698,6 +699,42 @@ describe('mdz_to_svelte', () => {
 			assert.ok(result.markup.includes('<p>hello</p>'));
 			// unconfigured tag produces empty output
 			assert.ok(!result.markup.includes('Unknown'));
+		});
+	});
+
+	describe('tag attributes', () => {
+		test('emits an allowed element attribute as a JS-expression', () => {
+			const result = convert('<aside class="box">hi</aside>', {}, {aside: true});
+			assert.equal(result.markup, `<aside class={'box'}>hi</aside>`);
+		});
+
+		test('drops a disallowed element attribute', () => {
+			const result = convert('<aside class="box" onclick="x()">hi</aside>', {}, {aside: true});
+			assert.equal(result.markup, `<aside class={'box'}>hi</aside>`);
+			assert.notInclude(result.markup, 'onclick');
+		});
+
+		test('emits a bare boolean element attribute', () => {
+			const result = convert('<aside aria-hidden>hi</aside>', {}, {aside: true});
+			assert.equal(result.markup, `<aside aria-hidden>hi</aside>`);
+		});
+
+		test('passes component attributes through as props (string + bare boolean)', () => {
+			const result = convert('<Alert status="error" dismissible>hi</Alert>', {
+				Alert: '$lib/Alert.svelte',
+			});
+			assert.equal(result.markup, `<Alert status={'error'} dismissible>hi</Alert>`);
+			assert_import(result, 'Alert', '$lib/Alert.svelte', 'default');
+		});
+
+		test('escapes a string value through escape_js_string', () => {
+			// a value with a single-quote and a backslash must be escaped for the
+			// single-quoted JS-expression attribute (not emitted verbatim)
+			const value = "a'b\\c";
+			const result = convert(`<Alert label="${value}">hi</Alert>`, {Alert: '$lib/Alert.svelte'});
+			assert.equal(result.markup, `<Alert label={'${escape_js_string(value)}'}>hi</Alert>`);
+			// the raw quote/backslash never appear unescaped in the output
+			assert.include(result.markup, escape_js_string(value));
 		});
 	});
 });

@@ -312,4 +312,34 @@ Functions with Array<string>, Promise<void>, and Map<string, number> in prose.
 			(_, i) => '['.repeat(200) + `text ${i} ` + '<a>'.repeat(200) + `X${i}` + '</a>'.repeat(200),
 		).join('\n\n'),
 	},
+	{
+		name: 'attribute heavy',
+		// The attribute-authoring success path: many correctly-closed tags each
+		// carrying several string and boolean attributes. Drives the attribute
+		// scan (name + quoted-value passes) and the `Set` dedup on the throughput
+		// path — the counterpart to the adversarial attribute inputs below.
+		content: Array.from(
+			{length: 300},
+			(_, i) =>
+				`<Callout status="ok" dismissible title="row ${i}">Section ${i} with <Badge kind="info" small>**${i}**</Badge>.</Callout>`,
+		).join('\n\n'),
+	},
+	{
+		name: 'many attributes single tag',
+		// One tag carrying a very large number of distinct attributes on a single
+		// line. Guards the `Set`-based duplicate-name check against an accidental
+		// O(n²) rescan of the collected list — an all-attributes line must stay
+		// linear (the same shape `mdz_scaling_ratio.test.ts` locks).
+		content:
+			'<Callout ' + Array.from({length: 4000}, (_, i) => `a${i}="${i}"`).join(' ') + '>x</Callout>',
+	},
+	{
+		name: 'hold line attribute value',
+		// One giant unterminated quoted attribute value (`<a x="yyyy…`). The
+		// streaming parser holds inside the value while it grows, re-entering the
+		// tag scan every feed; the closing-quote/newline search must be memoized
+		// (`buffer_index_of`) or chunked feeds go quadratic in the value length.
+		// The attribute analog of `hold line code`.
+		content: '<a x="' + 'y'.repeat(16_000),
+	},
 ];

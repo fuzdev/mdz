@@ -123,4 +123,31 @@ describe('parser scan work is sub-quadratic (deterministic)', () => {
 			(input) => stream_work(input, input.length + 1),
 		);
 	});
+
+	test('sync: many distinct attributes on one tag (attribute scan is linear)', () => {
+		// the counted scan work on an attribute-dense tag grows with input length,
+		// not its square (the `Set` dedup is O(1)/attr — its wall-clock guard is in
+		// `mdz_scaling.test.ts`; this pins the scan-work side)
+		assert_subquadratic(
+			'many attributes',
+			[2000, 4000, 8000].map(
+				(n) =>
+					'<Callout ' +
+					Array.from({length: n}, (_, i) => `a${i}="${i}"`).join(' ') +
+					'>x</Callout>',
+			),
+			sync_work,
+		);
+	});
+
+	test('streaming: hold-line attribute value (buffer_index_of memo)', () => {
+		// the attribute analog of hold-line code/link: an unterminated quoted value
+		// grows across feeds and the tag holds; the closing-quote/newline search must
+		// be memoized or chunked feeds go quadratic in the value length
+		assert_subquadratic(
+			'hold attribute value',
+			[4000, 8000, 16000].map((chars) => '<a x="' + 'y'.repeat(chars)),
+			(input) => stream_work(input, 64),
+		);
+	});
 });

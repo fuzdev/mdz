@@ -581,7 +581,14 @@ export class MdzTokenParser {
 			const t = this.#tokens[this.#index]!;
 			if (t.type === 'tag_close' && t.name === tag_name) {
 				this.#index++;
-				return {type: node_type, name: tag_name, children, start, end: t.end};
+				return {
+					type: node_type,
+					name: tag_name,
+					attributes: open_token.attributes,
+					children,
+					start,
+					end: t.end,
+				};
 			}
 			const node = this.#parse_inline();
 			if (node) mdz_push_merging_text(children, node);
@@ -595,7 +602,14 @@ export class MdzTokenParser {
 		const token = this.#tokens[this.#index]! as MdzTokenTagSelfClose;
 		const node_type: 'Component' | 'Element' = token.is_component ? 'Component' : 'Element';
 		this.#index++;
-		return {type: node_type, name: token.name, children: [], start: token.start, end: token.end};
+		return {
+			type: node_type,
+			name: token.name,
+			attributes: token.attributes,
+			children: [],
+			start: token.start,
+			end: token.end,
+		};
 	}
 
 	// -- Paragraph flushing --

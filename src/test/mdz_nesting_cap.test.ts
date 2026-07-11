@@ -94,6 +94,12 @@ const BATTERY: Array<[string, string]> = [
 	['<a>[b</a>](/u)', 'Paragraph("<a>" Link:/u("b</a>"))'],
 	['[<a>b](/u)</a>', 'Paragraph("[" Element:a("b](/u)"))'],
 	['`<a>`x</a>', 'Paragraph(`<a>` "x</a>")'],
+	// attribute-bearing tags — attributes ride the open tag without perturbing
+	// nesting/scoping; a `>` inside a quoted value is content, and a failed tag's
+	// attributes survive in the literal-text fallback
+	['<a x="1">x<a>y</a></a>', 'Element:a("x" Element:a("y"))'],
+	['<a title="a>b">_x_</a>', 'Element:a(Italic("x"))'],
+	['<a x="1">_x<a>y</a>_z', 'Paragraph("<a x=\\"1\\">_x" Element:a("y") "_z")'],
 	// table cell delegates to the same sync lexer
 	[
 		'| <a>_x<a>y</a>_z | b |\n| --- | --- |\n| c | d |\n',
@@ -143,6 +149,33 @@ describe('inline nesting-depth cap', () => {
 					JSON.stringify(mdz_parse(input)),
 					JSON.stringify(stream_parse(input)),
 					`parity at n=${n}: ${JSON.stringify(input.slice(0, 12))}…`,
+				);
+			}
+		}
+	});
+
+	test('attributes do not perturb the nesting-depth cap', () => {
+		// attribute-bearing tags nest and cap exactly like bare tags — the cap
+		// counts containers, not attribute text (the closer stays attribute-free)
+		const open = '<a x="1">';
+		assert.strictEqual(
+			max_container_depth(mdz_parse(open.repeat(CAP) + 'X' + '</a>'.repeat(CAP))),
+			CAP,
+		);
+		assert.strictEqual(
+			max_container_depth(mdz_parse(open.repeat(CAP + 1) + 'X' + '</a>'.repeat(CAP + 1))),
+			CAP,
+		);
+		// sync/stream parity at and beyond the cap, one-shot and chunked
+		for (const n of [CAP - 1, CAP, CAP + 1, CAP * 2]) {
+			const input = open.repeat(n) + 'X' + '</a>'.repeat(n);
+			const expected = JSON.stringify(mdz_parse(input));
+			assert.strictEqual(JSON.stringify(stream_parse(input)), expected, `parity at n=${n}`);
+			for (const chunk of [1, 3, 64]) {
+				assert.strictEqual(
+					JSON.stringify(stream_parse_chunked(input, chunk)),
+					expected,
+					`chunk=${chunk} n=${n}`,
 				);
 			}
 		}

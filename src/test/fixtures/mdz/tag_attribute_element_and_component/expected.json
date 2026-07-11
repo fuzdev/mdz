@@ -1,0 +1,46 @@
+[
+	{
+		"type": "Element",
+		"name": "div",
+		"attributes": [
+			{
+				"name": "class",
+				"value": "box",
+				"start": 5,
+				"end": 16
+			}
+		],
+		"children": [
+			{
+				"type": "Text",
+				"content": "a",
+				"start": 17,
+				"end": 18
+			}
+		],
+		"start": 0,
+		"end": 24
+	},
+	{
+		"type": "Component",
+		"name": "Alert",
+		"attributes": [
+			{
+				"name": "status",
+				"value": "error",
+				"start": 33,
+				"end": 47
+			}
+		],
+		"children": [
+			{
+				"type": "Text",
+				"content": "b",
+				"start": 48,
+				"end": 49
+			}
+		],
+		"start": 26,
+		"end": 57
+	}
+]
