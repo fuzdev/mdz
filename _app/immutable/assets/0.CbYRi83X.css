@@ -1197,6 +1197,7 @@ These are used as modifiers to buttons.
 .mt_xl5 { margin-top: var(--space_xl5); }
 .mr_xs { margin-right: var(--space_xs); }
 .mb_0 { margin-bottom: 0; }
+.mb_xs { margin-bottom: var(--space_xs); }
 .mb_sm { margin-bottom: var(--space_sm); }
 .mb_md { margin-bottom: var(--space_md); }
 .mb_lg { margin-bottom: var(--space_lg); }

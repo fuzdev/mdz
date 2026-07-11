@@ -1,0 +1,1 @@
+import"./DsnmJJEf.js";import{p as c,e as n,f as s,a as d,b as _}from"./Of7XdXlS.js";import{s as i}from"./BdwqOfXu.js";import{m as t,a as f,b as l,c as r,d as b,e as x}from"./DGQm6fGz.js";function u(a,e){c(e,!0),t(f,()=>e.base),t(l,()=>e.components),t(r,()=>e.elements),t(b,()=>e.code),t(x,()=>e.codeblock);var o=n(),m=s(o);i(m,()=>e.children),d(a,o),_()}export{u as M};
