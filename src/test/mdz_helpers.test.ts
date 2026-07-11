@@ -849,4 +849,14 @@ describe('mdz_format_unregistered_attributes', () => {
 	test('returns an empty string for empty input', () => {
 		assert.equal(mdz_format_unregistered_attributes([]), '');
 	});
+
+	test('uses single quotes for a value containing a double quote', () => {
+		// a `"`-containing value must have been single-quoted at the source
+		// (a `"`-delimited value can't hold `"`), so the placeholder stays balanced
+		assert.equal(mdz_format_unregistered_attributes([attr('title', 'a"b')]), " title='a\"b'");
+	});
+
+	test('uses double quotes for a value containing a single quote', () => {
+		assert.equal(mdz_format_unregistered_attributes([attr('title', "a'b")]), ` title="a'b"`);
+	});
 });

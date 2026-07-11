@@ -55,6 +55,17 @@ describe('tag attributes', () => {
 		assert.include(result.body, 'hi');
 	});
 
+	test('an element registered with `false` falls back to a literal placeholder', () => {
+		// only `true` enables an element — a `false` value is treated as
+		// unregistered, so the tag renders as source-faithful literal text
+		// (attributes included) rather than a real `<aside>`
+		const result = render(Harness, {
+			props: {content: '<aside class="x">hi</aside>', elements: new Map([['aside', false]])},
+		});
+		assert.notInclude(result.body, '<aside');
+		assert.include(result.body, '&lt;aside class="x">');
+	});
+
 	test('drops a disallowed element attribute (DEV-warns)', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 		const result = render(Harness, {

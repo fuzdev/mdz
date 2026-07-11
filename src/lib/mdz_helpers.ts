@@ -842,12 +842,19 @@ export const mdz_attributes_to_props = (
 ): Record<string, string | true> => Object.fromEntries(attributes.map((a) => [a.name, a.value]));
 
 // reconstructs authored attribute text (` name="value"` / ` name`) for the
-// unregistered-tag literal placeholder. Values are emitted verbatim; the caller
-// interpolates the result as Svelte text (auto-escaped).
+// unregistered-tag literal placeholder. The quote char is chosen so a value
+// containing one quote type stays balanced — a parsed value holds at most one
+// (a `"`-delimited value can't contain `"`, a `'`-delimited one can't contain
+// `'`). The caller interpolates the result as Svelte text (auto-escaped).
 export const mdz_format_unregistered_attributes = (attributes: Array<MdzAttribute>): string => {
 	let text = '';
 	for (const attr of attributes) {
-		text += attr.value === true ? ` ${attr.name}` : ` ${attr.name}="${attr.value}"`;
+		if (attr.value === true) {
+			text += ` ${attr.name}`;
+		} else {
+			const quote = attr.value.includes('"') ? "'" : '"';
+			text += ` ${attr.name}=${quote}${attr.value}${quote}`;
+		}
 	}
 	return text;
 };

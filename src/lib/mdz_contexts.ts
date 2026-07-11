@@ -16,9 +16,10 @@ export type MdzComponents = Map<string, Component<any, any>>;
 /**
  * Element registry for HTML elements that can be used in mdz content.
  *
- * For example, registering 'div' allows using `<div>...</div>` in mdz content.
- *
- * The Map values are boolean placeholders for future configuration options.
+ * Register an element by mapping its name to `true` (e.g. `['aside', true]`),
+ * which allows `<aside>...</aside>` in mdz content. Only `true` enables an
+ * element — the renderers treat any other value (including `false`) as
+ * unregistered, so the tag falls back to literal text.
  */
 export type MdzElements = Map<string, boolean>;
 
