@@ -354,4 +354,4 @@ covers the unconfigured plain defaults.
 - [`fuz_code`](../fuz_code/CLAUDE.md) — syntax highlighting; injected for code
   blocks
 - [`fuz_util`](../fuz_util/CLAUDE.md) — utility functions (peer dependency)
-- [`fuz_css`](../fuz_css/CLAUDE.md) — CSS framework (dev dependency for the docs)
+- [`fuz_css`](../fuz_css/CLAUDE.md) — semantic-first CSS framework (dev dependency for the docs)
