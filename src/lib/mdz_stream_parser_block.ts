@@ -16,7 +16,7 @@ import {
 	MIN_CODEBLOCK_BACKTICKS,
 	NEWLINE,
 	SPACE,
-	is_line_whitespace,
+	is_line_whitespace
 } from './mdz_helpers.ts';
 import {
 	type CodeblockState,
@@ -27,7 +27,7 @@ import {
 	emit,
 	flush_text,
 	offset,
-	push_stack_entry,
+	push_stack_entry
 } from './mdz_stream_parser_state.ts';
 
 /**
@@ -81,7 +81,7 @@ export const try_heading = (state: MdzStreamParserState): TryResult => {
 		id,
 		node_type: 'Heading',
 		start: heading_start,
-		level: hash_count as 1 | 2 | 3 | 4 | 5 | 6,
+		level: hash_count as 1 | 2 | 3 | 4 | 5 | 6
 	});
 	push_stack_entry(state, id, 'Heading', heading_start);
 	state.in_heading = true;
@@ -131,7 +131,7 @@ export const try_hr = (state: MdzStreamParserState, forced = false): TryResult =
 		id,
 		node_type: 'Hr',
 		start: offset(state, start),
-		end: offset(state, i),
+		end: offset(state, i)
 	});
 	// `i` sits at the line's newline, or at the buffer end — in forced mode
 	// always the buffer end (a newline would have resolved this line during
@@ -197,8 +197,8 @@ export const try_codeblock_open = (state: MdzStreamParserState): TryResult => {
 
 	const id = alloc_id(state);
 	const cb_start = offset(state, start);
-	emit(state, {type: 'open', id, node_type: 'Codeblock', start: cb_start, lang});
-	state.codeblock = {id, backtick_count, text_id: null, fence_indent: 0, start: cb_start};
+	emit(state, { type: 'open', id, node_type: 'Codeblock', start: cb_start, lang });
+	state.codeblock = { id, backtick_count, text_id: null, fence_indent: 0, start: cb_start };
 	state.pos = i;
 	state.column = 0;
 	state.prev_char = NEWLINE;
@@ -217,10 +217,10 @@ export const emit_codeblock_text = (
 	state: MdzStreamParserState,
 	cb: CodeblockState,
 	content: string,
-	content_start: number,
+	content_start: number
 ): void => {
 	if (cb.text_id !== null) {
-		emit(state, {type: 'append_text', id: cb.text_id, content});
+		emit(state, { type: 'append_text', id: cb.text_id, content });
 	} else {
 		const id = alloc_id(state);
 		const text_start = offset(state, content_start);
@@ -230,7 +230,7 @@ export const emit_codeblock_text = (
 			content,
 			text_type: 'Text',
 			start: text_start,
-			end: text_start + content.length,
+			end: text_start + content.length
 		});
 		cb.text_id = id;
 	}
@@ -271,7 +271,7 @@ export const process_codeblock_forced = (state: MdzStreamParserState): void => {
 				// whose hold retains at most a trailing newline plus a partial
 				// fence line. So — like the non-forced path's `fence_match - 1` —
 				// the close `end` excludes any line terminator
-				emit(state, {type: 'close', id: cb.id, end: offset(state, fence_match)});
+				emit(state, { type: 'close', id: cb.id, end: offset(state, fence_match) });
 				state.pos = fence_match;
 				state.codeblock = null;
 				return;
@@ -325,7 +325,7 @@ export const process_codeblock = (state: MdzStreamParserState): boolean => {
 				}
 
 				// codeblock end = position of newline after closing fence (exclusive)
-				emit(state, {type: 'close', id: cb.id, end: offset(state, fence_match - 1)});
+				emit(state, { type: 'close', id: cb.id, end: offset(state, fence_match - 1) });
 				state.pos = fence_match;
 				state.codeblock = null;
 				state.column = 0;
@@ -385,7 +385,7 @@ export const process_codeblock = (state: MdzStreamParserState): boolean => {
  */
 export const process_codeblock_in_item = (
 	state: MdzStreamParserState,
-	forced: boolean,
+	forced: boolean
 ): boolean => {
 	const cb = state.codeblock!;
 	while (state.pos < state.buffer.length) {
@@ -416,7 +416,7 @@ export const process_codeblock_in_item = (
 				}
 				if (m >= state.buffer.length && !forced) return false; // trailing content could disqualify
 				if (m >= state.buffer.length || state.buffer.charCodeAt(m) === NEWLINE) {
-					emit(state, {type: 'close', id: cb.id, end: offset(state, m)});
+					emit(state, { type: 'close', id: cb.id, end: offset(state, m) });
 					state.codeblock = null;
 					state.pos = m; // at the closer's newline (or EOF)
 					state.column = m - line_start;
@@ -454,7 +454,7 @@ export const process_codeblock_in_item = (
 export const match_codeblock_close = (
 	state: MdzStreamParserState,
 	backtick_count: number,
-	forced: boolean = false,
+	forced: boolean = false
 ): number => {
 	let i = state.pos;
 

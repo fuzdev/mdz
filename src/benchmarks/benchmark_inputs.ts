@@ -119,7 +119,7 @@ export const generate_table_heavy_input = (): string => {
 
 /** The shared benchmark corpus, ordered small to pathological. */
 export const benchmark_inputs: Array<BenchmarkInput> = [
-	{name: 'tiny', content: 'hello **bold** world'},
+	{ name: 'tiny', content: 'hello **bold** world' },
 	{
 		name: 'small',
 		content: `# Small Document
@@ -128,7 +128,7 @@ This is a _simple_ paragraph with **bold** text and \`inline code\`.
 
 Here's a link: [click here](https://fuz.dev) and an auto-link https://fuz.dev/path.
 
-Some ~~strikethrough~~ text and more _italic_ words.`,
+Some ~~strikethrough~~ text and more _italic_ words.`
 	},
 	{
 		name: 'medium',
@@ -164,9 +164,9 @@ Multiple **bold** words in a **single** line with \`code\` mixed in.
 
 Final section after a horizontal rule.
 
-More content with [multiple](https://a.com) links [here](https://b.com) and [there](/c).`,
+More content with [multiple](https://a.com) links [here](https://b.com) and [there](/c).`
 	},
-	{name: 'large', content: generate_large_input()},
+	{ name: 'large', content: generate_large_input() },
 	{
 		name: 'angle brackets',
 		// Angle brackets without closing tags — exercises tag bail-out paths.
@@ -213,20 +213,20 @@ Functions with Array<string>, Promise<void>, and Map<string, number> in prose.
 | --- | --- |
 | \`Array<string>\` | list of names |
 | \`Promise<Result<object>>\` | async result |
-| \`Pick<Deps, 'key'>\` | narrowed deps |`,
+| \`Pick<Deps, 'key'>\` | narrowed deps |`
 	},
 	{
 		name: 'many angles',
 		// Many unclosed angle brackets in a single paragraph — worst case for
 		// repeated tag bail-outs within one parse unit
 		content: Array.from(
-			{length: 50},
-			(_, i) => `Item ${i}: Array<string> and Map<number, Result<object>> end.`,
-		).join('\n'),
+			{ length: 50 },
+			(_, i) => `Item ${i}: Array<string> and Map<number, Result<object>> end.`
+		).join('\n')
 	},
-	{name: 'list heavy', content: generate_list_heavy_input()},
-	{name: 'blockquote heavy', content: generate_blockquote_heavy_input()},
-	{name: 'table heavy', content: generate_table_heavy_input()},
+	{ name: 'list heavy', content: generate_list_heavy_input() },
+	{ name: 'blockquote heavy', content: generate_blockquote_heavy_input() },
+	{ name: 'table heavy', content: generate_table_heavy_input() },
 	{
 		name: 'large dense inline',
 		// Large doc dense in unclosed delimiter candidates — `<Tag>`-shaped
@@ -238,10 +238,10 @@ Functions with Array<string>, Promise<void>, and Map<string, number> in prose.
 		// `~~`, a single `~` is literal with no scan at all, and the paths now
 		// exercise that fast path.
 		content: Array.from(
-			{length: 1600},
+			{ length: 1600 },
 			(_, i) =>
-				`The ~/dev/repo_${i} crate returns Vec<String> and Box<dyn Error> while ~/dev/other_${i} uses Option<Arc<Mutex<T>>> in its API surface. `,
-		).join('\n'),
+				`The ~/dev/repo_${i} crate returns Vec<String> and Box<dyn Error> while ~/dev/other_${i} uses Option<Arc<Mutex<T>>> in its API surface. `
+		).join('\n')
 	},
 	{
 		name: 'mismatched tags',
@@ -250,7 +250,7 @@ Functions with Array<string>, Promise<void>, and Map<string, number> in prose.
 		// leaked frame. Guards `try_close_tag`'s `open_tag_counts` O(1) bail
 		// (and the sync lexer's memoized closing-tag search): without them this
 		// input is quadratic even in a single one-shot feed.
-		content: Array.from({length: 2000}, (_, i) => `<a${i}>x</nomatch>`).join(''),
+		content: Array.from({ length: 2000 }, (_, i) => `<a${i}>x</nomatch>`).join('')
 	},
 	{
 		name: 'hold line code',
@@ -259,14 +259,14 @@ Functions with Array<string>, Promise<void>, and Map<string, number> in prose.
 		// feed re-enters the same candidate — the closer/newline scans must be
 		// memoized (`buffer_index_of`) or chunked feeds go quadratic in the
 		// line length. Sized so the char-by-char row stays affordable.
-		content: '**a `' + 'x'.repeat(16_000),
+		content: '**a `' + 'x'.repeat(16_000)
 	},
 	{
 		name: 'hold line link',
 		// One giant unterminated `[text](url…` — the streaming parser holds at
 		// the `]` while the reference grows, re-entering every feed; the `)`
 		// terminator scan must be memoized or chunked feeds go quadratic.
-		content: '[text](https://example.com/' + 'x'.repeat(16_000),
+		content: '[text](https://example.com/' + 'x'.repeat(16_000)
 	},
 	{
 		name: 'dense inline code',
@@ -275,11 +275,11 @@ Functions with Array<string>, Promise<void>, and Map<string, number> in prose.
 		// backtick-dense input, yet the streaming `try_code` memoized dual-search
 		// is tuned for exactly this case (see perf.md's Shipped try_code finding).
 		content: Array.from(
-			{length: 400},
+			{ length: 400 },
 			(_, i) =>
 				`The \`parse_${i}()\` helper takes an \`MdzNode\` and returns \`Array<Token>\`; ` +
-				`see \`mdz_lexer.ts\` and \`try_code\` for the \`buffer_index_of\` memo.`,
-		).join('\n'),
+				`see \`mdz_lexer.ts\` and \`try_code\` for the \`buffer_index_of\` memo.`
+		).join('\n')
 	},
 	{
 		name: 'nested components',
@@ -289,10 +289,10 @@ Functions with Array<string>, Promise<void>, and Map<string, number> in prose.
 		// exercise the never-matching failure path. This drives `try_close_tag`'s
 		// matching branch and the tag stack under valid nesting.
 		content: Array.from(
-			{length: 300},
+			{ length: 300 },
 			(_, i) =>
-				`<Callout>Section ${i} has <Badge>**${i}**</Badge> and <Link>a \`ref\`</Link> inside.</Callout>`,
-		).join('\n\n'),
+				`<Callout>Section ${i} has <Badge>**${i}**</Badge> and <Link>a \`ref\`</Link> inside.</Callout>`
+		).join('\n\n')
 	},
 	{
 		name: 'nested inline cap',
@@ -308,8 +308,8 @@ Functions with Array<string>, Promise<void>, and Map<string, number> in prose.
 		// and the bounded reverts (cap correctness itself is in
 		// `mdz_nesting_cap.test.ts`).
 		content: Array.from(
-			{length: 12},
-			(_, i) => '['.repeat(200) + `text ${i} ` + '<a>'.repeat(200) + `X${i}` + '</a>'.repeat(200),
-		).join('\n\n'),
-	},
+			{ length: 12 },
+			(_, i) => '['.repeat(200) + `text ${i} ` + '<a>'.repeat(200) + `X${i}` + '</a>'.repeat(200)
+		).join('\n\n')
+	}
 ];

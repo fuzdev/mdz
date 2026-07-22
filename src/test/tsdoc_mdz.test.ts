@@ -1,5 +1,5 @@
-import {test, assert, describe} from 'vitest';
-import {mdz_from_tsdoc} from '$lib/tsdoc_mdz.ts';
+import { test, assert, describe } from 'vitest';
+import { mdz_from_tsdoc } from '$lib/tsdoc_mdz.ts';
 
 describe('mdz_from_tsdoc', () => {
 	test('converts {@link url|text} to markdown link', () => {
@@ -66,14 +66,14 @@ describe('mdz_from_tsdoc', () => {
 	test('handles spaces around pipe', () => {
 		assert.equal(
 			mdz_from_tsdoc('{@link https://fuz.dev | Example Site }'),
-			'[Example Site](https://fuz.dev)',
+			'[Example Site](https://fuz.dev)'
 		);
 	});
 
 	test('handles multiple pipes by using first as separator', () => {
 		assert.equal(
 			mdz_from_tsdoc('{@link https://fuz.dev|Text|More}'),
-			'[Text|More](https://fuz.dev)',
+			'[Text|More](https://fuz.dev)'
 		);
 	});
 
@@ -88,14 +88,14 @@ describe('mdz_from_tsdoc', () => {
 	test('splits identifier from description text', () => {
 		assert.equal(
 			mdz_from_tsdoc('tome.ts for the documentation system'),
-			'`tome.ts` for the documentation system',
+			'`tome.ts` for the documentation system'
 		);
 	});
 
 	test('splits module filename from description', () => {
 		assert.equal(
 			mdz_from_tsdoc('library_pipeline.ts for pipeline helpers'),
-			'`library_pipeline.ts` for pipeline helpers',
+			'`library_pipeline.ts` for pipeline helpers'
 		);
 	});
 
@@ -106,7 +106,7 @@ describe('mdz_from_tsdoc', () => {
 	test('accepts TS-lenient space-separated {@link url text}', () => {
 		assert.equal(
 			mdz_from_tsdoc('{@link https://example.com Example Site}'),
-			'[Example Site](https://example.com)',
+			'[Example Site](https://example.com)'
 		);
 	});
 
@@ -118,14 +118,14 @@ describe('mdz_from_tsdoc', () => {
 	test('passes through bare markdown link', () => {
 		assert.equal(
 			mdz_from_tsdoc('[Example](https://example.com)'),
-			'[Example](https://example.com)',
+			'[Example](https://example.com)'
 		);
 	});
 
 	test('passes through bare markdown link with description', () => {
 		assert.equal(
 			mdz_from_tsdoc('[svelte-docinfo](https://github.com/x/y) for the analysis library'),
-			'[svelte-docinfo](https://github.com/x/y) for the analysis library',
+			'[svelte-docinfo](https://github.com/x/y) for the analysis library'
 		);
 	});
 });

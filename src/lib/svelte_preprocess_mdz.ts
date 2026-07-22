@@ -14,11 +14,11 @@
  * @module
  */
 
-import type {ImportDeclaration, VariableDeclaration} from 'estree';
-import {parse, type PreprocessorGroup, type AST} from 'svelte/compiler';
+import type { ImportDeclaration, VariableDeclaration } from 'estree';
+import { parse, type PreprocessorGroup, type AST } from 'svelte/compiler';
 import MagicString from 'magic-string';
-import {walk} from 'zimmerframe';
-import {should_exclude_path} from '@fuzdev/fuz_util/path.ts';
+import { walk } from 'zimmerframe';
+import { should_exclude_path } from '@fuzdev/fuz_util/path.ts';
 import {
 	find_attribute,
 	extract_static_string,
@@ -33,11 +33,11 @@ import {
 	remove_import_specifier,
 	handle_preprocess_error,
 	type PreprocessImportInfo,
-	type ResolvedComponentImport,
+	type ResolvedComponentImport
 } from '@fuzdev/fuz_util/svelte_preprocess_helpers.ts';
 
-import {mdz_parse} from './mdz.ts';
-import {mdz_to_svelte, type MdzToSvelteResult} from './mdz_to_svelte.ts';
+import { mdz_parse } from './mdz.ts';
+import { mdz_to_svelte, type MdzToSvelteResult } from './mdz_to_svelte.ts';
 
 /**
  * An estree `ImportDeclaration` augmented with Svelte's position data.
@@ -119,7 +119,7 @@ const PRECOMPILED_NAME = 'MdzPrecompiled';
  * @returns a Svelte `PreprocessorGroup` for use in `svelte.config.js`
  */
 export const svelte_preprocess_mdz = (
-	options: SveltePreprocessMdzOptions = {},
+	options: SveltePreprocessMdzOptions = {}
 ): PreprocessorGroup => {
 	const {
 		exclude = [],
@@ -129,52 +129,56 @@ export const svelte_preprocess_mdz = (
 		compiled_component_import = '@fuzdev/mdz/MdzPrecompiled.svelte',
 		code_component_import,
 		codeblock_component_import,
-		on_error = process.env.CI === 'true' ? 'throw' : 'log',
+		on_error = process.env.CI === 'true' ? 'throw' : 'log'
 	} = options;
 
 	return {
 		name: 'fuz-mdz',
 
-		markup: ({content, filename}) => {
+		markup: ({ content, filename }) => {
 			if (should_exclude_path(filename, exclude)) {
-				return {code: content};
+				return { code: content };
 			}
 
 			// Quick bail: does file mention any known Mdz import source?
 			if (!mdz_component_imports.some((source) => content.includes(source))) {
-				return {code: content};
+				return { code: content };
 			}
 
-			const ast = parse(content, {filename, modern: true});
+			const ast = parse(content, { filename, modern: true });
 
 			// Resolve which local names map to the Mdz component
 			const mdz_names = resolve_component_names(ast, mdz_component_imports);
 			if (mdz_names.size === 0) {
-				return {code: content};
+				return { code: content };
 			}
 
 			// Check for MdzPrecompiled name collision
 			if (has_name_collision(ast, compiled_component_import)) {
-				return {code: content};
+				return { code: content };
 			}
 
 			const s = new MagicString(content);
 			const bindings = build_static_bindings(ast);
 
 			// Find and transform Mdz usages with static content
-			const {transformations, total_usages, transformed_usages} = find_mdz_usages(ast, mdz_names, {
-				components,
-				elements,
-				filename,
-				source: content,
-				bindings,
-				on_error,
-				code_component_import,
-				codeblock_component_import,
-			});
+			const { transformations, total_usages, transformed_usages } = find_mdz_usages(
+				ast,
+				mdz_names,
+				{
+					components,
+					elements,
+					filename,
+					source: content,
+					bindings,
+					on_error,
+					code_component_import,
+					codeblock_component_import
+				}
+			);
 
 			if (transformations.length === 0) {
-				return {code: content};
+				return { code: content };
 			}
 
 			// Apply transformations
@@ -190,7 +194,7 @@ export const svelte_preprocess_mdz = (
 				ast,
 				mdz_names,
 				total_usages,
-				transformed_usages,
+				transformed_usages
 			);
 
 			// Add required imports and remove unused Mdz imports
@@ -200,14 +204,14 @@ export const svelte_preprocess_mdz = (
 				transformations,
 				removable_imports,
 				compiled_component_import,
-				content,
+				content
 			);
 
 			return {
 				code: s.toString(),
-				map: s.generateMap({hires: true}),
+				map: s.generateMap({ hires: true })
 			};
-		},
+		}
 	};
 };
 
@@ -273,11 +277,11 @@ const has_name_collision = (ast: AST.Root, compiled_component_import: string): b
  */
 const collect_consumed_bindings = (
 	value: AST.Attribute['value'],
-	bindings: ReadonlyMap<string, string>,
+	bindings: ReadonlyMap<string, string>
 ): Set<string> => {
 	const consumed: Set<string> = new Set();
 	if (value === true || Array.isArray(value)) return consumed;
-	const collect_from_expr = (expr: {type: string; [key: string]: any}): void => {
+	const collect_from_expr = (expr: { type: string; [key: string]: any }): void => {
 		if (expr.type === 'Identifier' && bindings.has(expr.name)) {
 			consumed.add(expr.name);
 		} else if (expr.type === 'BinaryExpression' && expr.operator === '+') {
@@ -305,7 +309,7 @@ const collect_consumed_bindings = (
 const render_static_mdz = (
 	content: string,
 	base: string | undefined,
-	context: FindMdzUsagesContext,
+	context: FindMdzUsagesContext
 ): MdzToSvelteResult | null => {
 	let result: MdzToSvelteResult;
 	try {
@@ -314,7 +318,7 @@ const render_static_mdz = (
 			elements: context.elements,
 			base,
 			code_component_import: context.code_component_import,
-			codeblock_component_import: context.codeblock_component_import,
+			codeblock_component_import: context.codeblock_component_import
 		});
 	} catch (error) {
 		handle_preprocess_error(error, '[fuz-mdz]', context.filename, context.on_error);
@@ -330,7 +334,7 @@ const render_static_mdz = (
 const find_mdz_usages = (
 	ast: AST.Root,
 	mdz_names: Map<string, ResolvedComponentImport>,
-	context: FindMdzUsagesContext,
+	context: FindMdzUsagesContext
 ): FindMdzUsagesResult => {
 	const transformations: Array<MdzTransformation> = [];
 	const total_usages: Map<string, number> = new Map();
@@ -339,7 +343,7 @@ const find_mdz_usages = (
 	// zimmerframe types visitors against {type: string}, requiring explicit annotations
 	// on the callback parameters for Svelte-specific AST types like AST.Component
 	walk(ast.fragment as any, null, {
-		Component(node: AST.Component, ctx: {next: () => void}) {
+		Component(node: AST.Component, ctx: { next: () => void }) {
 			// Always recurse into children so nested Mdz components are found
 			ctx.next();
 
@@ -385,7 +389,7 @@ const find_mdz_usages = (
 					replacement,
 					required_imports: result.imports,
 					consumed_bindings: consumed,
-					component_node: node,
+					component_node: node
 				});
 				return;
 			}
@@ -394,17 +398,17 @@ const find_mdz_usages = (
 			const chain = try_extract_conditional_chain(
 				content_attr.value,
 				context.source,
-				context.bindings,
+				context.bindings
 			);
 			if (chain === null) return;
 
 			// Parse and render each branch
-			const branch_results: Array<{markup: string; imports: Map<string, PreprocessImportInfo>}> =
+			const branch_results: Array<{ markup: string; imports: Map<string, PreprocessImportInfo> }> =
 				[];
 			for (const branch of chain) {
 				const result = render_static_mdz(branch.value, base, context);
 				if (result === null) return; // parse error or unconfigured tags — leave for runtime
-				branch_results.push({markup: result.markup, imports: result.imports});
+				branch_results.push({ markup: result.markup, imports: result.imports });
 			}
 
 			// Build {#if}/{:else if}/{:else} markup
@@ -440,12 +444,12 @@ const find_mdz_usages = (
 				replacement,
 				required_imports: merged_imports,
 				consumed_bindings: consumed,
-				component_node: node,
+				component_node: node
 			});
-		},
+		}
 	});
 
-	return {transformations, total_usages, transformed_usages};
+	return { transformations, total_usages, transformed_usages };
 };
 
 /**
@@ -459,7 +463,7 @@ const remove_dead_const_bindings = (
 	s: MagicString,
 	ast: AST.Root,
 	transformations: Array<MdzTransformation>,
-	source: string,
+	source: string
 ): void => {
 	// Collect all consumed binding names across transformations
 	const all_consumed: Set<string> = new Set();
@@ -483,12 +487,12 @@ const remove_dead_const_bindings = (
 
 	for (const name of all_consumed) {
 		// Find the VariableDeclaration containing this binding in instance script
-		let declaration_node: (VariableDeclaration & {start: number; end: number}) | null = null;
+		let declaration_node: (VariableDeclaration & { start: number; end: number }) | null = null;
 		for (const node of instance.content.body) {
 			if (node.type !== 'VariableDeclaration' || node.kind !== 'const') continue;
 			for (const decl of node.declarations) {
 				if (decl.id.type === 'Identifier' && decl.id.name === name) {
-					declaration_node = node as VariableDeclaration & {start: number; end: number};
+					declaration_node = node as VariableDeclaration & { start: number; end: number };
 					break;
 				}
 			}
@@ -529,13 +533,13 @@ const build_replacement = (
 	node: AST.Component,
 	exclude_attrs: ReadonlySet<AST.Attribute>,
 	children_markup: string,
-	source: string,
+	source: string
 ): string => {
 	// Collect source ranges of all attributes except excluded ones (content, base when resolved)
-	const other_attr_ranges: Array<{start: number; end: number}> = [];
+	const other_attr_ranges: Array<{ start: number; end: number }> = [];
 	for (const attr of node.attributes) {
 		if (exclude_attrs.has(attr as AST.Attribute)) continue;
-		other_attr_ranges.push({start: attr.start, end: attr.end});
+		other_attr_ranges.push({ start: attr.start, end: attr.end });
 	}
 
 	// Build opening tag with MdzPrecompiled name
@@ -572,11 +576,11 @@ const find_removable_mdz_imports = (
 	ast: AST.Root,
 	mdz_names: Map<string, ResolvedComponentImport>,
 	total_usages: Map<string, number>,
-	transformed_usages: Map<string, number>,
+	transformed_usages: Map<string, number>
 ): Map<string, ImportRemovalAction> => {
 	const removable: Map<string, ImportRemovalAction> = new Map();
 
-	for (const [name, {import_node, specifier}] of mdz_names) {
+	for (const [name, { import_node, specifier }] of mdz_names) {
 		const total = total_usages.get(name) ?? 0;
 		const transformed = transformed_usages.get(name) ?? 0;
 
@@ -603,12 +607,12 @@ const find_removable_mdz_imports = (
 
 		const positioned_node = import_node as PositionedImportDeclaration;
 		if (import_node.specifiers.length === 1) {
-			removable.set(name, {node: positioned_node, kind: 'full'});
+			removable.set(name, { node: positioned_node, kind: 'full' });
 		} else {
 			removable.set(name, {
 				node: positioned_node,
 				kind: 'partial',
-				specifier_to_remove: specifier,
+				specifier_to_remove: specifier
 			});
 		}
 	}
@@ -636,7 +640,7 @@ const manage_imports = (
 	transformations: Array<MdzTransformation>,
 	removable_imports: Map<string, ImportRemovalAction>,
 	compiled_component_import: string,
-	source: string,
+	source: string
 ): void => {
 	// Collect all required imports across transformations
 	const required: Map<string, PreprocessImportInfo> = new Map();
@@ -647,7 +651,7 @@ const manage_imports = (
 	}
 
 	// Always need MdzPrecompiled when transformations occur
-	required.set(PRECOMPILED_NAME, {path: compiled_component_import, kind: 'default'});
+	required.set(PRECOMPILED_NAME, { path: compiled_component_import, kind: 'default' });
 
 	const script = ast.instance;
 
@@ -770,7 +774,7 @@ const manage_imports = (
 			action.node,
 			action.specifier_to_remove!,
 			source,
-			action === partial_carrier ? carrier_lines : '',
+			action === partial_carrier ? carrier_lines : ''
 		);
 	}
 };

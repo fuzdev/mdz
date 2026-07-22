@@ -2,22 +2,22 @@
 	// the CSS Custom Highlight API rules for the editable source live in theme_highlight.css
 	import '@fuzdev/fuz_code/theme_highlight.css';
 
-	import {onMount} from 'svelte';
+	import { onMount } from 'svelte';
 	import Code from '@fuzdev/fuz_code/Code.svelte';
 	import CodeTextarea from '@fuzdev/fuz_code/CodeTextarea.svelte';
 	import DocsLink from '@fuzdev/fuz_ui/DocsLink.svelte';
 	import DocsFooter from '@fuzdev/fuz_ui/DocsFooter.svelte';
 	import Card from '@fuzdev/fuz_ui/Card.svelte';
-	import {site_context} from '@fuzdev/fuz_ui/site.svelte.ts';
-	import {FUZ_DEV_URL, MAIN_HEADER_MARGIN_TOP} from '@fuzdev/fuz_ui/constants.ts';
-	import {DOCS_PATH} from '@fuzdev/fuz_ui/docs_helpers.svelte.ts';
-	import {Library, library_context} from '@fuzdev/fuz_ui/library.svelte.ts';
+	import { site_context } from '@fuzdev/fuz_ui/site.svelte.ts';
+	import { FUZ_DEV_URL, MAIN_HEADER_MARGIN_TOP } from '@fuzdev/fuz_ui/constants.ts';
+	import { DOCS_PATH } from '@fuzdev/fuz_ui/docs_helpers.svelte.ts';
+	import { Library, library_context } from '@fuzdev/fuz_ui/library.svelte.ts';
 
-	import {library_json} from './library.ts';
+	import { library_json } from './library.ts';
 	import MdzRoot from '$lib/MdzRoot.svelte';
 	import MdzStream from '$lib/MdzStream.svelte';
-	import {MdzStreamParser} from '$lib/mdz_stream_parser.ts';
-	import {MdzStreamState} from '$lib/mdz_stream_state.svelte.ts';
+	import { MdzStreamParser } from '$lib/mdz_stream_parser.ts';
+	import { MdzStreamState } from '$lib/mdz_stream_state.svelte.ts';
 
 	const site = site_context.get();
 

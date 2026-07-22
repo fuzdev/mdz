@@ -6,20 +6,20 @@
  *   gro run src/benchmarks/mdz.benchmark.ts --save   # run and save as new baseline
  */
 
-import {readFile, writeFile} from 'node:fs/promises';
-import {Benchmark} from '@fuzdev/fuz_util/benchmark.ts';
+import { readFile, writeFile } from 'node:fs/promises';
+import { Benchmark } from '@fuzdev/fuz_util/benchmark.ts';
 import {
 	benchmark_baseline_save,
 	benchmark_baseline_compare,
-	benchmark_baseline_format,
+	benchmark_baseline_format
 } from '@fuzdev/fuz_util/benchmark_baseline.ts';
-import {format_file} from '@fuzdev/gro/format_file.ts';
+import { format_file } from '@fuzdev/gro/format_file.ts';
 
-import {mdz_parse} from '../lib/mdz.ts';
-import {MdzStreamParser} from '../lib/mdz_stream_parser.ts';
-import {mdz_opcodes_to_nodes} from '../lib/mdz_opcodes_to_nodes.ts';
-import type {MdzOpcode} from '../lib/mdz_opcodes.ts';
-import {benchmark_inputs} from './benchmark_inputs.ts';
+import { mdz_parse } from '../lib/mdz.ts';
+import { MdzStreamParser } from '../lib/mdz_stream_parser.ts';
+import { mdz_opcodes_to_nodes } from '../lib/mdz_opcodes_to_nodes.ts';
+import type { MdzOpcode } from '../lib/mdz_opcodes.ts';
+import { benchmark_inputs } from './benchmark_inputs.ts';
 
 const save_baseline = process.argv.includes('--save');
 const BASELINE_PATH = 'src/benchmarks';
@@ -72,10 +72,10 @@ interface BenchmarkParser {
 
 const parsers: Array<BenchmarkParser> = [
 	// `mdz_parse` is the lexer-based pipeline — named to match the baseline entries
-	{name: 'lexer-based', parse: mdz_parse},
-	{name: 'streaming', parse: mdz_parse_stream},
-	{name: 'opcodes-only', parse: mdz_parse_opcodes_only},
-	{name: 'streaming 64B', parse: (content) => mdz_parse_stream_chunked(content, 64)},
+	{ name: 'lexer-based', parse: mdz_parse },
+	{ name: 'streaming', parse: mdz_parse_stream },
+	{ name: 'opcodes-only', parse: mdz_parse_opcodes_only },
+	{ name: 'streaming 64B', parse: (content) => mdz_parse_stream_chunked(content, 64) },
 	// char-by-char is linear on line-bounded input (measured ~4 MB/s — per-feed
 	// overhead dominates) but still slow in absolute terms; the cap keeps the
 	// suite's wall clock reasonable while covering every input up to `large`
@@ -85,8 +85,8 @@ const parsers: Array<BenchmarkParser> = [
 	{
 		name: 'char-by-char',
 		parse: (content) => mdz_parse_stream_chunked(content, 1),
-		max_input_length: 30_000,
-	},
+		max_input_length: 30_000
+	}
 ];
 
 // -- Benchmark --
@@ -94,7 +94,7 @@ const parsers: Array<BenchmarkParser> = [
 const bench = new Benchmark({
 	duration_ms: 3000,
 	warmup_iterations: 20,
-	min_iterations: 50,
+	min_iterations: 50
 });
 
 for (const input of inputs) {
@@ -127,7 +127,7 @@ console.log(
 	'  ' +
 		''.padEnd(name_w) +
 		parser_names.map((p) => p.padStart(col_w)).join('') +
-		'    chars'.padStart(col_w),
+		'    chars'.padStart(col_w)
 );
 console.log('  ' + '-'.repeat(name_w + parser_names.length * col_w + col_w));
 
@@ -139,7 +139,7 @@ for (const input of inputs) {
 		return mb_per_sec.toFixed(1).padStart(col_w);
 	});
 	console.log(
-		'  ' + input.name.padEnd(name_w) + cols.join('') + String(input.content.length).padStart(col_w),
+		'  ' + input.name.padEnd(name_w) + cols.join('') + String(input.content.length).padStart(col_w)
 	);
 }
 
@@ -157,16 +157,16 @@ const comparison = await benchmark_baseline_compare(bench.results(), {
 	// same-run ratios (see perf.md "Measurement robustness"); this threshold
 	// just filters the noisiest local rows.
 	regression_threshold: 1.1,
-	staleness_warning_days: 30,
+	staleness_warning_days: 30
 });
 
 console.log('\n Baseline Comparison\n');
 console.log(benchmark_baseline_format(comparison));
 
 if (save_baseline) {
-	await benchmark_baseline_save(bench.results(), {path: BASELINE_PATH});
+	await benchmark_baseline_save(bench.results(), { path: BASELINE_PATH });
 	const content = await readFile(BASELINE_FILE, 'utf-8');
-	const formatted = await format_file(content, {filepath: BASELINE_FILE});
+	const formatted = await format_file(content, { filepath: BASELINE_FILE });
 	await writeFile(BASELINE_FILE, formatted);
 	console.log(`\n✓ Baseline saved to ${BASELINE_FILE}`);
 } else if (comparison.baseline_found) {
@@ -175,7 +175,7 @@ if (save_baseline) {
 	}
 	if (comparison.methodology_changed.length > 0) {
 		console.log(
-			'\n⚠️  Methodology changed on some tasks. Re-run with --save to update the baseline and surface any drift masked by the budget change.',
+			'\n⚠️  Methodology changed on some tasks. Re-run with --save to update the baseline and surface any drift masked by the budget change.'
 		);
 	}
 	// Tally noise warnings across the three Welch-eligible buckets — a
@@ -186,7 +186,7 @@ if (save_baseline) {
 		comparison.unchanged.filter((r) => r.noise_warning).length;
 	if (noise_count > 0) {
 		console.log(
-			`\n⚠️  ${noise_count} task(s) flagged with high measurement noise. Treat their significance calls with skepticism; consider rerunning on quieter hardware.`,
+			`\n⚠️  ${noise_count} task(s) flagged with high measurement noise. Treat their significance calls with skepticism; consider rerunning on quieter hardware.`
 		);
 	}
 }

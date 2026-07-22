@@ -1,6 +1,6 @@
-import {test, assert, describe} from 'vitest';
+import { test, assert, describe } from 'vitest';
 
-import type {MdzNode, MdzNodeComponent, MdzNodeElement} from '$lib/mdz.ts';
+import type { MdzNode, MdzNodeComponent, MdzNodeElement } from '$lib/mdz.ts';
 import {
 	is_letter,
 	is_tag_name_char,
@@ -31,42 +31,42 @@ import {
 	SPACE,
 	LEFT_BRACKET,
 	RIGHT_BRACKET,
-	LEFT_PAREN,
+	LEFT_PAREN
 } from '$lib/mdz_helpers.ts';
 
 /* eslint-disable no-script-url */
 
 // helper to create nodes with dummy positions
-const text = (content: string): MdzNode => ({type: 'Text', content, start: 0, end: 0});
-const bold = (children: Array<MdzNode>): MdzNode => ({type: 'Bold', children, start: 0, end: 0});
+const text = (content: string): MdzNode => ({ type: 'Text', content, start: 0, end: 0 });
+const bold = (children: Array<MdzNode>): MdzNode => ({ type: 'Bold', children, start: 0, end: 0 });
 const italic = (children: Array<MdzNode>): MdzNode => ({
 	type: 'Italic',
 	children,
 	start: 0,
-	end: 0,
+	end: 0
 });
-const code = (content: string): MdzNode => ({type: 'Code', content, start: 0, end: 0});
+const code = (content: string): MdzNode => ({ type: 'Code', content, start: 0, end: 0 });
 const link = (reference: string, children: Array<MdzNode>): MdzNode => ({
 	type: 'Link',
 	reference,
 	children,
 	link_type: 'external',
 	start: 0,
-	end: 0,
+	end: 0
 });
 const component = (name: string, children: Array<MdzNode>): MdzNodeComponent => ({
 	type: 'Component',
 	name,
 	children,
 	start: 0,
-	end: 0,
+	end: 0
 });
 const element = (name: string, children: Array<MdzNode>): MdzNodeElement => ({
 	type: 'Element',
 	name,
 	children,
 	start: 0,
-	end: 0,
+	end: 0
 });
 
 describe('is_letter', () => {
@@ -210,7 +210,7 @@ describe('mdz_trim_url_punctuation', () => {
 	test('handles balanced parentheses (Wikipedia-style URLs)', () => {
 		assert.equal(
 			mdz_trim_url_punctuation('https://en.wikipedia.org/wiki/Foo_(bar)'),
-			'https://en.wikipedia.org/wiki/Foo_(bar)',
+			'https://en.wikipedia.org/wiki/Foo_(bar)'
 		);
 	});
 
@@ -238,7 +238,7 @@ describe('mdz_trim_url_punctuation', () => {
 	test('keeps nested balanced parens', () => {
 		assert.equal(
 			mdz_trim_url_punctuation('https://en.wikipedia.org/wiki/Foo_(bar_(baz))'),
-			'https://en.wikipedia.org/wiki/Foo_(bar_(baz))',
+			'https://en.wikipedia.org/wiki/Foo_(bar_(baz))'
 		);
 	});
 
@@ -387,7 +387,7 @@ describe('mdz_text_content', () => {
 	test('recurses into nested formatting', () => {
 		assert.equal(
 			mdz_text_content([bold([text('bold '), italic([text('and italic')])])]),
-			'bold and italic',
+			'bold and italic'
 		);
 	});
 
@@ -400,7 +400,7 @@ describe('mdz_text_content', () => {
 	});
 
 	test('returns empty string for nodes without content or children', () => {
-		const hr: MdzNode = {type: 'Hr', start: 0, end: 0};
+		const hr: MdzNode = { type: 'Hr', start: 0, end: 0 };
 		assert.equal(mdz_text_content([hr]), '');
 	});
 
@@ -409,7 +409,7 @@ describe('mdz_text_content', () => {
 	});
 
 	test('skips Hr nodes interspersed with text', () => {
-		const hr: MdzNode = {type: 'Hr', start: 0, end: 0};
+		const hr: MdzNode = { type: 'Hr', start: 0, end: 0 };
 		assert.equal(mdz_text_content([text('before'), hr, text('after')]), 'beforeafter');
 	});
 });
@@ -430,7 +430,7 @@ describe('mdz_heading_id', () => {
 	test('handles code in headings', () => {
 		assert.equal(
 			mdz_heading_id([text('The '), code('foo'), text(' function')]),
-			'the-foo-function',
+			'the-foo-function'
 		);
 	});
 });

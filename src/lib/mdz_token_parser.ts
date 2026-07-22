@@ -22,14 +22,14 @@ import type {
 	MdzNodeTableRow,
 	MdzNodeTableCell,
 	MdzNodeElement,
-	MdzNodeComponent,
+	MdzNodeComponent
 } from './mdz.ts';
 import {
 	has_non_whitespace,
 	mdz_extract_single_tag,
 	mdz_heading_id,
 	mdz_merge_adjacent_text,
-	mdz_push_merging_text,
+	mdz_push_merging_text
 } from './mdz_helpers.ts';
 import {
 	type MdzToken,
@@ -43,7 +43,7 @@ import {
 	type MdzTokenListItemOpen,
 	type MdzTokenTableOpen,
 	type MdzTokenTableRowOpen,
-	type MdzTokenTableCellOpen,
+	type MdzTokenTableCellOpen
 } from './mdz_lexer.ts';
 
 /**
@@ -134,7 +134,7 @@ export class MdzTokenParser {
 			if (token.type === 'hr') {
 				const flushed = this.#flush_paragraph(paragraph_children, true);
 				if (flushed) nodes.push(flushed);
-				nodes.push({type: 'Hr', start: token.start, end: token.end});
+				nodes.push({ type: 'Hr', start: token.start, end: token.end });
 				this.#index++;
 				continue;
 			}
@@ -147,7 +147,7 @@ export class MdzTokenParser {
 					lang: token.lang,
 					content: token.content,
 					start: token.start,
-					end: token.end,
+					end: token.end
 				});
 				this.#index++;
 				continue;
@@ -200,7 +200,7 @@ export class MdzTokenParser {
 		// children-derived end, like List — no-empty-start means children exist,
 		// with the open's position as a defensive fallback
 		const end = children.length > 0 ? children[children.length - 1]!.end : open.end;
-		return {type: 'Blockquote', children, start: open.start, end};
+		return { type: 'Blockquote', children, start: open.start, end };
 	}
 
 	#parse_table(): MdzNodeTable {
@@ -223,7 +223,7 @@ export class MdzTokenParser {
 		}
 
 		const end = rows.length > 0 ? rows[rows.length - 1]!.end : open.end;
-		return {type: 'Table', align: open.align, children: rows, start: open.start, end};
+		return { type: 'Table', align: open.align, children: rows, start: open.start, end };
 	}
 
 	#parse_table_row(): MdzNodeTableRow {
@@ -241,13 +241,13 @@ export class MdzTokenParser {
 			}
 			if (t.type === 'table_row_close') {
 				this.#index++;
-				return {type: 'TableRow', header, children: cells, start: open.start, end: t.end};
+				return { type: 'TableRow', header, children: cells, start: open.start, end: t.end };
 			}
 			this.#index++; // skip anything unexpected (defensive)
 		}
 
 		const end = cells.length > 0 ? cells[cells.length - 1]!.end : open.end;
-		return {type: 'TableRow', header, children: cells, start: open.start, end};
+		return { type: 'TableRow', header, children: cells, start: open.start, end };
 	}
 
 	#parse_table_cell(): MdzNodeTableCell {
@@ -261,14 +261,14 @@ export class MdzTokenParser {
 			const t = this.#tokens[this.#index]!;
 			if (t.type === 'table_cell_close') {
 				this.#index++;
-				return {type: 'TableCell', children, start, end: t.end};
+				return { type: 'TableCell', children, start, end: t.end };
 			}
 			const node = this.#parse_inline();
 			if (node) mdz_push_merging_text(children, node);
 		}
 
 		const end = children.length > 0 ? children[children.length - 1]!.end : open.end;
-		return {type: 'TableCell', children, start, end};
+		return { type: 'TableCell', children, start, end };
 	}
 
 	#parse_heading(): MdzNodeHeading {
@@ -293,7 +293,7 @@ export class MdzTokenParser {
 		const merged = mdz_merge_adjacent_text(children);
 		const end = merged.length > 0 ? merged[merged.length - 1]!.end : start + level + 1;
 
-		return {type: 'Heading', level, id: mdz_heading_id(merged), children: merged, start, end};
+		return { type: 'Heading', level, id: mdz_heading_id(merged), children: merged, start, end };
 	}
 
 	#parse_list(): MdzNodeList {
@@ -323,10 +323,10 @@ export class MdzTokenParser {
 				start_number: children[0]?.number ?? 1,
 				children,
 				start: open.start,
-				end,
+				end
 			};
 		}
-		return {type: 'List', ordered: false, children, start: open.start, end};
+		return { type: 'List', ordered: false, children, start: open.start, end };
 	}
 
 	#parse_list_item(): MdzNodeListItem {
@@ -376,7 +376,7 @@ export class MdzTokenParser {
 					lang: t.lang,
 					content: t.content,
 					start: t.start,
-					end: t.end,
+					end: t.end
 				});
 				this.#index++;
 				continue;
@@ -400,9 +400,9 @@ export class MdzTokenParser {
 
 		const end = children.length > 0 ? children[children.length - 1]!.end : open.end;
 		if (open.number !== undefined) {
-			return {type: 'ListItem', number: open.number, children, start: open.start, end};
+			return { type: 'ListItem', number: open.number, children, start: open.start, end };
 		}
-		return {type: 'ListItem', children, start: open.start, end};
+		return { type: 'ListItem', children, start: open.start, end };
 	}
 
 	#parse_inline(): MdzNode | null {
@@ -413,11 +413,11 @@ export class MdzTokenParser {
 		switch (token.type) {
 			case 'text':
 				this.#index++;
-				return {type: 'Text', content: token.content, start: token.start, end: token.end};
+				return { type: 'Text', content: token.content, start: token.start, end: token.end };
 
 			case 'code':
 				this.#index++;
-				return {type: 'Code', content: token.content, start: token.start, end: token.end};
+				return { type: 'Code', content: token.content, start: token.start, end: token.end };
 
 			case 'bold_open':
 				return this.#parse_delimiter_pair('bold_close', 'Bold', '**');
@@ -443,19 +443,19 @@ export class MdzTokenParser {
 			// Orphaned close tokens - treat as text
 			case 'bold_close':
 				this.#index++;
-				return {type: 'Text', content: '**', start: token.start, end: token.end};
+				return { type: 'Text', content: '**', start: token.start, end: token.end };
 
 			case 'italic_close':
 				this.#index++;
-				return {type: 'Text', content: '_', start: token.start, end: token.end};
+				return { type: 'Text', content: '_', start: token.start, end: token.end };
 
 			case 'strikethrough_close':
 				this.#index++;
-				return {type: 'Text', content: '~~', start: token.start, end: token.end};
+				return { type: 'Text', content: '~~', start: token.start, end: token.end };
 
 			case 'link_text_close':
 				this.#index++;
-				return {type: 'Text', content: ']', start: token.start, end: token.end};
+				return { type: 'Text', content: ']', start: token.start, end: token.end };
 
 			case 'link_ref':
 				this.#index++;
@@ -463,7 +463,7 @@ export class MdzTokenParser {
 					type: 'Text',
 					content: `(${token.reference})`,
 					start: token.start,
-					end: token.end,
+					end: token.end
 				};
 
 			case 'tag_close':
@@ -472,7 +472,7 @@ export class MdzTokenParser {
 					type: 'Text',
 					content: `</${token.name}>`,
 					start: token.start,
-					end: token.end,
+					end: token.end
 				};
 
 			default:
@@ -492,7 +492,7 @@ export class MdzTokenParser {
 	#parse_delimiter_pair(
 		close_type: 'bold_close' | 'italic_close' | 'strikethrough_close',
 		node_type: 'Bold' | 'Italic' | 'Strikethrough',
-		delimiter: '**' | '_' | '~~',
+		delimiter: '**' | '_' | '~~'
 	): MdzNodeBold | MdzNodeItalic | MdzNodeStrikethrough | MdzNodeText {
 		const start = this.#tokens[this.#index]!.start;
 		this.#index++;
@@ -503,7 +503,7 @@ export class MdzTokenParser {
 			const t = this.#tokens[this.#index]!;
 			if (t.type === close_type) {
 				this.#index++;
-				return {type: node_type, children, start, end: t.end};
+				return { type: node_type, children, start, end: t.end };
 			}
 			if (token_is_block_boundary(t.type)) {
 				break;
@@ -513,7 +513,7 @@ export class MdzTokenParser {
 		}
 
 		// Unclosed - treat as text
-		return {type: 'Text', content: delimiter, start, end: start + delimiter.length};
+		return { type: 'Text', content: delimiter, start, end: start + delimiter.length };
 	}
 
 	#parse_link(): MdzNodeLink | MdzNodeText {
@@ -538,12 +538,12 @@ export class MdzTokenParser {
 						children,
 						link_type: ref_token.link_type,
 						start,
-						end: ref_token.end,
+						end: ref_token.end
 					};
 				}
 
 				// No link_ref - treat as text
-				return {type: 'Text', content: '[', start, end: start + 1};
+				return { type: 'Text', content: '[', start, end: start + 1 };
 			}
 			if (token_is_block_boundary(t.type)) {
 				break;
@@ -552,7 +552,7 @@ export class MdzTokenParser {
 			if (node) mdz_push_merging_text(children, node);
 		}
 
-		return {type: 'Text', content: '[', start, end: start + 1};
+		return { type: 'Text', content: '[', start, end: start + 1 };
 	}
 
 	#parse_autolink(): MdzNodeLink {
@@ -561,10 +561,10 @@ export class MdzTokenParser {
 		return {
 			type: 'Link',
 			reference: token.reference,
-			children: [{type: 'Text', content: token.reference, start: token.start, end: token.end}],
+			children: [{ type: 'Text', content: token.reference, start: token.start, end: token.end }],
 			link_type: token.link_type,
 			start: token.start,
-			end: token.end,
+			end: token.end
 		};
 	}
 
@@ -581,21 +581,21 @@ export class MdzTokenParser {
 			const t = this.#tokens[this.#index]!;
 			if (t.type === 'tag_close' && t.name === tag_name) {
 				this.#index++;
-				return {type: node_type, name: tag_name, children, start, end: t.end};
+				return { type: node_type, name: tag_name, children, start, end: t.end };
 			}
 			const node = this.#parse_inline();
 			if (node) mdz_push_merging_text(children, node);
 		}
 
 		// Unclosed tag
-		return {type: 'Text', content: '<', start, end: start + 1};
+		return { type: 'Text', content: '<', start, end: start + 1 };
 	}
 
 	#parse_self_close_tag(): MdzNodeElement | MdzNodeComponent {
 		const token = this.#tokens[this.#index]! as MdzTokenTagSelfClose;
 		const node_type: 'Component' | 'Element' = token.is_component ? 'Component' : 'Element';
 		this.#index++;
-		return {type: node_type, name: token.name, children: [], start: token.start, end: token.end};
+		return { type: node_type, name: token.name, children: [], start: token.start, end: token.end };
 	}
 
 	// -- Paragraph flushing --
@@ -627,7 +627,7 @@ export class MdzTokenParser {
 			// `has_non_whitespace_content` (Unicode whitespace like NBSP is
 			// content; `.trim()` here would silently drop it)
 			const has_content = paragraph_children.some(
-				(n) => n.type !== 'Text' || has_non_whitespace(n.content),
+				(n) => n.type !== 'Text' || has_non_whitespace(n.content)
 			);
 			if (!has_content) {
 				paragraph_children.length = 0;
@@ -652,7 +652,7 @@ export class MdzTokenParser {
 			type: 'Paragraph',
 			children: merged,
 			start: merged[0]!.start,
-			end: merged[merged.length - 1]!.end,
+			end: merged[merged.length - 1]!.end
 		};
 	}
 }

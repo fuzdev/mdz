@@ -17,19 +17,19 @@
  * `mdz_render.test.ts` and the tree-level parity suite.
  */
 
-import {describe, test, assert} from 'vitest';
-import {render} from 'svelte/server';
-import type {Component} from 'svelte';
+import { describe, test, assert } from 'vitest';
+import { render } from 'svelte/server';
+import type { Component } from 'svelte';
 
 import MdzComponent from '$lib/Mdz.svelte';
 import MdzStreamComponent from '$lib/MdzStream.svelte';
-import {MdzStreamParser} from '$lib/mdz_stream_parser.ts';
-import {MdzStreamState} from '$lib/mdz_stream_state.svelte.ts';
-import type {MdzNode} from '$lib/mdz.ts';
-import {load_fixtures} from './fixtures/mdz/mdz_test_helpers.ts';
+import { MdzStreamParser } from '$lib/mdz_stream_parser.ts';
+import { MdzStreamState } from '$lib/mdz_stream_state.svelte.ts';
+import type { MdzNode } from '$lib/mdz.ts';
+import { load_fixtures } from './fixtures/mdz/mdz_test_helpers.ts';
 
-const Mdz = MdzComponent as unknown as Component<{content: string}>;
-const MdzStream = MdzStreamComponent as unknown as Component<{stream: MdzStreamState}>;
+const Mdz = MdzComponent as unknown as Component<{ content: string }>;
+const MdzStream = MdzStreamComponent as unknown as Component<{ stream: MdzStreamState }>;
 
 /** Strip hydration comments and unwrap the `<div>…</div>` SSR wrapper. */
 const ssr_inner_html = (body: string): string => {
@@ -44,7 +44,7 @@ const stream_ssr = (content: string): string => {
 	parser.finish();
 	const state = new MdzStreamState();
 	state.apply_batch(parser.take_opcodes());
-	return ssr_inner_html(render(MdzStream, {props: {stream: state}}).body);
+	return ssr_inner_html(render(MdzStream, { props: { stream: state } }).body);
 };
 
 /** See the module comment — the stream tree keeps lone tags `<p>`-wrapped. */
@@ -53,7 +53,7 @@ const has_tag_node = (nodes: Array<MdzNode>): boolean =>
 		(n) =>
 			n.type === 'Component' ||
 			n.type === 'Element' ||
-			('children' in n && has_tag_node(n.children)),
+			('children' in n && has_tag_node(n.children))
 	);
 
 describe('Mdz vs MdzStream SSR parity', () => {
@@ -63,7 +63,7 @@ describe('Mdz vs MdzStream SSR parity', () => {
 		let compared = 0;
 		for (const fixture of fixtures) {
 			if (has_tag_node(fixture.expected)) continue;
-			const static_html = ssr_inner_html(render(Mdz, {props: {content: fixture.input}}).body);
+			const static_html = ssr_inner_html(render(Mdz, { props: { content: fixture.input } }).body);
 			const stream_html = stream_ssr(fixture.input);
 			if (static_html !== stream_html) {
 				failures.push(`${fixture.name}:\n  static→ ${static_html}\n  stream→ ${stream_html}`);

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import {onMount} from 'svelte';
+	import { onMount } from 'svelte';
 	import Code from '@fuzdev/fuz_code/Code.svelte';
-	import {tome_get_by_slug} from '@fuzdev/fuz_ui/tome.ts';
+	import { tome_get_by_slug } from '@fuzdev/fuz_ui/tome.ts';
 	import TomeContent from '@fuzdev/fuz_ui/TomeContent.svelte';
 	import TomeSection from '@fuzdev/fuz_ui/TomeSection.svelte';
 	import TomeSectionHeader from '@fuzdev/fuz_ui/TomeSectionHeader.svelte';
@@ -12,8 +12,8 @@
 
 	import Mdz from '$lib/Mdz.svelte';
 	import MdzStream from '$lib/MdzStream.svelte';
-	import {MdzStreamParser} from '$lib/mdz_stream_parser.ts';
-	import {MdzStreamState} from '$lib/mdz_stream_state.svelte.ts';
+	import { MdzStreamParser } from '$lib/mdz_stream_parser.ts';
+	import { MdzStreamState } from '$lib/mdz_stream_state.svelte.ts';
 	import MdzRoot from '$lib/MdzRoot.svelte';
 	import mdz_paths from './mdz_streaming_paths.mdz?raw';
 	import mdz_picking from './mdz_streaming_picking.mdz?raw';
@@ -68,7 +68,7 @@ const y = 1336;
 		stream_state.apply_batch(ops);
 		stream_recent_opcodes = [
 			...stream_recent_opcodes,
-			...ops.map((op) => JSON.stringify(op)),
+			...ops.map((op) => JSON.stringify(op))
 		].slice(-STREAM_OPCODES_MAX);
 	};
 
@@ -171,8 +171,7 @@ const y = 1336;
 				style:height="300px"
 				bind:value={stream_content}
 				oninput={stream_reset}
-				aria-label="streaming mdz source"
-			></textarea>
+				aria-label="streaming mdz source"></textarea>
 			<div class="row gap_md mb_md flex-wrap:wrap">
 				<button
 					style:width="85px"

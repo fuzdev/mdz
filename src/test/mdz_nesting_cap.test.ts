@@ -19,12 +19,12 @@
  *    streaming parser so the two agree on where deep nesting stops nesting.
  */
 
-import {test, assert, describe} from 'vitest';
+import { test, assert, describe } from 'vitest';
 
-import {mdz_parse, type MdzNode} from '$lib/mdz.ts';
-import {MAX_INLINE_NESTING_DEPTH} from '$lib/mdz_helpers.ts';
-import {MdzStreamParser} from '$lib/mdz_stream_parser.ts';
-import {mdz_opcodes_to_nodes} from '$lib/mdz_opcodes_to_nodes.ts';
+import { mdz_parse, type MdzNode } from '$lib/mdz.ts';
+import { MAX_INLINE_NESTING_DEPTH } from '$lib/mdz_helpers.ts';
+import { MdzStreamParser } from '$lib/mdz_stream_parser.ts';
+import { mdz_opcodes_to_nodes } from '$lib/mdz_opcodes_to_nodes.ts';
 
 /** Compact structural summary of a node tree — text/code inline, containers as `Type:tag(children)`. */
 const summarize = (nodes: Array<MdzNode>): string =>
@@ -97,8 +97,8 @@ const BATTERY: Array<[string, string]> = [
 	// table cell delegates to the same sync lexer
 	[
 		'| <a>_x<a>y</a>_z | b |\n| --- | --- |\n| c | d |\n',
-		'Table(TableRow(TableCell("<a>_x" Element:a("y") "_z") TableCell("b")) TableRow(TableCell("c") TableCell("d")))',
-	],
+		'Table(TableRow(TableCell("<a>_x" Element:a("y") "_z") TableCell("b")) TableRow(TableCell("c") TableCell("d")))'
+	]
 ];
 
 describe('adversarial nesting output is stable (Bug 5 differential battery)', () => {
@@ -137,12 +137,12 @@ describe('inline nesting-depth cap', () => {
 			for (const input of [
 				'['.repeat(n) + 'text',
 				'<a>'.repeat(n) + 'X' + '</a>'.repeat(n),
-				'<a>'.repeat(n) + 'X',
+				'<a>'.repeat(n) + 'X'
 			]) {
 				assert.strictEqual(
 					JSON.stringify(mdz_parse(input)),
 					JSON.stringify(stream_parse(input)),
-					`parity at n=${n}: ${JSON.stringify(input.slice(0, 12))}…`,
+					`parity at n=${n}: ${JSON.stringify(input.slice(0, 12))}…`
 				);
 			}
 		}
@@ -169,14 +169,14 @@ describe('inline nesting-depth cap', () => {
 			`- ${deep_tag}`,
 			`| ${deep_bracket} | b |\n| --- | --- |\n| c | d |\n`,
 			`> ${deep_bracket}\n\n[after](/u)`,
-			`> ${'<a>'.repeat(CAP)}X${'</a>'.repeat(CAP)}`, // exactly-cap nesting inside a quote
+			`> ${'<a>'.repeat(CAP)}X${'</a>'.repeat(CAP)}` // exactly-cap nesting inside a quote
 		]) {
 			const nodes = mdz_parse(input);
 			assert.isArray(nodes);
 			assert.strictEqual(
 				JSON.stringify(nodes),
 				JSON.stringify(stream_parse(input)),
-				`context parity: ${JSON.stringify(input.slice(0, 16))}…`,
+				`context parity: ${JSON.stringify(input.slice(0, 16))}…`
 			);
 		}
 	});
@@ -186,14 +186,14 @@ describe('inline nesting-depth cap', () => {
 			for (const input of [
 				'['.repeat(n) + 'text',
 				'<a>'.repeat(n) + 'X' + '</a>'.repeat(n),
-				'[** '.repeat(n) + 'x', // mixed link/delimiter chain (overflowed pre-cap)
+				'[** '.repeat(n) + 'x' // mixed link/delimiter chain (overflowed pre-cap)
 			]) {
 				const expected = JSON.stringify(mdz_parse(input));
 				for (const chunk of [1, 3, 7, 64]) {
 					assert.strictEqual(
 						JSON.stringify(stream_parse_chunked(input, chunk)),
 						expected,
-						`chunk=${chunk} n=${n}: ${JSON.stringify(input.slice(0, 12))}…`,
+						`chunk=${chunk} n=${n}: ${JSON.stringify(input.slice(0, 12))}…`
 					);
 				}
 			}
@@ -215,7 +215,7 @@ describe('cap-saturating asymmetric prefix — accepted sync↔stream divergence
 	// each shape: a depth-saturating prefix of `n` opens, then a valid link
 	const shapes: Array<[string, (n: number) => string]> = [
 		['unclosed <a> prefix', (n) => '<a>'.repeat(n) + '[x](/u)'],
-		['[** delimiter chain', (n) => '[** '.repeat(n) + '[x](/u)'],
+		['[** delimiter chain', (n) => '[** '.repeat(n) + '[x](/u)']
 	];
 
 	for (const [label, build] of shapes) {
@@ -226,14 +226,14 @@ describe('cap-saturating asymmetric prefix — accepted sync↔stream divergence
 			assert.strictEqual(
 				JSON.stringify(mdz_parse(below)),
 				JSON.stringify(stream_parse(below)),
-				`${label}: agree at n=${CAP - 1}`,
+				`${label}: agree at n=${CAP - 1}`
 			);
 			// at the cap they diverge (streaming's optimistic opens saturate it)
 			const at = build(CAP);
 			assert.notStrictEqual(
 				JSON.stringify(mdz_parse(at)),
 				JSON.stringify(stream_parse(at)),
-				`${label}: diverge at n=${CAP}`,
+				`${label}: diverge at n=${CAP}`
 			);
 		});
 	}

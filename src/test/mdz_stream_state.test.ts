@@ -1,6 +1,6 @@
-import {test, assert, describe} from 'vitest';
+import { test, assert, describe } from 'vitest';
 
-import {MdzStreamState} from '$lib/mdz_stream_state.svelte.ts';
+import { MdzStreamState } from '$lib/mdz_stream_state.svelte.ts';
 import type {
 	MdzOpcodeOpen,
 	MdzOpcodeClose,
@@ -8,7 +8,7 @@ import type {
 	MdzOpcodeAppendText,
 	MdzOpcodeVoid,
 	MdzOpcodeRevert,
-	MdzOpcodeWrap,
+	MdzOpcodeWrap
 } from '$lib/mdz_opcodes.ts';
 
 // -- Helpers --
@@ -17,20 +17,20 @@ const open_paragraph = (id: number, start = 0): MdzOpcodeOpen => ({
 	type: 'open',
 	id,
 	node_type: 'Paragraph',
-	start,
+	start
 });
 
 const open_bold = (id: number, start = 0): MdzOpcodeOpen => ({
 	type: 'open',
 	id,
 	node_type: 'Bold',
-	start,
+	start
 });
 
 const close = (id: number, end = 0): MdzOpcodeClose => ({
 	type: 'close',
 	id,
-	end,
+	end
 });
 
 const text = (id: number, content: string, start = 0, end = 0): MdzOpcodeText => ({
@@ -39,13 +39,13 @@ const text = (id: number, content: string, start = 0, end = 0): MdzOpcodeText =>
 	content,
 	text_type: 'Text',
 	start,
-	end,
+	end
 });
 
 const append_text = (id: number, content: string): MdzOpcodeAppendText => ({
 	type: 'append_text',
 	id,
-	content,
+	content
 });
 
 const void_hr = (id: number, start = 0, end = 0): MdzOpcodeVoid => ({
@@ -53,14 +53,14 @@ const void_hr = (id: number, start = 0, end = 0): MdzOpcodeVoid => ({
 	id,
 	node_type: 'Hr',
 	start,
-	end,
+	end
 });
 
 const revert = (id: number, replacement_text: string, start = 0): MdzOpcodeRevert => ({
 	type: 'revert',
 	id,
 	replacement_text,
-	start,
+	start
 });
 
 // -- Happy path tests --
@@ -114,14 +114,14 @@ describe('MdzStreamState', () => {
 
 		test('close applies deferred metadata', () => {
 			const state = new MdzStreamState();
-			state.apply({type: 'open', id: 1, node_type: 'Link', start: 0});
+			state.apply({ type: 'open', id: 1, node_type: 'Link', start: 0 });
 			state.apply(text(2, 'click'));
 			state.apply({
 				type: 'close',
 				id: 1,
 				end: 20,
 				reference: 'https://fuz.dev',
-				link_type: 'external',
+				link_type: 'external'
 			});
 
 			assert.equal(state.root[0]!.reference, 'https://fuz.dev');
@@ -188,7 +188,7 @@ describe('MdzStreamState', () => {
 			state.apply(text(2, 'hello'));
 			assert.throws(
 				() => state.apply(revert(2, '**')),
-				/revert for id 2 which is not on the stack/,
+				/revert for id 2 which is not on the stack/
 			);
 		});
 
@@ -223,7 +223,7 @@ describe('MdzStreamState', () => {
 			state.apply(open_bold(2));
 			state.apply(text(3, 'a'));
 			state.apply(revert(2, '**'));
-			state.apply({type: 'open', id: 4, node_type: 'Italic', start: 0});
+			state.apply({ type: 'open', id: 4, node_type: 'Italic', start: 0 });
 			state.apply(text(5, 'b'));
 			state.apply(revert(4, '_'));
 			state.apply(close(1));
@@ -308,7 +308,7 @@ describe('MdzStreamState', () => {
 			reference: string,
 			link_type: 'external' | 'internal' = 'external',
 			start = 0,
-			end = 0,
+			end = 0
 		): MdzOpcodeWrap => ({
 			type: 'wrap',
 			id,
@@ -317,7 +317,7 @@ describe('MdzStreamState', () => {
 			reference,
 			link_type,
 			start,
-			end,
+			end
 		});
 
 		test('wrap converts text node to link', () => {
@@ -351,7 +351,7 @@ describe('MdzStreamState', () => {
 				start: 0,
 				end: 19,
 				trim_end: 1,
-				trim_id: 4,
+				trim_id: 4
 			});
 			state.apply(close(1));
 

@@ -12,13 +12,13 @@
  * the `MdzStreamParser` class TSDoc.
  */
 
-import {test, assert, describe, beforeAll} from 'vitest';
+import { test, assert, describe, beforeAll } from 'vitest';
 
-import {mdz_parse, type MdzNode} from '$lib/mdz.ts';
-import {MdzStreamParser} from '$lib/mdz_stream_parser.ts';
-import {mdz_opcodes_to_nodes} from '$lib/mdz_opcodes_to_nodes.ts';
-import {MdzStreamState, type MdzStreamNode} from '$lib/mdz_stream_state.svelte.ts';
-import {load_fixtures, type MdzFixture} from './fixtures/mdz/mdz_test_helpers.ts';
+import { mdz_parse, type MdzNode } from '$lib/mdz.ts';
+import { MdzStreamParser } from '$lib/mdz_stream_parser.ts';
+import { mdz_opcodes_to_nodes } from '$lib/mdz_opcodes_to_nodes.ts';
+import { MdzStreamState, type MdzStreamNode } from '$lib/mdz_stream_state.svelte.ts';
+import { load_fixtures, type MdzFixture } from './fixtures/mdz/mdz_test_helpers.ts';
 
 const stream_parse_text = (text: string) => {
 	const p = new MdzStreamParser();
@@ -94,7 +94,7 @@ const merge_adjacent_text = (nodes: Array<PlainNode>): Array<PlainNode> => {
 const tidy = (nodes: Array<PlainNode>): Array<PlainNode> => {
 	const out: Array<PlainNode> = [];
 	for (const n of nodes) {
-		const tidied: PlainNode = {...n};
+		const tidied: PlainNode = { ...n };
 		if (n.children) {
 			tidied.children = merge_adjacent_text(tidy(n.children));
 		}
@@ -129,7 +129,7 @@ const tidy = (nodes: Array<PlainNode>): Array<PlainNode> => {
 };
 
 const to_plain = (node: MdzStreamNode): unknown => {
-	const base: Record<string, unknown> = {type: node.type};
+	const base: Record<string, unknown> = { type: node.type };
 	if (node.type === 'Text' || node.type === 'Code' || node.type === 'Codeblock') {
 		base.content = node.content;
 	}
@@ -151,7 +151,7 @@ const to_plain = (node: MdzStreamNode): unknown => {
 
 /** Project an `MdzNode` to the same plain shape (drop `start`/`end`/`heading_id`). */
 const project_mdz_node = (node: MdzNode): unknown => {
-	const base: Record<string, unknown> = {type: node.type};
+	const base: Record<string, unknown> = { type: node.type };
 	if (node.type === 'Text' || node.type === 'Code' || node.type === 'Codeblock') {
 		base.content = node.content;
 	}
@@ -206,7 +206,7 @@ describe('mdz parser parity', () => {
 			'a\n \n---\t\nb',
 			'a\n \n```\nx\n```',
 			' ',
-			'\n \n\t\n',
+			'\n \n\t\n'
 		]) {
 			test(`one-shot matches mdz_parse for ${JSON.stringify(input)}`, () => {
 				assert.deepEqual(stream_parse_text(input), mdz_parse(input));
@@ -246,7 +246,7 @@ describe('mdz parser parity', () => {
 			'para\n```\n```\nafter',
 			'para\n```\ncode\n````\nafter',
 			'para\n```\ncode\n```x\nmore\n```',
-			'para\n````\ncode\n```', // no valid closer — the fence consumes to EOF
+			'para\n````\ncode\n```' // no valid closer — the fence consumes to EOF
 		]) {
 			test(`one-shot matches mdz_parse for ${JSON.stringify(input)}`, () => {
 				assert.deepEqual(stream_parse_text(input), mdz_parse(input));
@@ -320,7 +320,7 @@ describe('mdz parser parity', () => {
 			// inline scoping: pairs never cross item boundaries
 			'- **bold** _it_ `c`\n- x_y z_w\n',
 			'- _a\n- b_ c\n',
-			'- **a\n- b**\n',
+			'- **a\n- b**\n'
 		]) {
 			test(`one-shot matches mdz_parse for ${JSON.stringify(input)}`, () => {
 				assert.deepEqual(stream_parse_text(input), mdz_parse(input));
@@ -407,7 +407,7 @@ describe('mdz parser parity', () => {
 			'> _a\n> b_ c\n',
 			// CRLF + whitespace tolerance
 			'> a\r\n> b\r\n',
-			'> a\n>\r\n> b\n',
+			'> a\n>\r\n> b\n'
 		]) {
 			test(`one-shot matches mdz_parse for ${JSON.stringify(input)}`, () => {
 				assert.deepEqual(stream_parse_text(input), mdz_parse(input));
@@ -492,7 +492,7 @@ describe('mdz parser parity', () => {
 			'| a | b |\n| : | - |\n', // invalid delimiter cell
 			'| a | b |\n| c | d |\n', // two pipe rows, no delimiter
 			// CRLF
-			'| a | b |\r\n| - | - |\r\n| 1 | 2 |\r\n',
+			'| a | b |\r\n| - | - |\r\n| 1 | 2 |\r\n'
 		]) {
 			test(`one-shot matches mdz_parse for ${JSON.stringify(input)}`, () => {
 				assert.deepEqual(stream_parse_text(input), mdz_parse(input));
@@ -514,7 +514,7 @@ describe('mdz parser parity', () => {
 			'"https://fuz.dev"',
 			'see https://fuz.dev',
 			'\nhttps://fuz.dev',
-			'https://fuz.dev',
+			'https://fuz.dev'
 		]) {
 			test(`one-shot matches mdz_parse for ${JSON.stringify(input)}`, () => {
 				assert.deepEqual(stream_parse_text(input), mdz_parse(input));
@@ -530,7 +530,7 @@ describe('mdz parser parity', () => {
 			'HTTP://fuz.dev',
 			'Http://fuz.dev',
 			'see HTTPS://fuz.dev here',
-			'xHTTPS://fuz.dev',
+			'xHTTPS://fuz.dev'
 		]) {
 			test(`one-shot matches mdz_parse for ${JSON.stringify(input)}`, () => {
 				assert.deepEqual(stream_parse_text(input), mdz_parse(input));
@@ -551,7 +551,7 @@ describe('mdz parser parity', () => {
 			' ./relative',
 			'/path/to/thing',
 			'./relative',
-			'(./relative)',
+			'(./relative)'
 		]) {
 			test(`one-shot matches mdz_parse for ${JSON.stringify(input)}`, () => {
 				assert.deepEqual(stream_parse_text(input), mdz_parse(input));
@@ -581,7 +581,7 @@ describe('mdz parser parity', () => {
 			'~~a\nb~~',
 			'~~a\n\nb~~',
 			'~~_i_~~',
-			'~~x~~_y_',
+			'~~x~~_y_'
 		]) {
 			test(`one-shot matches mdz_parse for ${JSON.stringify(input)}`, () => {
 				assert.deepEqual(stream_parse_text(input), mdz_parse(input));
@@ -606,7 +606,7 @@ describe('mdz parser parity', () => {
 			'https:',
 			'see ht',
 			'# https:',
-			'text http',
+			'text http'
 		]) {
 			test(`one-shot matches mdz_parse for ${JSON.stringify(input)}`, () => {
 				assert.deepEqual(stream_parse_text(input), mdz_parse(input));
@@ -639,7 +639,7 @@ describe('mdz parser parity', () => {
 			'~~a `x **b**',
 			'~~a `x **b** _i_ z',
 			'**a `~~x~~',
-			'~~a `x **b z',
+			'~~a `x **b z'
 		]) {
 			test(`one-shot matches mdz_parse for ${JSON.stringify(input)}`, () => {
 				assert.deepEqual(stream_parse_text(input), mdz_parse(input));
@@ -667,7 +667,7 @@ describe('mdz parser parity', () => {
 			'**bold <b>tag</b> more**', // tag bounded inside bold
 			'# h <b>`a</b>x`', // crossing scan inside a heading
 			'- <b>`a</b>x`', // crossing scan inside a list item
-			'<b>`a</b>x` and trailing text', // content after the crossing point survives
+			'<b>`a</b>x` and trailing text' // content after the crossing point survives
 		]) {
 			test(`one-shot matches mdz_parse for ${JSON.stringify(input)}`, () => {
 				assert.deepEqual(stream_parse_text(input), mdz_parse(input));
@@ -694,7 +694,7 @@ describe('mdz parser parity', () => {
 			'[x `y [ z` w](/path) tail', // same, with content after the link
 			'[a `b` c](/u)', // plain code span inside link text
 			'[a [ b](/u)', // literal `[` in link text outside code
-			'[`a]b`', // code swallows `]` and no link ever completes
+			'[`a]b`' // code swallows `]` and no link ever completes
 		]) {
 			test(`one-shot matches mdz_parse for ${JSON.stringify(input)}`, () => {
 				assert.deepEqual(stream_parse_text(input), mdz_parse(input));
@@ -723,7 +723,7 @@ describe('mdz parser parity', () => {
 			'[a](/u(1))', // paren-bearing reference, leftover `)` is text
 			'[a)b]', // no reference — stays literal text
 			'[)](/u)', // link text is just `)`
-			'[**b)old**](/u)', // bare `)` inside a formatting child
+			'[**b)old**](/u)' // bare `)` inside a formatting child
 		]) {
 			test(`one-shot matches mdz_parse for ${JSON.stringify(input)}`, () => {
 				assert.deepEqual(stream_parse_text(input), mdz_parse(input));
@@ -754,7 +754,7 @@ describe('mdz parser parity', () => {
 			'<b>_a</b>_', // closer candidate after the tag close
 			'_a <x_y>b</x_y>', // italic candidate before a tag open
 			'<Foo />', // self-closing split at the `/`
-			'a < b', // literal `<` resolved by the next chunk
+			'a < b' // literal `<` resolved by the next chunk
 		]) {
 			test(`one-shot matches mdz_parse for ${JSON.stringify(input)}`, () => {
 				assert.deepEqual(stream_parse_text(input), mdz_parse(input));
@@ -781,7 +781,7 @@ describe('mdz parser parity', () => {
 			'_**_a_',
 			'**_~~__',
 			'_~~_a~~',
-			'_**~~_a',
+			'_**~~_a'
 		];
 		for (const input of inputs) {
 			for (const chunk_size of [1, 2, 3]) {
@@ -822,31 +822,31 @@ describe('mdz parser parity', () => {
 		// rejects on a failed first closer (`_` is self-opaque), so bold/strike
 		// optimism always reconverges. Requires an `_`-bearing code span chunked
 		// so the italic opens before the span's closing backtick is visible.
-		const cases: Array<{input: string; chunked: Array<MdzNode>}> = [
+		const cases: Array<{ input: string; chunked: Array<MdzNode> }> = [
 			{
 				input: '_`__`',
 				chunked: [
 					{
 						type: 'Paragraph',
-						children: [{type: 'Text', content: '_`__`', start: 0, end: 5}],
+						children: [{ type: 'Text', content: '_`__`', start: 0, end: 5 }],
 						start: 0,
-						end: 5,
-					},
-				],
+						end: 5
+					}
+				]
 			},
 			{
 				input: '_`_a`',
 				chunked: [
 					{
 						type: 'Paragraph',
-						children: [{type: 'Text', content: '_`_a`', start: 0, end: 5}],
+						children: [{ type: 'Text', content: '_`_a`', start: 0, end: 5 }],
 						start: 0,
-						end: 5,
-					},
-				],
-			},
+						end: 5
+					}
+				]
+			}
 		];
-		for (const {input, chunked} of cases) {
+		for (const { input, chunked } of cases) {
 			test(`one-shot still matches mdz_parse for ${JSON.stringify(input)}`, () => {
 				assert.deepEqual(stream_parse_text(input), mdz_parse(input));
 			});
@@ -910,7 +910,7 @@ describe('mdz parser parity', () => {
 			'../a',
 			'..x',
 			'. x',
-			'/ a',
+			'/ a'
 		];
 		for (const input of split_inputs) {
 			test(`every split point matches mdz_parse for ${JSON.stringify(input)}`, () => {
@@ -923,7 +923,7 @@ describe('mdz parser parity', () => {
 					assert.deepEqual(
 						mdz_opcodes_to_nodes(p.take_opcodes()),
 						expected,
-						`split at ${i}: ${JSON.stringify(input.slice(0, i))} + ${JSON.stringify(input.slice(i))}`,
+						`split at ${i}: ${JSON.stringify(input.slice(0, i))} + ${JSON.stringify(input.slice(i))}`
 					);
 				}
 			});
@@ -945,7 +945,7 @@ describe('mdz parser parity', () => {
 			// boundary slipups
 			'word*not_emph*word',
 			'a\nhttps://fuz.dev',
-			'a https://fuz.dev b',
+			'a https://fuz.dev b'
 		]) {
 			test(`one-shot matches mdz_parse for ${JSON.stringify(input)}`, () => {
 				assert.deepEqual(stream_parse_text(input), mdz_parse(input));
@@ -971,14 +971,14 @@ describe('mdz parser parity', () => {
 					diff_count++;
 					if (diffs.length < 5) {
 						diffs.push(
-							`${fx.name}: input=${JSON.stringify(fx.input)}\nstream=${JSON.stringify(b)}\nmdz_parse=${JSON.stringify(a)}`,
+							`${fx.name}: input=${JSON.stringify(fx.input)}\nstream=${JSON.stringify(b)}\nmdz_parse=${JSON.stringify(a)}`
 						);
 					}
 				}
 			}
 			if (diff_count > 0) {
 				throw new Error(
-					`${diff_count} fixture(s) diverge between mdz_parse and streaming parser:\n${diffs.join('\n')}`,
+					`${diff_count} fixture(s) diverge between mdz_parse and streaming parser:\n${diffs.join('\n')}`
 				);
 			}
 		});
@@ -994,7 +994,7 @@ describe('mdz parser parity', () => {
 			'a\n\nb',
 			'# Heading\n\ntext',
 			'```ts\ncode\n```',
-			'[text](https://fuz.dev)',
+			'[text](https://fuz.dev)'
 		];
 		for (const input of inputs) {
 			for (const chunk_size of [1, 2, 3]) {
@@ -1029,7 +1029,7 @@ describe('mdz parser parity', () => {
 			'---\nafter',
 			'```ts\ncode\n```',
 			'a\n\nb',
-			'`code`',
+			'`code`'
 		];
 		for (const input of strict_inputs) {
 			test(`tree matches for ${JSON.stringify(input)}`, () => {
@@ -1051,7 +1051,7 @@ describe('mdz parser parity', () => {
 			'<div>x</div>',
 			'**a** **b**',
 			'see /docs here',
-			'a **b** c **d** e',
+			'a **b** c **d** e'
 		];
 		for (const input of tidy_inputs) {
 			test(`tidied tree matches for ${JSON.stringify(input)}`, () => {
@@ -1070,7 +1070,7 @@ describe('mdz parser parity', () => {
 		});
 
 		test('every fixture round-trips through MdzStreamState', () => {
-			const failures: Array<{name: string; diff: string}> = [];
+			const failures: Array<{ name: string; diff: string }> = [];
 			for (const fx of fixtures) {
 				const path2 = mdz_parse(fx.input).map(project_mdz_node) as Array<PlainNode>;
 				const path3 = stream_state_render(fx.input) as Array<PlainNode>;
@@ -1079,7 +1079,7 @@ describe('mdz parser parity', () => {
 				} catch {
 					failures.push({
 						name: fx.name,
-						diff: `input=${JSON.stringify(fx.input)}\npath3(tidied)=${JSON.stringify(tidy(path3))}\npath2=${JSON.stringify(path2)}`,
+						diff: `input=${JSON.stringify(fx.input)}\npath3(tidied)=${JSON.stringify(tidy(path3))}\npath2=${JSON.stringify(path2)}`
 					});
 				}
 			}
@@ -1089,7 +1089,7 @@ describe('mdz parser parity', () => {
 						failures
 							.slice(0, 3)
 							.map((f) => `--- ${f.name} ---\n${f.diff}`)
-							.join('\n\n'),
+							.join('\n\n')
 				);
 			}
 		});
@@ -1129,7 +1129,7 @@ describe('mdz parser parity', () => {
 			'a **',
 			'****',
 			'a ~~',
-			'~~~~',
+			'~~~~'
 		];
 		for (const input of inputs) {
 			for (const chunk_size of [1, 2, 3]) {

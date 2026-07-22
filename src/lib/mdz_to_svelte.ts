@@ -8,12 +8,12 @@
  * @module
  */
 
-import {UnreachableError} from '@fuzdev/fuz_util/error.ts';
-import {escape_svelte_text} from '@fuzdev/fuz_util/svelte_preprocess_helpers.ts';
-import {escape_js_string} from '@fuzdev/fuz_util/string.ts';
+import { UnreachableError } from '@fuzdev/fuz_util/error.ts';
+import { escape_svelte_text } from '@fuzdev/fuz_util/svelte_preprocess_helpers.ts';
+import { escape_js_string } from '@fuzdev/fuz_util/string.ts';
 
-import type {MdzNode, MdzNodeTableRow} from './mdz.ts';
-import {mdz_is_void_element, mdz_classify_link} from './mdz_helpers.ts';
+import type { MdzNode, MdzNodeTableRow } from './mdz.ts';
+import { mdz_is_void_element, mdz_classify_link } from './mdz_helpers.ts';
 
 /**
  * Result of converting `MdzNode` arrays to Svelte markup.
@@ -23,7 +23,7 @@ export interface MdzToSvelteResult {
 	markup: string;
 
 	/** Required imports: `Map<local_name, {path, kind}>`. */
-	imports: Map<string, {path: string; kind: 'default' | 'named'}>;
+	imports: Map<string, { path: string; kind: 'default' | 'named' }>;
 
 	/** Whether content references unconfigured Component or Element tags. */
 	has_unconfigured_tags: boolean;
@@ -85,10 +85,10 @@ export interface MdzToSvelteOptions {
  */
 export const mdz_to_svelte = (
 	nodes: Array<MdzNode>,
-	options: MdzToSvelteOptions,
+	options: MdzToSvelteOptions
 ): MdzToSvelteResult => {
-	const {components, elements, base, code_component_import, codeblock_component_import} = options;
-	const imports: Map<string, {path: string; kind: 'default' | 'named'}> = new Map();
+	const { components, elements, base, code_component_import, codeblock_component_import } = options;
+	const imports: Map<string, { path: string; kind: 'default' | 'named' }> = new Map();
 	let has_unconfigured_tags = false;
 
 	const render_nodes = (children: Array<MdzNode>): string => {
@@ -105,7 +105,7 @@ export const mdz_to_svelte = (
 					return `<code>${escape_svelte_text(node.content)}</code>`;
 				}
 				const name = component_local_name(code_component_import);
-				imports.set(name, {path: code_component_import, kind: 'default'});
+				imports.set(name, { path: code_component_import, kind: 'default' });
 				return `<${name} reference={'${escape_js_string(node.content)}'} />`;
 			}
 
@@ -116,7 +116,7 @@ export const mdz_to_svelte = (
 					return `<pre><code>${escape_svelte_text(node.content)}</code></pre>`;
 				}
 				const name = component_local_name(codeblock_component_import);
-				imports.set(name, {path: codeblock_component_import, kind: 'default'});
+				imports.set(name, { path: codeblock_component_import, kind: 'default' });
 				return `<${name} ${lang_attr} content={'${escape_js_string(node.content)}'} />`;
 			}
 
@@ -139,7 +139,7 @@ export const mdz_to_svelte = (
 				const link = mdz_classify_link(node.reference, node.link_type, base);
 				if (link.kind === 'unsafe') return children_markup;
 				if (link.kind === 'resolve') {
-					imports.set('resolve', {path: '$app/paths', kind: 'named'});
+					imports.set('resolve', { path: '$app/paths', kind: 'named' });
 					return `<a href={resolve('${escape_js_string(link.href)}')}>${children_markup}</a>`;
 				}
 				if (link.kind === 'external') {
@@ -167,7 +167,7 @@ export const mdz_to_svelte = (
 				return `<blockquote>${render_nodes(node.children)}</blockquote>`;
 
 			case 'Table': {
-				const {align} = node;
+				const { align } = node;
 				const render_row = (row: MdzNodeTableRow, tag: 'th' | 'td'): string => {
 					let cells = '';
 					// normalize to the column count: pad short rows, ignore extra cells
@@ -225,7 +225,7 @@ export const mdz_to_svelte = (
 					has_unconfigured_tags = true;
 					return '';
 				}
-				imports.set(node.name, {path: import_path, kind: 'default'});
+				imports.set(node.name, { path: import_path, kind: 'default' });
 				return `<${node.name}>${render_nodes(node.children)}</${node.name}>`;
 			}
 
@@ -235,5 +235,5 @@ export const mdz_to_svelte = (
 	};
 
 	const markup = render_nodes(nodes);
-	return {markup, imports, has_unconfigured_tags};
+	return { markup, imports, has_unconfigured_tags };
 };

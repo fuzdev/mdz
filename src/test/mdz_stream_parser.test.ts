@@ -1,8 +1,8 @@
-import {test, assert, describe, beforeAll} from 'vitest';
+import { test, assert, describe, beforeAll } from 'vitest';
 
-import {MdzStreamParser} from '$lib/mdz_stream_parser.ts';
-import {mdz_opcodes_to_nodes} from '$lib/mdz_opcodes_to_nodes.ts';
-import {mdz_parse, type MdzNode} from '$lib/mdz.ts';
+import { MdzStreamParser } from '$lib/mdz_stream_parser.ts';
+import { mdz_opcodes_to_nodes } from '$lib/mdz_opcodes_to_nodes.ts';
+import { mdz_parse, type MdzNode } from '$lib/mdz.ts';
 import type {
 	MdzOpcode,
 	MdzOpcodeOpen,
@@ -11,9 +11,9 @@ import type {
 	MdzOpcodeAppendText,
 	MdzOpcodeVoid,
 	MdzOpcodeRevert,
-	MdzOpcodeWrap,
+	MdzOpcodeWrap
 } from '$lib/mdz_opcodes.ts';
-import {stream_parse, load_fixtures, type MdzFixture} from './fixtures/mdz/mdz_test_helpers.ts';
+import { stream_parse, load_fixtures, type MdzFixture } from './fixtures/mdz/mdz_test_helpers.ts';
 
 /**
  * Collect all opcodes from feeding text to the streaming parser.
@@ -33,7 +33,7 @@ describe('MdzStreamParser opcodes', () => {
 		assert.ok(ops.length >= 3);
 		// should have open(Paragraph), text("hello"), close(Paragraph)
 		const open = ops.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Paragraph',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Paragraph'
 		);
 		assert.ok(open);
 		const text = ops.find((o): o is MdzOpcodeText => o.type === 'text' && o.content === 'hello');
@@ -46,11 +46,11 @@ describe('MdzStreamParser opcodes', () => {
 	test('bold produces open/text/close opcodes', () => {
 		const ops = collect_opcodes('**bold**');
 		const bold_open = ops.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Bold',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Bold'
 		);
 		assert.ok(bold_open);
 		const bold_close = ops.find(
-			(o): o is MdzOpcodeClose => o.type === 'close' && o.id === bold_open.id,
+			(o): o is MdzOpcodeClose => o.type === 'close' && o.id === bold_open.id
 		);
 		assert.ok(bold_close);
 	});
@@ -58,7 +58,7 @@ describe('MdzStreamParser opcodes', () => {
 	test('inline code produces text opcode with Code type', () => {
 		const ops = collect_opcodes('`code`');
 		const code_text = ops.find(
-			(o): o is MdzOpcodeText => o.type === 'text' && o.text_type === 'Code',
+			(o): o is MdzOpcodeText => o.type === 'text' && o.text_type === 'Code'
 		);
 		assert.ok(code_text);
 		assert.equal(code_text.content, 'code');
@@ -67,7 +67,7 @@ describe('MdzStreamParser opcodes', () => {
 	test('paragraph break produces two paragraphs', () => {
 		const ops = collect_opcodes('a\n\nb');
 		const para_opens = ops.filter(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Paragraph',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Paragraph'
 		);
 		assert.equal(para_opens.length, 2);
 	});
@@ -75,7 +75,7 @@ describe('MdzStreamParser opcodes', () => {
 	test('heading produces open/close with level', () => {
 		const ops = collect_opcodes('## Title');
 		const heading_open = ops.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Heading',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Heading'
 		);
 		assert.ok(heading_open);
 		assert.equal(heading_open.level, 2);
@@ -91,7 +91,7 @@ describe('MdzStreamParser opcodes', () => {
 	test('unclosed bold at EOF reverts', () => {
 		const ops = collect_opcodes('**unclosed');
 		const revert = ops.find(
-			(o): o is MdzOpcodeRevert => o.type === 'revert' && o.replacement_text === '**',
+			(o): o is MdzOpcodeRevert => o.type === 'revert' && o.replacement_text === '**'
 		);
 		assert.ok(revert);
 	});
@@ -112,11 +112,11 @@ describe('MdzStreamParser opcodes', () => {
 	test('link produces open/text/close with reference', () => {
 		const ops = collect_opcodes('[text](url)');
 		const link_open = ops.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Link',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Link'
 		);
 		assert.ok(link_open);
 		const link_close = ops.find(
-			(o): o is MdzOpcodeClose => o.type === 'close' && o.id === link_open.id,
+			(o): o is MdzOpcodeClose => o.type === 'close' && o.id === link_open.id
 		);
 		assert.ok(link_close);
 		assert.equal(link_close.reference, 'url');
@@ -126,12 +126,12 @@ describe('MdzStreamParser opcodes', () => {
 	test('tags produce open/close opcodes', () => {
 		const ops = collect_opcodes('<Alert>content</Alert>');
 		const tag_open = ops.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Component',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Component'
 		);
 		assert.ok(tag_open);
 		assert.equal(tag_open.name, 'Alert');
 		const tag_close = ops.find(
-			(o): o is MdzOpcodeClose => o.type === 'close' && o.id === tag_open.id,
+			(o): o is MdzOpcodeClose => o.type === 'close' && o.id === tag_open.id
 		);
 		assert.ok(tag_close);
 	});
@@ -157,7 +157,7 @@ describe('MdzStreamParser opcodes', () => {
 		const result = stream_parse('**hello');
 		assert.equal(result.length, 1);
 		assert.equal(result[0]!.type, 'Paragraph');
-		const para = result[0] as {children: Array<MdzNode>};
+		const para = result[0] as { children: Array<MdzNode> };
 		assert.ok(para.children.length >= 1);
 		const all_text = para.children.every((c) => c.type === 'Text');
 		assert.ok(all_text);
@@ -172,7 +172,7 @@ describe('MdzStreamParser opcodes', () => {
 		parser.feed('```ts\n');
 		const ops = parser.take_opcodes();
 		const cb_open = ops.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Codeblock',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Codeblock'
 		);
 		assert.ok(cb_open, 'open(Codeblock) should be emitted before closing fence arrives');
 		assert.equal(cb_open.lang, 'ts');
@@ -183,21 +183,21 @@ describe('MdzStreamParser opcodes', () => {
 		parser.feed('```js\n');
 		const ops1 = parser.take_opcodes();
 		const cb_open = ops1.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Codeblock',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Codeblock'
 		);
 		assert.ok(cb_open);
 
 		parser.feed('const x = 1;\n');
 		const ops2 = parser.take_opcodes();
 		const has_content = ops2.some(
-			(o) => (o.type === 'text' || o.type === 'append_text') && o.content.includes('const x'),
+			(o) => (o.type === 'text' || o.type === 'append_text') && o.content.includes('const x')
 		);
 		assert.ok(has_content, 'content should stream before closing fence');
 
 		parser.feed('```\n');
 		const ops3 = parser.take_opcodes();
 		const cb_close = ops3.find(
-			(o): o is MdzOpcodeClose => o.type === 'close' && o.id === cb_open.id,
+			(o): o is MdzOpcodeClose => o.type === 'close' && o.id === cb_open.id
 		);
 		assert.ok(cb_close, 'close should arrive with closing fence chunk');
 	});
@@ -214,12 +214,12 @@ describe('MdzStreamParser opcodes', () => {
 		parser.finish();
 		const ops = parser.take_opcodes();
 		const cb_open = ops.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Codeblock',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Codeblock'
 		);
 		assert.ok(cb_open, 'should open the codeblock');
 		assert.ok(
 			ops.some((o) => o.type === 'close' && o.id === cb_open.id),
-			'empty codeblock should close',
+			'empty codeblock should close'
 		);
 		assert.ok(!ops.some((o) => o.type === 'revert'), 'empty codeblock should not revert');
 	});
@@ -235,7 +235,7 @@ describe('MdzStreamParser opcodes', () => {
 		parser.feed('````\n');
 		const ops1 = parser.take_opcodes();
 		const cb_open = ops1.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Codeblock',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Codeblock'
 		);
 		assert.ok(cb_open, 'should open with 4-backtick fence');
 
@@ -250,7 +250,7 @@ describe('MdzStreamParser opcodes', () => {
 		// raw mode is absolute: the unclosed fence closes as a codeblock at EOF
 		assert.ok(
 			ops3.some((o) => o.type === 'close' && o.id === cb_open.id),
-			'unclosed codeblock should close at EOF',
+			'unclosed codeblock should close at EOF'
 		);
 		assert.ok(!ops3.some((o) => o.type === 'revert'), 'no revert — the fence is real');
 
@@ -265,13 +265,13 @@ describe('MdzStreamParser opcodes', () => {
 		parser.feed('```\ncode\n```');
 		const ops1 = parser.take_opcodes();
 		const cb_open = ops1.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Codeblock',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Codeblock'
 		);
 		assert.ok(cb_open, 'should open with 3-backtick fence');
 		// the trailing run could still grow or gain disqualifying content — must hold
 		assert.ok(
 			!ops1.some((o) => o.type === 'close' && o.id === cb_open.id),
-			'should hold while the closer run can still change',
+			'should hold while the closer run can still change'
 		);
 
 		parser.feed('`\n'); // run grows to 4 — still closes a 3-backtick opener
@@ -279,7 +279,7 @@ describe('MdzStreamParser opcodes', () => {
 		const all_ops = [...ops1, ...parser.take_opcodes()];
 		assert.ok(
 			all_ops.some((o) => o.type === 'close' && o.id === cb_open.id),
-			'longer closer run should close the codeblock',
+			'longer closer run should close the codeblock'
 		);
 		assert.deepEqual(mdz_opcodes_to_nodes(all_ops), mdz_parse('```\ncode\n````\n'));
 	});
@@ -335,12 +335,12 @@ describe('MdzStreamParser opcodes', () => {
 		const has_close = all_ops.some((o) => o.type === 'close');
 		assert.ok(has_close, 'codeblock should be closed');
 		const backtick_content = all_ops.filter(
-			(o) => (o.type === 'text' || o.type === 'append_text') && o.content.includes('`'),
+			(o) => (o.type === 'text' || o.type === 'append_text') && o.content.includes('`')
 		);
 		assert.equal(
 			backtick_content.length,
 			0,
-			'closing fence backticks should not appear as content',
+			'closing fence backticks should not appear as content'
 		);
 	});
 
@@ -351,7 +351,7 @@ describe('MdzStreamParser opcodes', () => {
 		parser.feed('`co');
 		const ops = parser.take_opcodes();
 		const code_open = ops.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Code',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Code'
 		);
 		assert.ok(code_open, 'open(Code) should be emitted when buffer ends without closer');
 	});
@@ -361,7 +361,7 @@ describe('MdzStreamParser opcodes', () => {
 		parser.feed('`co');
 		const ops1 = parser.take_opcodes();
 		const code_open = ops1.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Code',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Code'
 		);
 		assert.ok(code_open);
 
@@ -369,7 +369,7 @@ describe('MdzStreamParser opcodes', () => {
 		parser.finish();
 		const ops2 = parser.take_opcodes();
 		const code_close = ops2.find(
-			(o): o is MdzOpcodeClose => o.type === 'close' && o.id === code_open.id,
+			(o): o is MdzOpcodeClose => o.type === 'close' && o.id === code_open.id
 		);
 		assert.ok(code_close, 'close(Code) should arrive with closing backtick chunk');
 
@@ -384,7 +384,7 @@ describe('MdzStreamParser opcodes', () => {
 		parser.feed('`unclosed');
 		const ops1 = parser.take_opcodes();
 		const code_open = ops1.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Code',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Code'
 		);
 		assert.ok(code_open);
 
@@ -392,7 +392,7 @@ describe('MdzStreamParser opcodes', () => {
 		parser.finish();
 		const ops2 = parser.take_opcodes();
 		const has_revert = ops2.some(
-			(o): o is MdzOpcodeRevert => o.type === 'revert' && o.id === code_open.id,
+			(o): o is MdzOpcodeRevert => o.type === 'revert' && o.id === code_open.id
 		);
 		assert.ok(has_revert, 'code should revert on newline');
 
@@ -408,7 +408,7 @@ describe('MdzStreamParser opcodes', () => {
 		const ops = parser.take_opcodes();
 		// should NOT have open(Code) — backtick inside Bold holds
 		const code_open = ops.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Code',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Code'
 		);
 		assert.ok(!code_open, 'backtick inside formatting should not open Code optimistically');
 	});
@@ -418,13 +418,13 @@ describe('MdzStreamParser opcodes', () => {
 		parser.feed('`hel');
 		const ops1 = parser.take_opcodes();
 		const code_open = ops1.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Code',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Code'
 		);
 		assert.ok(code_open, 'Code should open before content streams');
 		// text opcode should appear after the Code open
 		const code_open_idx = ops1.indexOf(code_open);
 		const text_idx = ops1.findIndex(
-			(o) => (o.type === 'text' || o.type === 'append_text') && o.content.includes('hel'),
+			(o) => (o.type === 'text' || o.type === 'append_text') && o.content.includes('hel')
 		);
 		assert.ok(text_idx > code_open_idx, 'code content text should follow open(Code)');
 
@@ -462,7 +462,7 @@ describe('MdzStreamParser opcodes', () => {
 		parser.feed('a`');
 		const ops1 = parser.take_opcodes();
 		const code_open = ops1.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Code',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Code'
 		);
 		assert.ok(code_open);
 
@@ -470,7 +470,7 @@ describe('MdzStreamParser opcodes', () => {
 		parser.finish();
 		const ops2 = parser.take_opcodes();
 		const has_revert = ops2.some(
-			(o): o is MdzOpcodeRevert => o.type === 'revert' && o.id === code_open.id,
+			(o): o is MdzOpcodeRevert => o.type === 'revert' && o.id === code_open.id
 		);
 		assert.ok(has_revert, 'code should revert on immediate newline');
 
@@ -499,7 +499,7 @@ describe('MdzStreamParser opcodes', () => {
 		parser.feed('_ital');
 		const ops = parser.take_opcodes();
 		const italic_open = ops.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Italic',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Italic'
 		);
 		assert.ok(italic_open, 'italic should open optimistically when no closer is in the buffer');
 
@@ -546,10 +546,10 @@ describe('MdzStreamParser opcodes', () => {
 		parser.finish();
 		const result = mdz_opcodes_to_nodes([...ops1, ...parser.take_opcodes()]);
 		assert.deepEqual(result, mdz_parse('hello _world_ end'));
-		const para = result[0]! as {children: Array<{type: string}>};
+		const para = result[0]! as { children: Array<{ type: string }> };
 		assert.ok(
 			para.children.some((c) => c.type === 'Italic'),
-			'italic should form when `_..._` straddles a chunk boundary',
+			'italic should form when `_..._` straddles a chunk boundary'
 		);
 	});
 
@@ -558,7 +558,7 @@ describe('MdzStreamParser opcodes', () => {
 		parser.feed('the _user');
 		const ops1 = parser.take_opcodes();
 		const italic_open = ops1.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Italic',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Italic'
 		);
 		assert.ok(italic_open, 'italic should open optimistically');
 
@@ -593,7 +593,7 @@ describe('MdzStreamParser opcodes', () => {
 		const ops1 = parser.take_opcodes();
 		// text should be visible (not buffered)
 		const has_text = ops1.some(
-			(o) => (o.type === 'text' || o.type === 'append_text') && o.content.includes('https://'),
+			(o) => (o.type === 'text' || o.type === 'append_text') && o.content.includes('https://')
 		);
 		assert.ok(has_text, 'URL text should stream before terminator');
 
@@ -644,7 +644,7 @@ describe('MdzStreamParser opcodes', () => {
 		const ops1 = parser.take_opcodes();
 		// 'htt' should stream as visible text (speculative prefix, not held)
 		const has_htt = ops1.some(
-			(o) => (o.type === 'text' || o.type === 'append_text') && o.content.includes('htt'),
+			(o) => (o.type === 'text' || o.type === 'append_text') && o.content.includes('htt')
 		);
 		assert.ok(has_htt, 'partial URL prefix should stream as text immediately');
 
@@ -663,7 +663,7 @@ describe('MdzStreamParser opcodes', () => {
 		const ops = parser.take_opcodes();
 		// 'he' doesn't match 'ht...' — should be consumed as text
 		const has_he = ops.some(
-			(o) => (o.type === 'text' || o.type === 'append_text') && o.content.includes('he'),
+			(o) => (o.type === 'text' || o.type === 'append_text') && o.content.includes('he')
 		);
 		assert.ok(has_he, 'non-matching prefix should be consumed as text immediately');
 	});
@@ -673,7 +673,7 @@ describe('MdzStreamParser opcodes', () => {
 		assert.deepEqual(result, mdz_parse('xhttps://fuz.dev'));
 		assert.equal(result.length, 1);
 		assert.equal(result[0]!.type, 'Paragraph');
-		const para = result[0]! as {children: Array<{type: string; content?: string}>};
+		const para = result[0]! as { children: Array<{ type: string; content?: string }> };
 		assert.equal(para.children.length, 1);
 		assert.equal(para.children[0]!.type, 'Text');
 		assert.equal(para.children[0]!.content, 'xhttps://fuz.dev');
@@ -682,7 +682,7 @@ describe('MdzStreamParser opcodes', () => {
 	test('URL after digit is not detected (no word boundary)', () => {
 		const result = stream_parse('1https://fuz.dev');
 		assert.deepEqual(result, mdz_parse('1https://fuz.dev'));
-		const para = result[0]! as {children: Array<{type: string; content?: string}>};
+		const para = result[0]! as { children: Array<{ type: string; content?: string }> };
 		assert.equal(para.children.length, 1);
 		assert.equal(para.children[0]!.type, 'Text');
 	});
@@ -705,7 +705,7 @@ describe('MdzStreamParser opcodes', () => {
 	test('speculation cancels then URL detected on retry', () => {
 		const result = stream_parse('hhttps://fuz.dev https://fuz.dev');
 		const para = result[0]! as {
-			children: Array<{type: string; content?: string; reference?: string}>;
+			children: Array<{ type: string; content?: string; reference?: string }>;
 		};
 		// first h starts speculation, second h fails it, so hhttps://fuz.dev is text
 		// then space, then URL is detected
@@ -803,27 +803,27 @@ describe('MdzStreamParser list streaming', () => {
 		parser.feed('a');
 		const ops = parser.take_opcodes();
 		const list_open = ops.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'List',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'List'
 		);
 		const item_open = ops.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'ListItem',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'ListItem'
 		);
 		assert.ok(list_open, 'List opens once the marker line shows content');
 		assert.ok(item_open, 'ListItem opens with it');
 		assert.equal(list_open.ordered, false);
 		assert.ok(
 			ops.some((o) => o.type === 'text' && o.content === 'a'),
-			'content streams into the item immediately',
+			'content streams into the item immediately'
 		);
 		parser.finish();
 		const tail = parser.take_opcodes();
 		assert.ok(
 			tail.some((o) => o.type === 'close' && o.id === item_open.id),
-			'item closes at EOF',
+			'item closes at EOF'
 		);
 		assert.ok(
 			tail.some((o) => o.type === 'close' && o.id === list_open.id),
-			'list closes at EOF',
+			'list closes at EOF'
 		);
 	});
 
@@ -832,7 +832,7 @@ describe('MdzStreamParser list streaming', () => {
 		parser.feed('1. a\n2');
 		const ops1 = parser.take_opcodes();
 		const first_item = ops1.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'ListItem',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'ListItem'
 		);
 		assert.ok(first_item);
 		// `\n2` is still ambiguous (could be `2024. The year` continuation-ish
@@ -840,13 +840,13 @@ describe('MdzStreamParser list streaming', () => {
 		parser.feed('. b');
 		const ops2 = parser.take_opcodes();
 		const second_item = ops2.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'ListItem',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'ListItem'
 		);
 		assert.ok(second_item, 'sibling item opens once `2. b` classifies');
 		assert.equal(second_item.number, 2);
 		assert.ok(
 			ops2.some((o) => o.type === 'close' && o.id === first_item.id),
-			'the first item closed before the sibling opened',
+			'the first item closed before the sibling opened'
 		);
 		parser.finish();
 	});
@@ -857,20 +857,20 @@ describe('MdzStreamParser list streaming', () => {
 		const ops1 = parser.take_opcodes();
 		assert.ok(
 			ops1.some((o) => o.type === 'text' && o.content === 'a'),
-			'item content rendered before the blank',
+			'item content rendered before the blank'
 		);
 		const item_open = ops1.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'ListItem',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'ListItem'
 		);
 		assert.ok(item_open);
 		assert.ok(
 			!ops1.some((o) => o.type === 'close' && o.id === item_open.id),
-			'the item stays open across the blank (close-vs-contain pends)',
+			'the item stays open across the blank (close-vs-contain pends)'
 		);
 		parser.feed('  contained');
 		const ops2 = parser.take_opcodes();
 		const para_open = ops2.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Paragraph',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Paragraph'
 		);
 		assert.ok(para_open, 'the deeper line becomes a Paragraph block child of the item');
 		parser.finish();
@@ -883,7 +883,7 @@ describe('MdzStreamParser list streaming', () => {
 		parser.feed('- a\n  ```ts\n');
 		const ops1 = parser.take_opcodes();
 		const cb_open = ops1.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Codeblock',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Codeblock'
 		);
 		assert.ok(cb_open, 'in-item fence opens on its complete opener line');
 		assert.equal(cb_open.lang, 'ts');
@@ -891,15 +891,15 @@ describe('MdzStreamParser list streaming', () => {
 		const ops2 = parser.take_opcodes();
 		assert.ok(
 			ops2.some(
-				(o) => (o.type === 'text' || o.type === 'append_text') && o.content.includes('const x'),
+				(o) => (o.type === 'text' || o.type === 'append_text') && o.content.includes('const x')
 			),
-			'fence content streams per line, indent stripped',
+			'fence content streams per line, indent stripped'
 		);
 		parser.feed('  ```\n');
 		const ops3 = parser.take_opcodes();
 		assert.ok(
 			ops3.some((o) => o.type === 'close' && o.id === cb_open.id),
-			'fence closes on the closer line',
+			'fence closes on the closer line'
 		);
 		parser.finish();
 		const result = mdz_opcodes_to_nodes([...ops1, ...ops2, ...ops3, ...parser.take_opcodes()]);
@@ -916,22 +916,22 @@ describe('MdzStreamParser blockquote streaming', () => {
 		parser.feed('a');
 		const ops = parser.take_opcodes();
 		const quote_open = ops.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Blockquote',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Blockquote'
 		);
 		assert.ok(quote_open, 'Blockquote opens once the opener line shows content');
 		assert.ok(
 			ops.some((o) => o.type === 'open' && o.node_type === 'Paragraph'),
-			'the inner document opens its paragraph with it',
+			'the inner document opens its paragraph with it'
 		);
 		assert.ok(
 			ops.some((o) => o.type === 'text' && o.content === 'a'),
-			'content streams into the quote immediately',
+			'content streams into the quote immediately'
 		);
 		parser.finish();
 		const tail = parser.take_opcodes();
 		assert.ok(
 			tail.some((o) => o.type === 'close' && o.id === quote_open.id),
-			'quote closes at EOF',
+			'quote closes at EOF'
 		);
 	});
 
@@ -940,22 +940,22 @@ describe('MdzStreamParser blockquote streaming', () => {
 		parser.feed('> a\n');
 		const ops1 = parser.take_opcodes();
 		const quote_open = ops1.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Blockquote',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Blockquote'
 		);
 		assert.ok(quote_open);
 		assert.ok(
 			ops1.some((o) => o.type === 'text' && o.content === 'a'),
-			'first line content rendered before the newline resolves',
+			'first line content rendered before the newline resolves'
 		);
 		assert.ok(
 			!ops1.some((o) => o.type === 'close' && o.id === quote_open.id),
-			'the quote stays open across the held newline',
+			'the quote stays open across the held newline'
 		);
 		parser.feed('> b');
 		const ops2 = parser.take_opcodes();
 		assert.ok(
 			ops2.some((o) => (o.type === 'text' || o.type === 'append_text') && o.content.includes('b')),
-			'continuation content streams once the prefix classifies',
+			'continuation content streams once the prefix classifies'
 		);
 		parser.finish();
 		const result = mdz_opcodes_to_nodes([...ops1, ...ops2, ...parser.take_opcodes()]);
@@ -967,12 +967,12 @@ describe('MdzStreamParser blockquote streaming', () => {
 		parser.feed('> a\n\n');
 		const ops = parser.take_opcodes();
 		const quote_open = ops.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Blockquote',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Blockquote'
 		);
 		assert.ok(quote_open);
 		assert.ok(
 			ops.some((o) => o.type === 'close' && o.id === quote_open.id),
-			'blank-ends-quote: the close emits at the blank, before finish()',
+			'blank-ends-quote: the close emits at the blank, before finish()'
 		);
 		parser.feed('> b');
 		parser.finish();
@@ -986,7 +986,7 @@ describe('MdzStreamParser blockquote streaming', () => {
 		parser.feed('> code\n');
 		const ops1 = parser.take_opcodes();
 		const cb_open = ops1.find(
-			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Codeblock',
+			(o): o is MdzOpcodeOpen => o.type === 'open' && o.node_type === 'Codeblock'
 		);
 		assert.ok(cb_open, 'the fence opens inside the quote on its complete opener line');
 		assert.equal(cb_open.lang, 'js');
@@ -994,7 +994,7 @@ describe('MdzStreamParser blockquote streaming', () => {
 		const ops2 = parser.take_opcodes();
 		assert.ok(
 			ops2.some((o) => o.type === 'close' && o.id === cb_open.id),
-			'the prefix break ends the quote and the unclosed fence with it',
+			'the prefix break ends the quote and the unclosed fence with it'
 		);
 		parser.finish();
 		const result = mdz_opcodes_to_nodes([...ops1, ...ops2, ...parser.take_opcodes()]);
@@ -1060,7 +1060,7 @@ describe('MdzStreamParser fixture comparison', () => {
 				assert.deepEqual(
 					mdz_opcodes_to_nodes(parser.take_opcodes()),
 					expected,
-					`newlines=${n} chunk_size=${chunk_size}`,
+					`newlines=${n} chunk_size=${chunk_size}`
 				);
 			}
 		}
@@ -1085,7 +1085,7 @@ describe('MdzStreamParser fixture comparison', () => {
 				assert.deepEqual(
 					mdz_opcodes_to_nodes(parser.take_opcodes()),
 					expected,
-					`blank=${JSON.stringify(blank)} chunk_size=${chunk_size}`,
+					`blank=${JSON.stringify(blank)} chunk_size=${chunk_size}`
 				);
 			}
 		}
@@ -1105,7 +1105,7 @@ describe('MdzStreamParser fixture comparison', () => {
 			assert.deepEqual(
 				mdz_opcodes_to_nodes(parser.take_opcodes()),
 				expected,
-				`chunk_size=${chunk_size}`,
+				`chunk_size=${chunk_size}`
 			);
 		}
 	});
@@ -1191,7 +1191,7 @@ describe('MdzStreamParser fixture comparison', () => {
 	 */
 	const assert_all_fixtures = (
 		label: string,
-		feed_fn: (parser: MdzStreamParser, input: string) => Array<MdzOpcode>,
+		feed_fn: (parser: MdzStreamParser, input: string) => Array<MdzOpcode>
 	): void => {
 		const failures: Array<string> = [];
 		for (const fixture of fixtures) {
@@ -1206,7 +1206,7 @@ describe('MdzStreamParser fixture comparison', () => {
 		if (failures.length > 0) {
 			throw new Error(
 				`${label}: ${failures.length} fixture(s) failed:\n` +
-					failures.map((n) => `\t'${n}',`).join('\n'),
+					failures.map((n) => `\t'${n}',`).join('\n')
 			);
 		}
 	};

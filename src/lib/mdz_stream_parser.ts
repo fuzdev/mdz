@@ -35,7 +35,7 @@
  * @module
  */
 
-import type {MdzOpcode} from './mdz_opcodes.ts';
+import type { MdzOpcode } from './mdz_opcodes.ts';
 import {
 	BACKTICK,
 	ASTERISK,
@@ -61,7 +61,7 @@ import {
 	mdz_match_blockquote_prefix,
 	mdz_blockquote_line_has_content,
 	mdz_blockquote_strip_width,
-	mdz_remap_segments,
+	mdz_remap_segments
 } from './mdz_helpers.ts';
 import {
 	type MdzStreamParserState,
@@ -80,7 +80,7 @@ import {
 	offset,
 	pop_stack_entry,
 	push_stack_entry,
-	revert_failed_close,
+	revert_failed_close
 } from './mdz_stream_parser_state.ts';
 import {
 	process_codeblock,
@@ -88,23 +88,23 @@ import {
 	process_codeblock_in_item,
 	try_codeblock_open,
 	try_heading,
-	try_hr,
+	try_hr
 } from './mdz_stream_parser_block.ts';
-import {process_list_line, try_list_start} from './mdz_stream_parser_list.ts';
-import {close_table, process_table_line, try_table_start} from './mdz_stream_parser_table.ts';
+import { process_list_line, try_list_start } from './mdz_stream_parser_list.ts';
+import { close_table, process_table_line, try_table_start } from './mdz_stream_parser_table.ts';
 import {
 	check_close_word_boundary,
 	close_delimiter,
 	process_code_content,
 	try_code,
 	try_double_delimiter,
-	try_italic,
+	try_italic
 } from './mdz_stream_parser_inline.ts';
 import {
 	try_close_tag,
 	try_complete_link,
 	try_link_open,
-	try_tag_open,
+	try_tag_open
 } from './mdz_stream_parser_link.ts';
 import {
 	complete_pending_url,
@@ -112,9 +112,9 @@ import {
 	start_speculative_url,
 	try_auto_path_absolute,
 	try_auto_path_relative,
-	try_auto_url_forced,
+	try_auto_url_forced
 } from './mdz_stream_parser_url.ts';
-import {consume_delimiter_as_text, consume_text_run} from './mdz_stream_parser_text.ts';
+import { consume_delimiter_as_text, consume_text_run } from './mdz_stream_parser_text.ts';
 
 /**
  * Streaming opcode parser for mdz content.
@@ -277,7 +277,7 @@ const finish_state = (state: MdzStreamParserState): void => {
 const open_blockquote = (state: MdzStreamParserState, item_indent: number): void => {
 	const id = alloc_id(state);
 	const start = offset(state);
-	emit(state, {type: 'open', id, node_type: 'Blockquote', start});
+	emit(state, { type: 'open', id, node_type: 'Blockquote', start });
 	push_stack_entry(state, id, 'Blockquote', start);
 	const inner = create_state();
 	inner.next_id = state.next_id;
@@ -285,10 +285,10 @@ const open_blockquote = (state: MdzStreamParserState, item_indent: number): void
 	state.blockquote = {
 		id,
 		inner,
-		segments: [{inner_start: 0, source_start: offset(state, strip)}],
+		segments: [{ inner_start: 0, source_start: offset(state, strip) }],
 		inner_len: 0,
 		text_inner_ends: new Map(),
-		item_indent,
+		item_indent
 	};
 	state.pos = strip;
 	state.prev_char = SPACE;
@@ -315,7 +315,7 @@ const forward_inner_opcodes = (state: MdzStreamParserState): void => {
 	const ops = blockquote.inner.opcodes;
 	if (ops.length === 0) return;
 	blockquote.inner.opcodes = [];
-	const {segments, text_inner_ends} = blockquote;
+	const { segments, text_inner_ends } = blockquote;
 	for (const op of ops) {
 		switch (op.type) {
 			case 'open':
@@ -367,7 +367,7 @@ const finish_blockquote = (state: MdzStreamParserState): void => {
 	state.next_id = blockquote.inner.next_id;
 	state.blockquote = null;
 	const entry = pop_stack_entry(state);
-	emit(state, {type: 'close', id: entry.id, end: offset(state)});
+	emit(state, { type: 'close', id: entry.id, end: offset(state) });
 	state.active_text_id = null;
 };
 
@@ -400,7 +400,7 @@ const try_blockquote_start = (state: MdzStreamParserState, forced: boolean): Try
  */
 const process_blockquote = (state: MdzStreamParserState, forced: boolean): boolean => {
 	const blockquote = state.blockquote!;
-	const {buffer} = state;
+	const { buffer } = state;
 	// mid-line: feed content through to the line's newline (or buffer end —
 	// content streams as it arrives; `pos` is the fed watermark)
 	if (state.pos < buffer.length && buffer.charCodeAt(state.pos) !== NEWLINE) {
@@ -441,7 +441,7 @@ const process_blockquote = (state: MdzStreamParserState, forced: boolean): boole
 			const strip = first + mdz_blockquote_strip_width(buffer, first);
 			blockquote.segments.push({
 				inner_start: blockquote.inner_len,
-				source_start: offset(state, strip),
+				source_start: offset(state, strip)
 			});
 			state.pos = strip;
 			state.column = strip - line_start;

@@ -1,13 +1,13 @@
 <script lang="ts">
-	import type {SvelteHTMLElements} from 'svelte/elements';
-	import {DEV} from 'esm-env';
+	import type { SvelteHTMLElements } from 'svelte/elements';
+	import { DEV } from 'esm-env';
 
-	import {mdz_parse, type MdzNode} from './mdz.ts';
+	import { mdz_parse, type MdzNode } from './mdz.ts';
 	import MdzNodeView from './MdzNodeView.svelte';
 	import {
 		mdz_base_context,
 		mdz_set_context_with_fallback,
-		type MdzWhitespace,
+		type MdzWhitespace
 	} from './mdz_contexts.ts';
 
 	const {
@@ -29,8 +29,8 @@
 	} & // pass `content` to parse at render, or `nodes` to render a pre-parsed
 		// tree (e.g. one parsed once and rendered in several places) and skip
 		// `mdz_parse` entirely
-		(| {content: string; nodes?: undefined}
-			| {content?: undefined; nodes: Array<MdzNode>}
+		(
+			{ content: string; nodes?: undefined } | { content?: undefined; nodes: Array<MdzNode> }
 		) = $props();
 
 	mdz_set_context_with_fallback(mdz_base_context, () => base);

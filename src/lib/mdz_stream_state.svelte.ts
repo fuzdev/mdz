@@ -8,10 +8,10 @@
  * @module
  */
 
-import {DEV} from 'esm-env';
+import { DEV } from 'esm-env';
 
-import type {MdzNodeId, MdzNodeType, MdzOpcode} from './mdz_opcodes.ts';
-import type {MdzTableAlign} from './mdz.ts';
+import type { MdzNodeId, MdzNodeType, MdzOpcode } from './mdz_opcodes.ts';
+import type { MdzTableAlign } from './mdz.ts';
 
 /**
  * A reactive node in the stream renderer tree.
@@ -76,7 +76,7 @@ export class MdzStreamState {
 		const parent = this.#nodes.get(this.#stack[stack_idx - 1]!);
 		if (DEV && !parent) {
 			throw new Error(
-				`MdzStreamState: parent id ${this.#stack[stack_idx - 1]} on stack but missing from nodes`,
+				`MdzStreamState: parent id ${this.#stack[stack_idx - 1]} on stack but missing from nodes`
 			);
 		}
 		return parent ? parent.children : this.root;
@@ -99,7 +99,7 @@ export class MdzStreamState {
 			case 'open': {
 				if (DEV && this.#nodes.has(opcode.id)) {
 					throw new Error(
-						`MdzStreamState: duplicate open for id ${opcode.id} (node_type '${opcode.node_type}')`,
+						`MdzStreamState: duplicate open for id ${opcode.id} (node_type '${opcode.node_type}')`
 					);
 				}
 				const node = new MdzStreamNode(opcode.id, opcode.node_type);
@@ -168,7 +168,7 @@ export class MdzStreamState {
 			case 'text': {
 				if (DEV && this.#nodes.has(opcode.id)) {
 					throw new Error(
-						`MdzStreamState: duplicate text for id ${opcode.id} (text_type '${opcode.text_type}')`,
+						`MdzStreamState: duplicate text for id ${opcode.id} (text_type '${opcode.text_type}')`
 					);
 				}
 				const node = new MdzStreamNode(opcode.id, opcode.text_type);
@@ -215,7 +215,7 @@ export class MdzStreamState {
 			case 'void': {
 				if (DEV && this.#nodes.has(opcode.id)) {
 					throw new Error(
-						`MdzStreamState: duplicate void for id ${opcode.id} (node_type '${opcode.node_type}')`,
+						`MdzStreamState: duplicate void for id ${opcode.id} (node_type '${opcode.node_type}')`
 					);
 				}
 				const node = new MdzStreamNode(opcode.id, opcode.node_type);
@@ -255,7 +255,7 @@ export class MdzStreamState {
 				if (node_idx === -1) {
 					if (DEV) {
 						throw new Error(
-							`MdzStreamState: revert for id ${opcode.id} but node not found in parent's children`,
+							`MdzStreamState: revert for id ${opcode.id} but node not found in parent's children`
 						);
 					}
 					break;

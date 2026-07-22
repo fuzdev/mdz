@@ -7,7 +7,13 @@
  * @module
  */
 
-import type {MdzNode, MdzNodeText, MdzNodeComponent, MdzNodeElement, MdzTableAlign} from './mdz.ts';
+import type {
+	MdzNode,
+	MdzNodeText,
+	MdzNodeComponent,
+	MdzNodeElement,
+	MdzTableAlign
+} from './mdz.ts';
 
 // Character codes for performance
 /** @nodocs */
@@ -197,7 +203,7 @@ export interface MdzBlockquotePrefix {
 export const mdz_match_blockquote_prefix = (
 	text: string,
 	i: number,
-	forced: boolean,
+	forced: boolean
 ): MdzBlockquotePrefix | 'pending' | null => {
 	let depth = 0;
 	let pos = i;
@@ -207,23 +213,23 @@ export const mdz_match_blockquote_prefix = (
 		depth++;
 		pos++;
 		if (pos >= text.length) {
-			return forced ? {depth, content_start: pos} : 'pending';
+			return forced ? { depth, content_start: pos } : 'pending';
 		}
 		const c = text.charCodeAt(pos);
 		if (c === RIGHT_ANGLE) continue; // tight run
 		if (c === SPACE) {
 			if (pos + 1 >= text.length) {
 				// could be a separator (next chunk starts with `>`) or the terminator
-				return forced ? {depth, content_start: pos + 1} : 'pending';
+				return forced ? { depth, content_start: pos + 1 } : 'pending';
 			}
 			if (text.charCodeAt(pos + 1) === RIGHT_ANGLE) {
 				pos++; // separator — continue the run at the next `>`
 				continue;
 			}
-			return {depth, content_start: pos + 1}; // terminating space
+			return { depth, content_start: pos + 1 }; // terminating space
 		}
 		if (c === NEWLINE) {
-			return {depth, content_start: pos}; // bare prefix line
+			return { depth, content_start: pos }; // bare prefix line
 		}
 		if (is_line_whitespace(c)) {
 			// tab/CR is not the marker space — valid only as tolerated trailing
@@ -233,17 +239,17 @@ export const mdz_match_blockquote_prefix = (
 				j++;
 			}
 			if (j >= text.length) {
-				return forced ? {depth, content_start: pos} : 'pending';
+				return forced ? { depth, content_start: pos } : 'pending';
 			}
 			if (text.charCodeAt(j) === NEWLINE) {
-				return {depth, content_start: pos};
+				return { depth, content_start: pos };
 			}
 			// trailing content after non-space whitespace — fall through to backtrack
 		}
 		// invalid char directly after a `>`: this `>` is content; the separator
 		// space before it (if any) re-serves as the terminator
 		if (depth >= 2 && text.charCodeAt(pos - 2) === SPACE) {
-			return {depth: depth - 1, content_start: pos - 1};
+			return { depth: depth - 1, content_start: pos - 1 };
 		}
 		return null;
 	}
@@ -260,7 +266,7 @@ export const mdz_match_blockquote_prefix = (
 export const mdz_blockquote_line_has_content = (
 	text: string,
 	content_start: number,
-	forced: boolean,
+	forced: boolean
 ): boolean | 'pending' => {
 	let i = content_start;
 	while (i < text.length && is_line_whitespace(text.charCodeAt(i))) {
@@ -291,8 +297,8 @@ export const mdz_blockquote_strip_width = (text: string, i: number): number =>
  * @nodocs
  */
 export const mdz_remap_segments = (
-	segments: Array<{inner_start: number; source_start: number}>,
-	p: number,
+	segments: Array<{ inner_start: number; source_start: number }>,
+	p: number
 ): number => {
 	let lo = 0;
 	let hi = segments.length - 1;
@@ -314,13 +320,13 @@ export const mdz_remap_segments = (
 const trim_table_cell = (
 	text: string,
 	start: number,
-	end: number,
-): {start: number; end: number} => {
+	end: number
+): { start: number; end: number } => {
 	let s = start;
 	let e = end;
 	while (s < e && is_line_whitespace(text.charCodeAt(s))) s++;
 	while (e > s && is_line_whitespace(text.charCodeAt(e - 1))) e--;
-	return {start: s, end: e};
+	return { start: s, end: e };
 };
 
 /**
@@ -343,10 +349,10 @@ const trim_table_cell = (
 export const mdz_split_table_row = (
 	text: string,
 	line_start: number,
-	line_end: number,
-): Array<{start: number; end: number}> | null => {
+	line_end: number
+): Array<{ start: number; end: number }> | null => {
 	if (line_start >= line_end || text.charCodeAt(line_start) !== PIPE) return null;
-	const cells: Array<{start: number; end: number}> = [];
+	const cells: Array<{ start: number; end: number }> = [];
 	let i = line_start + 1; // past the leading pipe
 	let cell_start = i;
 	while (i < line_end) {
@@ -415,7 +421,7 @@ const table_delimiter_align = (text: string, start: number, end: number): MdzTab
 export const mdz_parse_table_delimiter = (
 	text: string,
 	line_start: number,
-	line_end: number,
+	line_end: number
 ): Array<MdzTableAlign> | null => {
 	const cells = mdz_split_table_row(text, line_start, line_end);
 	if (cells === null) return null;
@@ -769,7 +775,7 @@ const VOID_ELEMENTS = new Set([
 	'meta',
 	'source',
 	'track',
-	'wbr',
+	'wbr'
 ]);
 
 /**
@@ -819,13 +825,13 @@ export const mdz_resolve_relative_path = (reference: string, base: string): stri
  */
 export type MdzLinkRender =
 	/** Unsafe protocol — render children only, no `<a>`. */
-	| {kind: 'unsafe'}
+	| { kind: 'unsafe' }
 	/** Route/relative path — wrap in `resolve()` (needs `$app/paths`). */
-	| {kind: 'resolve'; href: string}
+	| { kind: 'resolve'; href: string }
 	/** Internal fragment/query/relative/bare ref — raw `href`, no `resolve()`. */
-	| {kind: 'internal'; href: string}
+	| { kind: 'internal'; href: string }
 	/** External link — raw `href` plus `target="_blank" rel="noopener"`. */
-	| {kind: 'external'; href: string};
+	| { kind: 'external'; href: string };
 
 /**
  * Classify a `Link` reference into how it should render. Pure — no rendering,
@@ -835,12 +841,12 @@ export type MdzLinkRender =
 export const mdz_classify_link = (
 	reference: string,
 	link_type: 'internal' | 'external' | undefined,
-	base: string | undefined,
+	base: string | undefined
 ): MdzLinkRender => {
-	if (!mdz_is_safe_reference(reference)) return {kind: 'unsafe'};
+	if (!mdz_is_safe_reference(reference)) return { kind: 'unsafe' };
 	if (link_type === 'internal') {
 		if (reference.startsWith('.') && base) {
-			return {kind: 'resolve', href: mdz_resolve_relative_path(reference, base)};
+			return { kind: 'resolve', href: mdz_resolve_relative_path(reference, base) };
 		}
 		// fragment/query/relative/bare — `resolve()` only accepts absolute paths or
 		// route ids and throws on anything else
@@ -850,11 +856,11 @@ export const mdz_classify_link = (
 			reference.startsWith('.') ||
 			!reference.startsWith('/')
 		) {
-			return {kind: 'internal', href: reference};
+			return { kind: 'internal', href: reference };
 		}
-		return {kind: 'resolve', href: reference};
+		return { kind: 'resolve', href: reference };
 	}
-	return {kind: 'external', href: reference};
+	return { kind: 'external', href: reference };
 };
 
 /**
@@ -901,10 +907,10 @@ export const mdz_merge_adjacent_text = (nodes: Array<MdzNode>): Array<MdzNode> =
 					type: 'Text',
 					content: pending.content + node.content,
 					start: pending.start,
-					end: node.end,
+					end: node.end
 				};
 			} else {
-				pending = {...node};
+				pending = { ...node };
 			}
 		} else {
 			if (pending) {
@@ -927,7 +933,7 @@ export const mdz_merge_adjacent_text = (nodes: Array<MdzNode>): Array<MdzNode> =
  *   or `null` if the content should be wrapped in a paragraph
  */
 export const mdz_extract_single_tag = (
-	nodes: Array<MdzNode>,
+	nodes: Array<MdzNode>
 ): MdzNodeComponent | MdzNodeElement | null => {
 	let tag: MdzNodeComponent | MdzNodeElement | null = null;
 

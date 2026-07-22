@@ -17,7 +17,7 @@
  * @module
  */
 
-import {DEV} from 'esm-env';
+import { DEV } from 'esm-env';
 
 import type {
 	MdzNode,
@@ -28,10 +28,10 @@ import type {
 	MdzNodeListItem,
 	MdzNodeTableRow,
 	MdzNodeTableCell,
-	MdzTableAlign,
+	MdzTableAlign
 } from './mdz.ts';
-import type {MdzOpcode, MdzNodeId} from './mdz_opcodes.ts';
-import {mdz_extract_single_tag, mdz_heading_id, mdz_merge_adjacent_text} from './mdz_helpers.ts';
+import type { MdzOpcode, MdzNodeId } from './mdz_opcodes.ts';
+import { mdz_extract_single_tag, mdz_heading_id, mdz_merge_adjacent_text } from './mdz_helpers.ts';
 
 interface StackFrame {
 	id: MdzNodeId;
@@ -82,7 +82,7 @@ export const mdz_opcodes_to_nodes = (opcodes: Array<MdzOpcode>): Array<MdzNode> 
 					start_number: op.start_number,
 					number: op.number,
 					align: op.align,
-					header: op.header,
+					header: op.header
 				});
 				break;
 			}
@@ -115,8 +115,8 @@ export const mdz_opcodes_to_nodes = (opcodes: Array<MdzOpcode>): Array<MdzNode> 
 			case 'text': {
 				const node: MdzNodeText | MdzNodeCode =
 					op.text_type === 'Code'
-						? {type: 'Code', content: op.content, start: op.start, end: op.end}
-						: {type: 'Text', content: op.content, start: op.start, end: op.end};
+						? { type: 'Code', content: op.content, start: op.start, end: op.end }
+						: { type: 'Text', content: op.content, start: op.start, end: op.end };
 				text_nodes.set(op.id, node);
 				children.push(node);
 				break;
@@ -160,7 +160,7 @@ export const mdz_opcodes_to_nodes = (opcodes: Array<MdzOpcode>): Array<MdzNode> 
 			}
 
 			case 'void': {
-				children.push({type: 'Hr', start: op.start, end: op.end});
+				children.push({ type: 'Hr', start: op.start, end: op.end });
 				break;
 			}
 
@@ -224,7 +224,7 @@ export const mdz_opcodes_to_nodes = (opcodes: Array<MdzOpcode>): Array<MdzNode> 
 						type: 'Text',
 						content: trimmed_content,
 						start: text_node.end,
-						end: text_node.end + trimmed_content.length,
+						end: text_node.end + trimmed_content.length
 					};
 					text_nodes.set(op.trim_id, trimmed_node);
 				}
@@ -236,7 +236,7 @@ export const mdz_opcodes_to_nodes = (opcodes: Array<MdzOpcode>): Array<MdzNode> 
 					children: [text_node],
 					link_type: op.link_type,
 					start: op.start,
-					end: op.end,
+					end: op.end
 				};
 
 				// replace text node with [Link, trimmed?] in the buffer
@@ -278,7 +278,7 @@ const insert_replacement = (
 	stack: Array<StackFrame>,
 	reverted_idx: number,
 	at: number,
-	op: {replacement_text?: string; start: number},
+	op: { replacement_text?: string; start: number }
 ): void => {
 	const text = op.replacement_text!;
 	const parent_start = reverted_idx > 0 ? stack[reverted_idx - 1]!.children_start : 0;
@@ -303,7 +303,12 @@ const insert_replacement = (
 		}
 	}
 	// 3. standalone Text node
-	const node: MdzNode = {type: 'Text', content: text, start: op.start, end: op.start + text.length};
+	const node: MdzNode = {
+		type: 'Text',
+		content: text,
+		start: op.start,
+		end: op.start + text.length
+	};
 	if (at >= children.length) {
 		children.push(node);
 	} else {
@@ -337,7 +342,7 @@ const build_node = (frame: StackFrame, frame_children: Array<MdzNode>): MdzNode 
 				type: 'Paragraph',
 				children,
 				start: children[0]!.start,
-				end: children[children.length - 1]!.end,
+				end: children[children.length - 1]!.end
 			};
 		}
 
@@ -350,7 +355,7 @@ const build_node = (frame: StackFrame, frame_children: Array<MdzNode>): MdzNode 
 				id,
 				children,
 				start: frame.start,
-				end: frame.end!,
+				end: frame.end!
 			} as MdzNodeHeading;
 		}
 
@@ -359,7 +364,7 @@ const build_node = (frame: StackFrame, frame_children: Array<MdzNode>): MdzNode 
 				type: 'Bold',
 				children: mdz_merge_adjacent_text(frame_children),
 				start: frame.start,
-				end: frame.end!,
+				end: frame.end!
 			};
 
 		case 'Italic':
@@ -367,7 +372,7 @@ const build_node = (frame: StackFrame, frame_children: Array<MdzNode>): MdzNode 
 				type: 'Italic',
 				children: mdz_merge_adjacent_text(frame_children),
 				start: frame.start,
-				end: frame.end!,
+				end: frame.end!
 			};
 
 		case 'Strikethrough':
@@ -375,7 +380,7 @@ const build_node = (frame: StackFrame, frame_children: Array<MdzNode>): MdzNode 
 				type: 'Strikethrough',
 				children: mdz_merge_adjacent_text(frame_children),
 				start: frame.start,
-				end: frame.end!,
+				end: frame.end!
 			};
 
 		case 'Link':
@@ -385,7 +390,7 @@ const build_node = (frame: StackFrame, frame_children: Array<MdzNode>): MdzNode 
 				children: mdz_merge_adjacent_text(frame_children),
 				link_type: frame.link_type ?? 'internal',
 				start: frame.start,
-				end: frame.end!,
+				end: frame.end!
 			};
 
 		case 'List': {
@@ -400,10 +405,10 @@ const build_node = (frame: StackFrame, frame_children: Array<MdzNode>): MdzNode 
 					start_number: frame.start_number ?? 1,
 					children,
 					start: frame.start,
-					end,
+					end
 				};
 			}
-			return {type: 'List', ordered: false, children, start: frame.start, end};
+			return { type: 'List', ordered: false, children, start: frame.start, end };
 		}
 
 		case 'ListItem': {
@@ -411,9 +416,9 @@ const build_node = (frame: StackFrame, frame_children: Array<MdzNode>): MdzNode 
 			// childless means an empty item — its close carried the marker end
 			const end = children.length > 0 ? children[children.length - 1]!.end : frame.end!;
 			if (frame.number !== undefined) {
-				return {type: 'ListItem', number: frame.number, children, start: frame.start, end};
+				return { type: 'ListItem', number: frame.number, children, start: frame.start, end };
 			}
-			return {type: 'ListItem', children, start: frame.start, end};
+			return { type: 'ListItem', children, start: frame.start, end };
 		}
 
 		case 'Blockquote': {
@@ -421,7 +426,7 @@ const build_node = (frame: StackFrame, frame_children: Array<MdzNode>): MdzNode 
 			// sync token parser (the close offset is cosmetic)
 			const end =
 				frame_children.length > 0 ? frame_children[frame_children.length - 1]!.end : frame.end!;
-			return {type: 'Blockquote', children: frame_children, start: frame.start, end};
+			return { type: 'Blockquote', children: frame_children, start: frame.start, end };
 		}
 
 		case 'Table': {
@@ -429,7 +434,7 @@ const build_node = (frame: StackFrame, frame_children: Array<MdzNode>): MdzNode 
 			// the sync token parser
 			const children = frame_children as Array<MdzNodeTableRow>;
 			const end = children.length > 0 ? children[children.length - 1]!.end : frame.end!;
-			return {type: 'Table', align: frame.align ?? [], children, start: frame.start, end};
+			return { type: 'Table', align: frame.align ?? [], children, start: frame.start, end };
 		}
 
 		case 'TableRow': {
@@ -439,7 +444,7 @@ const build_node = (frame: StackFrame, frame_children: Array<MdzNode>): MdzNode 
 				header: frame.header ?? false,
 				children,
 				start: frame.start,
-				end: frame.end!,
+				end: frame.end!
 			};
 		}
 
@@ -448,7 +453,7 @@ const build_node = (frame: StackFrame, frame_children: Array<MdzNode>): MdzNode 
 				type: 'TableCell',
 				children: mdz_merge_adjacent_text(frame_children),
 				start: frame.start,
-				end: frame.end!,
+				end: frame.end!
 			};
 
 		case 'Code': {
@@ -461,7 +466,7 @@ const build_node = (frame: StackFrame, frame_children: Array<MdzNode>): MdzNode 
 				type: 'Code',
 				content,
 				start: frame.start,
-				end: frame.end!,
+				end: frame.end!
 			};
 		}
 
@@ -476,7 +481,7 @@ const build_node = (frame: StackFrame, frame_children: Array<MdzNode>): MdzNode 
 				lang: frame.lang ?? null,
 				content,
 				start: frame.start,
-				end: frame.end!,
+				end: frame.end!
 			};
 		}
 
@@ -486,7 +491,7 @@ const build_node = (frame: StackFrame, frame_children: Array<MdzNode>): MdzNode 
 				name: frame.name ?? '',
 				children: mdz_merge_adjacent_text(frame_children),
 				start: frame.start,
-				end: frame.end!,
+				end: frame.end!
 			};
 
 		case 'Component':
@@ -495,7 +500,7 @@ const build_node = (frame: StackFrame, frame_children: Array<MdzNode>): MdzNode 
 				name: frame.name ?? '',
 				children: mdz_merge_adjacent_text(frame_children),
 				start: frame.start,
-				end: frame.end!,
+				end: frame.end!
 			};
 
 		default:

@@ -1,12 +1,12 @@
-import {test, assert, describe} from 'vitest';
+import { test, assert, describe } from 'vitest';
 
-import {escape_svelte_text} from '@fuzdev/fuz_util/svelte_preprocess_helpers.ts';
+import { escape_svelte_text } from '@fuzdev/fuz_util/svelte_preprocess_helpers.ts';
 
-import {mdz_parse, type MdzNode} from '$lib/mdz.ts';
+import { mdz_parse, type MdzNode } from '$lib/mdz.ts';
 import {
 	mdz_to_svelte,
 	type MdzToSvelteOptions,
-	type MdzToSvelteResult,
+	type MdzToSvelteResult
 } from '$lib/mdz_to_svelte.ts';
 
 /** Renderer imports matching the docs site: inline code → DocsLink, codeblocks → fuz_code's Code. */
@@ -15,7 +15,7 @@ const DOCS_RENDERER_IMPORTS: Pick<
 	'code_component_import' | 'codeblock_component_import'
 > = {
 	code_component_import: '@fuzdev/fuz_ui/DocsLink.svelte',
-	codeblock_component_import: '@fuzdev/fuz_code/Code.svelte',
+	codeblock_component_import: '@fuzdev/fuz_code/Code.svelte'
 };
 
 /** Parses mdz content and converts to Svelte markup in one step. */
@@ -26,16 +26,16 @@ const convert = (
 	renderer_imports: Pick<
 		MdzToSvelteOptions,
 		'code_component_import' | 'codeblock_component_import'
-	> = {},
+	> = {}
 ): MdzToSvelteResult =>
-	mdz_to_svelte(mdz_parse(content), {components, elements, ...renderer_imports});
+	mdz_to_svelte(mdz_parse(content), { components, elements, ...renderer_imports });
 
 /** Asserts that an import exists with the expected path and kind. */
 const assert_import = (
 	result: MdzToSvelteResult,
 	name: string,
 	path: string,
-	kind: 'default' | 'named',
+	kind: 'default' | 'named'
 ): void => {
 	assert.ok(result.imports.has(name), `expected import '${name}'`);
 	const info = result.imports.get(name)!;
@@ -82,7 +82,7 @@ describe('escape_svelte_text', () => {
 	test('handles Svelte-like syntax in text', () => {
 		assert.equal(
 			escape_svelte_text('Use {#if} for conditionals'),
-			"Use {'{'}#if{'}'} for conditionals",
+			"Use {'{'}#if{'}'} for conditionals"
 		);
 	});
 
@@ -292,12 +292,12 @@ describe('mdz_to_svelte', () => {
 					// eslint-disable-next-line no-script-url -- the unsafe protocol under test
 					reference: 'javascript:alert(1)',
 					link_type: 'external',
-					children: [{type: 'Text', content: 'click', start: 0, end: 5}],
+					children: [{ type: 'Text', content: 'click', start: 0, end: 5 }],
 					start: 0,
-					end: 20,
-				},
+					end: 20
+				}
 			];
-			const result = mdz_to_svelte(nodes, {components: {}, elements: {}});
+			const result = mdz_to_svelte(nodes, { components: {}, elements: {} });
 			assert.equal(result.markup, 'click');
 			// eslint-disable-next-line no-script-url -- asserting the unsafe protocol is absent
 			assert.notInclude(result.markup, 'javascript:');
@@ -352,7 +352,7 @@ describe('mdz_to_svelte', () => {
 			assert.equal(
 				result.markup,
 				'<table><thead><tr><th>a</th><th>b</th></tr></thead>' +
-					'<tbody><tr><td>1</td><td>2</td></tr></tbody></table>',
+					'<tbody><tr><td>1</td><td>2</td></tr></tbody></table>'
 			);
 		});
 
@@ -368,7 +368,7 @@ describe('mdz_to_svelte', () => {
 					'<td style="text-align:left">1</td>' +
 					'<td style="text-align:center">2</td>' +
 					'<td style="text-align:right">3</td>' +
-					'</tr></tbody></table>',
+					'</tr></tbody></table>'
 			);
 		});
 
@@ -382,13 +382,13 @@ describe('mdz_to_svelte', () => {
 			assert.equal(
 				more.markup,
 				'<table><thead><tr><th>a</th><th>b</th></tr></thead>' +
-					'<tbody><tr><td>1</td><td>2</td></tr></tbody></table>',
+					'<tbody><tr><td>1</td><td>2</td></tr></tbody></table>'
 			);
 			const fewer = convert('| a | b |\n| - | - |\n| 1 |');
 			assert.equal(
 				fewer.markup,
 				'<table><thead><tr><th>a</th><th>b</th></tr></thead>' +
-					'<tbody><tr><td>1</td><td></td></tr></tbody></table>',
+					'<tbody><tr><td>1</td><td></td></tr></tbody></table>'
 			);
 		});
 
@@ -397,7 +397,7 @@ describe('mdz_to_svelte', () => {
 			assert.equal(
 				result.markup,
 				'<table><thead><tr><th><strong>a</strong></th><th><em>b</em></th></tr></thead>' +
-					'<tbody><tr><td><code>c</code></td><td>d</td></tr></tbody></table>',
+					'<tbody><tr><td><code>c</code></td><td>d</td></tr></tbody></table>'
 			);
 		});
 
@@ -405,14 +405,14 @@ describe('mdz_to_svelte', () => {
 			const result = convert('| `A | B` | a \\| b |\n| - | - |');
 			assert.equal(
 				result.markup,
-				'<table><thead><tr><th><code>A | B</code></th><th>a | b</th></tr></thead></table>',
+				'<table><thead><tr><th><code>A | B</code></th><th>a | b</th></tr></thead></table>'
 			);
 		});
 	});
 
 	describe('element and component nodes', () => {
 		test('renders configured element', () => {
-			const result = convert('<aside>note</aside>', {}, {aside: true});
+			const result = convert('<aside>note</aside>', {}, { aside: true });
 			assert.equal(result.markup, '<aside>note</aside>');
 			assert.equal(result.has_unconfigured_tags, false);
 		});
@@ -429,7 +429,7 @@ describe('mdz_to_svelte', () => {
 		});
 
 		test('renders configured component with import', () => {
-			const result = convert('<Alert>warning</Alert>', {Alert: '$lib/Alert.svelte'});
+			const result = convert('<Alert>warning</Alert>', { Alert: '$lib/Alert.svelte' });
 			assert.equal(result.markup, '<Alert>warning</Alert>');
 			assert_import(result, 'Alert', '$lib/Alert.svelte', 'default');
 			assert.equal(result.has_unconfigured_tags, false);
@@ -447,32 +447,32 @@ describe('mdz_to_svelte', () => {
 		});
 
 		test('renders self-closing configured element', () => {
-			const result = convert('<hr />', {}, {hr: true});
+			const result = convert('<hr />', {}, { hr: true });
 			assert.equal(result.markup, '<hr />');
 			assert.equal(result.has_unconfigured_tags, false);
 		});
 
 		test('renders void element self-closing', () => {
-			const result = convert('line<br />break', {}, {br: true});
+			const result = convert('line<br />break', {}, { br: true });
 			assert.equal(result.markup, '<p>line<br />break</p>');
 			assert.equal(result.has_unconfigured_tags, false);
 		});
 
 		test('drops children of void elements', () => {
-			const result = convert('<br>dropped</br>', {}, {br: true});
+			const result = convert('<br>dropped</br>', {}, { br: true });
 			assert.ok(result.markup.includes('<br />'));
 			assert.ok(!result.markup.includes('dropped'));
 			assert.equal(result.has_unconfigured_tags, false);
 		});
 
 		test('renders configured component with formatted children', () => {
-			const result = convert('<Alert>**bold** note</Alert>', {Alert: '$lib/Alert.svelte'});
+			const result = convert('<Alert>**bold** note</Alert>', { Alert: '$lib/Alert.svelte' });
 			assert.ok(result.markup.includes('<strong>bold</strong>'));
 			assert.ok(result.markup.includes('<Alert>'));
 		});
 
 		test('renders configured element with formatted children', () => {
-			const result = convert('<aside>**bold** note</aside>', {}, {aside: true});
+			const result = convert('<aside>**bold** note</aside>', {}, { aside: true });
 			assert.ok(result.markup.includes('<strong>bold</strong>'));
 			assert.ok(result.markup.includes('<aside>'));
 		});
@@ -515,16 +515,16 @@ describe('mdz_to_svelte', () => {
 		});
 
 		test('adds configured component imports', () => {
-			const result = convert('<Alert>warning</Alert>', {Alert: '$lib/Alert.svelte'});
+			const result = convert('<Alert>warning</Alert>', { Alert: '$lib/Alert.svelte' });
 			assert_import(result, 'Alert', '$lib/Alert.svelte', 'default');
 		});
 
 		test('collects multiple imports', () => {
 			const result = convert(
 				'`fn` and [link](/path) and <Alert>hi</Alert>',
-				{Alert: '$lib/Alert.svelte'},
+				{ Alert: '$lib/Alert.svelte' },
 				{},
-				DOCS_RENDERER_IMPORTS,
+				DOCS_RENDERER_IMPORTS
 			);
 			assert.ok(result.imports.has('DocsLink'));
 			assert.ok(result.imports.has('resolve'));
@@ -555,7 +555,7 @@ describe('mdz_to_svelte', () => {
 			const result = mdz_to_svelte(nodes, {
 				components: {},
 				elements: {},
-				base: '/docs/foo/',
+				base: '/docs/foo/'
 			});
 			assert.ok(result.markup.includes("href={resolve('/docs/foo/bar')}"));
 			assert_import(result, 'resolve', '$app/paths', 'named');
@@ -566,7 +566,7 @@ describe('mdz_to_svelte', () => {
 			const result = mdz_to_svelte(nodes, {
 				components: {},
 				elements: {},
-				base: '/docs/foo/',
+				base: '/docs/foo/'
 			});
 			assert.ok(result.markup.includes("href={resolve('/docs/foo')}"));
 			assert_import(result, 'resolve', '$app/paths', 'named');
@@ -574,7 +574,7 @@ describe('mdz_to_svelte', () => {
 
 		test('base without trailing slash resolves correctly', () => {
 			const nodes = mdz_parse('see ./bar');
-			const result = mdz_to_svelte(nodes, {components: {}, elements: {}, base: '/docs/foo'});
+			const result = mdz_to_svelte(nodes, { components: {}, elements: {}, base: '/docs/foo' });
 			assert.ok(result.markup.includes("href={resolve('/docs/foo/bar')}"));
 		});
 
@@ -583,7 +583,7 @@ describe('mdz_to_svelte', () => {
 			const result = mdz_to_svelte(nodes, {
 				components: {},
 				elements: {},
-				base: '/docs/foo/',
+				base: '/docs/foo/'
 			});
 			assert.ok(result.markup.includes("href={resolve('/docs/api')}"));
 		});
@@ -593,7 +593,7 @@ describe('mdz_to_svelte', () => {
 			const result = mdz_to_svelte(nodes, {
 				components: {},
 				elements: {},
-				base: '/docs/foo/',
+				base: '/docs/foo/'
 			});
 			assert.ok(result.markup.includes("href={'#foo'}"));
 			assert.ok(!result.imports.has('resolve'));
@@ -604,7 +604,7 @@ describe('mdz_to_svelte', () => {
 			const result = mdz_to_svelte(nodes, {
 				components: {},
 				elements: {},
-				base: '/docs/foo/',
+				base: '/docs/foo/'
 			});
 			assert.ok(result.markup.includes("href={'https://fuz.dev'}"));
 			assert.ok(result.markup.includes('target="_blank"'));
@@ -615,7 +615,7 @@ describe('mdz_to_svelte', () => {
 			const result = mdz_to_svelte(nodes, {
 				components: {},
 				elements: {},
-				base: '/docs/foo/',
+				base: '/docs/foo/'
 			});
 			assert.ok(result.markup.includes("href={resolve('/docs/foo/bar')}"));
 			assert.ok(result.markup.includes('>bar</a>'));
@@ -632,7 +632,7 @@ describe('mdz_to_svelte', () => {
 			const result = mdz_to_svelte(nodes, {
 				components: {},
 				elements: {},
-				base: '/docs/foo/',
+				base: '/docs/foo/'
 			});
 			assert.ok(result.markup.includes("href={resolve('/docs/baz')}"));
 		});
@@ -642,7 +642,7 @@ describe('mdz_to_svelte', () => {
 			const result = mdz_to_svelte(nodes, {
 				components: {},
 				elements: {},
-				base: '/docs/foo/',
+				base: '/docs/foo/'
 			});
 			assert.ok(result.markup.includes("href={resolve('/docs/foo/bar')}"));
 			assert.ok(result.markup.includes("href={resolve('/docs/baz')}"));
@@ -651,7 +651,7 @@ describe('mdz_to_svelte', () => {
 
 	describe('edge cases', () => {
 		test('handles empty node array', () => {
-			const result = mdz_to_svelte([], {components: {}, elements: {}});
+			const result = mdz_to_svelte([], { components: {}, elements: {} });
 			assert.equal(result.markup, '');
 			assert.equal(result.imports.size, 0);
 			assert.equal(result.has_unconfigured_tags, false);
@@ -674,7 +674,7 @@ describe('mdz_to_svelte', () => {
 
 		test('handles single component without paragraph wrapper', () => {
 			// mdz parser wraps single components directly (MDX convention)
-			const result = convert('<Alert>text</Alert>', {Alert: '$lib/Alert.svelte'});
+			const result = convert('<Alert>text</Alert>', { Alert: '$lib/Alert.svelte' });
 			// Should NOT be wrapped in <p>
 			assert.ok(!result.markup.includes('<p>'));
 			assert.equal(result.markup, '<Alert>text</Alert>');

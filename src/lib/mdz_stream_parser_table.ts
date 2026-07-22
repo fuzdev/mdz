@@ -14,16 +14,16 @@
  * @module
  */
 
-import {DEV} from 'esm-env';
+import { DEV } from 'esm-env';
 
 import {
 	NEWLINE,
 	PIPE,
 	is_line_whitespace,
 	mdz_split_table_row,
-	mdz_parse_table_delimiter,
+	mdz_parse_table_delimiter
 } from './mdz_helpers.ts';
-import {MdzTableCellParser, type MdzNode, type MdzTableAlign} from './mdz.ts';
+import { MdzTableCellParser, type MdzNode, type MdzTableAlign } from './mdz.ts';
 import {
 	type MdzStreamParserState,
 	type TryResult,
@@ -33,7 +33,7 @@ import {
 	flush_text,
 	offset,
 	pop_stack_entry,
-	push_stack_entry,
+	push_stack_entry
 } from './mdz_stream_parser_state.ts';
 
 /**
@@ -71,12 +71,12 @@ export const try_table_start = (state: MdzStreamParserState, forced: boolean): T
 
 	const table_id = alloc_id(state);
 	const table_start = offset(state, start);
-	emit(state, {type: 'open', id: table_id, node_type: 'Table', start: table_start, align});
+	emit(state, { type: 'open', id: table_id, node_type: 'Table', start: table_start, align });
 	push_stack_entry(state, table_id, 'Table', table_start);
 	state.table = {
 		id: table_id,
 		item_indent: null,
-		cell_parser: new MdzTableCellParser(state.buffer),
+		cell_parser: new MdzTableCellParser(state.buffer)
 	};
 
 	emit_table_row(state, header_cells, true, start, header_end);
@@ -152,7 +152,7 @@ export const process_table_line = (state: MdzStreamParserState, forced: boolean)
 const process_table_line_in_item = (
 	state: MdzStreamParserState,
 	forced: boolean,
-	item_indent: number,
+	item_indent: number
 ): boolean => {
 	if (state.pos >= state.buffer.length) {
 		if (forced) {
@@ -204,9 +204,9 @@ const process_table_line_in_item = (
  */
 export const close_table = (state: MdzStreamParserState): void => {
 	if (!state.table) return;
-	const {item_indent} = state.table;
+	const { item_indent } = state.table;
 	const entry = pop_stack_entry(state);
-	emit(state, {type: 'close', id: entry.id, end: offset(state)});
+	emit(state, { type: 'close', id: entry.id, end: offset(state) });
 	state.table = null;
 	state.active_text_id = null;
 	if (item_indent === null) {
@@ -220,7 +220,7 @@ export const close_table = (state: MdzStreamParserState): void => {
 
 /** A recognized in-item table head: the header row's cells + the delimiter alignment. */
 export interface TableInItemHead {
-	header_cells: Array<{start: number; end: number}>;
+	header_cells: Array<{ start: number; end: number }>;
 	header_end: number;
 	align: Array<MdzTableAlign>;
 	delim_end: number;
@@ -239,9 +239,9 @@ export const match_table_in_item_head = (
 	state: MdzStreamParserState,
 	header_first: number,
 	marker_indent: number,
-	forced: boolean,
+	forced: boolean
 ): TableInItemHead | 'pending' | null => {
-	const {buffer} = state;
+	const { buffer } = state;
 	const header_end = buffer.indexOf('\n', header_first);
 	if (header_end === -1) return forced ? null : 'pending'; // header needs its newline + a delimiter beneath
 	const header_cells = mdz_split_table_row(buffer, header_first, header_end);
@@ -258,7 +258,7 @@ export const match_table_in_item_head = (
 	}
 	const align = mdz_parse_table_delimiter(buffer, dj, delim_end);
 	if (align === null || align.length !== header_cells.length) return null;
-	return {header_cells, header_end, align, delim_end};
+	return { header_cells, header_end, align, delim_end };
 };
 
 /**
@@ -273,7 +273,7 @@ export const open_table_in_item = (
 	state: MdzStreamParserState,
 	header_first: number,
 	marker_indent: number,
-	head: TableInItemHead,
+	head: TableInItemHead
 ): void => {
 	const table_id = alloc_id(state);
 	const table_start = offset(state, header_first);
@@ -282,13 +282,13 @@ export const open_table_in_item = (
 		id: table_id,
 		node_type: 'Table',
 		start: table_start,
-		align: head.align,
+		align: head.align
 	});
 	push_stack_entry(state, table_id, 'Table', table_start);
 	state.table = {
 		id: table_id,
 		item_indent: marker_indent,
-		cell_parser: new MdzTableCellParser(state.buffer),
+		cell_parser: new MdzTableCellParser(state.buffer)
 	};
 	emit_table_row(state, head.header_cells, true, header_first, head.header_end);
 	// leave the cursor on the delimiter's newline (or EOF) — the in-item body-row
@@ -301,14 +301,14 @@ export const open_table_in_item = (
 /** Emit one table row: open, each cell, close. */
 const emit_table_row = (
 	state: MdzStreamParserState,
-	cells: Array<{start: number; end: number}>,
+	cells: Array<{ start: number; end: number }>,
 	header: boolean,
 	row_start: number,
-	row_end: number,
+	row_end: number
 ): void => {
 	const row_id = alloc_id(state);
 	const row_off = offset(state, row_start);
-	emit(state, {type: 'open', id: row_id, node_type: 'TableRow', start: row_off, header});
+	emit(state, { type: 'open', id: row_id, node_type: 'TableRow', start: row_off, header });
 	push_stack_entry(state, row_id, 'TableRow', row_off);
 	// one lexer/parser shared across the whole table rather than allocated per
 	// row (or per cell) — rebound per row because the buffer string changes
@@ -319,7 +319,7 @@ const emit_table_row = (
 		emit_table_cell(state, cell_parser, cell.start, cell.end);
 	}
 	pop_stack_entry(state);
-	emit(state, {type: 'close', id: row_id, end: offset(state, row_end)});
+	emit(state, { type: 'close', id: row_id, end: offset(state, row_end) });
 	state.active_text_id = null;
 };
 
@@ -331,15 +331,15 @@ const emit_table_cell = (
 	state: MdzStreamParserState,
 	cell_parser: MdzTableCellParser,
 	cell_start: number,
-	cell_end: number,
+	cell_end: number
 ): void => {
 	const cell_id = alloc_id(state);
 	const cell_off = offset(state, cell_start);
-	emit(state, {type: 'open', id: cell_id, node_type: 'TableCell', start: cell_off});
+	emit(state, { type: 'open', id: cell_id, node_type: 'TableCell', start: cell_off });
 	push_stack_entry(state, cell_id, 'TableCell', cell_off);
 	emit_inline_nodes(state, cell_parser.parse(cell_start, cell_end));
 	pop_stack_entry(state);
-	emit(state, {type: 'close', id: cell_id, end: offset(state, cell_end)});
+	emit(state, { type: 'close', id: cell_id, end: offset(state, cell_end) });
 	state.active_text_id = null;
 };
 
@@ -357,7 +357,7 @@ const emit_inline_nodes = (state: MdzStreamParserState, nodes: Array<MdzNode>): 
 					content: node.content,
 					text_type: 'Text',
 					start: offset(state, node.start),
-					end: offset(state, node.end),
+					end: offset(state, node.end)
 				});
 				break;
 			case 'Code':
@@ -367,7 +367,7 @@ const emit_inline_nodes = (state: MdzStreamParserState, nodes: Array<MdzNode>): 
 					content: node.content,
 					text_type: 'Code',
 					start: offset(state, node.start),
-					end: offset(state, node.end),
+					end: offset(state, node.end)
 				});
 				break;
 			case 'Bold':
@@ -375,17 +375,17 @@ const emit_inline_nodes = (state: MdzStreamParserState, nodes: Array<MdzNode>): 
 			case 'Strikethrough': {
 				const id = alloc_id(state);
 				const s = offset(state, node.start);
-				emit(state, {type: 'open', id, node_type: node.type, start: s});
+				emit(state, { type: 'open', id, node_type: node.type, start: s });
 				push_stack_entry(state, id, node.type, s);
 				emit_inline_nodes(state, node.children);
 				pop_stack_entry(state);
-				emit(state, {type: 'close', id, end: offset(state, node.end)});
+				emit(state, { type: 'close', id, end: offset(state, node.end) });
 				break;
 			}
 			case 'Link': {
 				const id = alloc_id(state);
 				const s = offset(state, node.start);
-				emit(state, {type: 'open', id, node_type: 'Link', start: s});
+				emit(state, { type: 'open', id, node_type: 'Link', start: s });
 				push_stack_entry(state, id, 'Link', s);
 				emit_inline_nodes(state, node.children);
 				pop_stack_entry(state);
@@ -394,7 +394,7 @@ const emit_inline_nodes = (state: MdzStreamParserState, nodes: Array<MdzNode>): 
 					id,
 					end: offset(state, node.end),
 					reference: node.reference,
-					link_type: node.link_type,
+					link_type: node.link_type
 				});
 				break;
 			}
@@ -402,11 +402,11 @@ const emit_inline_nodes = (state: MdzStreamParserState, nodes: Array<MdzNode>): 
 			case 'Component': {
 				const id = alloc_id(state);
 				const s = offset(state, node.start);
-				emit(state, {type: 'open', id, node_type: node.type, start: s, name: node.name});
+				emit(state, { type: 'open', id, node_type: node.type, start: s, name: node.name });
 				push_stack_entry(state, id, node.type, s, '', node.name);
 				emit_inline_nodes(state, node.children);
 				pop_stack_entry(state);
-				emit(state, {type: 'close', id, end: offset(state, node.end)});
+				emit(state, { type: 'close', id, end: offset(state, node.end) });
 				break;
 			}
 			// cells are inline-only (lexed via `lex_table_cell`); a block node here

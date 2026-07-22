@@ -27,9 +27,9 @@ import {
 	ZERO,
 	is_line_whitespace,
 	mdz_match_blockquote_prefix,
-	mdz_blockquote_line_has_content,
+	mdz_blockquote_line_has_content
 } from './mdz_helpers.ts';
-import {match_table_in_item_head, open_table_in_item} from './mdz_stream_parser_table.ts';
+import { match_table_in_item_head, open_table_in_item } from './mdz_stream_parser_table.ts';
 import {
 	type MdzStreamParserState,
 	type TryResult,
@@ -44,7 +44,7 @@ import {
 	extend_accumulated_end,
 	flush_text,
 	offset,
-	push_stack_entry,
+	push_stack_entry
 } from './mdz_stream_parser_state.ts';
 
 /**
@@ -76,7 +76,7 @@ export interface MdzStreamListMarker {
 const rest_is_blank = (
 	state: MdzStreamParserState,
 	from: number,
-	forced: boolean,
+	forced: boolean
 ): boolean | 'pending' => {
 	let i = from;
 	while (i < state.buffer.length && is_line_whitespace(state.buffer.charCodeAt(i))) {
@@ -98,9 +98,9 @@ const rest_is_blank = (
 export const match_list_marker = (
 	state: MdzStreamParserState,
 	i: number,
-	forced: boolean,
+	forced: boolean
 ): MdzStreamListMarker | 'pending' | null => {
-	const {buffer} = state;
+	const { buffer } = state;
 	const c = buffer.charCodeAt(i);
 	if (c === HYPHEN) {
 		const after = i + 1;
@@ -113,7 +113,7 @@ export const match_list_marker = (
 				start: i,
 				marker_end: after,
 				content_start: after,
-				empty: true,
+				empty: true
 			};
 		}
 		// in bounds: `blank === false` means the scan found a char at or past `after`
@@ -121,7 +121,7 @@ export const match_list_marker = (
 		const content_start = after + 1;
 		const empty = rest_is_blank(state, content_start, forced);
 		if (empty === 'pending') return 'pending';
-		return {ordered: false, number: 0, start: i, marker_end: after, content_start, empty};
+		return { ordered: false, number: 0, start: i, marker_end: after, content_start, empty };
 	}
 	if (c >= ZERO && c <= NINE) {
 		let j = i + 1;
@@ -142,7 +142,7 @@ export const match_list_marker = (
 				start: i,
 				marker_end: after,
 				content_start: after,
-				empty: true,
+				empty: true
 			};
 		}
 		// in bounds: `blank === false` means the scan found a char at or past `after`
@@ -150,7 +150,7 @@ export const match_list_marker = (
 		const content_start = after + 1;
 		const empty = rest_is_blank(state, content_start, forced);
 		if (empty === 'pending') return 'pending';
-		return {ordered: true, number, start: i, marker_end: after, content_start, empty};
+		return { ordered: true, number, start: i, marker_end: after, content_start, empty };
 	}
 	return null;
 };
@@ -179,9 +179,9 @@ export interface MdzStreamFenceOpener {
 export const match_fence_opener = (
 	state: MdzStreamParserState,
 	i: number,
-	forced: boolean,
+	forced: boolean
 ): MdzStreamFenceOpener | 'pending' | null => {
-	const {buffer} = state;
+	const { buffer } = state;
 	let j = i;
 	let count = 0;
 	while (j < buffer.length && buffer.charCodeAt(j) === BACKTICK) {
@@ -202,7 +202,7 @@ export const match_fence_opener = (
 	}
 	if (j >= buffer.length) return forced ? null : 'pending'; // the opener needs its newline
 	if (buffer.charCodeAt(j) !== NEWLINE) return null;
-	return {backtick_count: count, lang, content_start: j + 1};
+	return { backtick_count: count, lang, content_start: j + 1 };
 };
 
 /** Emit a `ListItem` open for `marker` and push its frame. */
@@ -210,9 +210,9 @@ const open_list_item = (state: MdzStreamParserState, marker: MdzStreamListMarker
 	const id = alloc_id(state);
 	const start = offset(state, marker.start);
 	if (marker.ordered) {
-		emit(state, {type: 'open', id, node_type: 'ListItem', start, number: marker.number});
+		emit(state, { type: 'open', id, node_type: 'ListItem', start, number: marker.number });
 	} else {
-		emit(state, {type: 'open', id, node_type: 'ListItem', start});
+		emit(state, { type: 'open', id, node_type: 'ListItem', start });
 	}
 	push_stack_entry(state, id, 'ListItem', start);
 	if (marker.empty) {
@@ -226,7 +226,7 @@ const open_list_item = (state: MdzStreamParserState, marker: MdzStreamListMarker
 const open_list_level = (
 	state: MdzStreamParserState,
 	indent: number,
-	marker: MdzStreamListMarker,
+	marker: MdzStreamListMarker
 ): void => {
 	const id = alloc_id(state);
 	const start = offset(state, marker.start);
@@ -237,14 +237,14 @@ const open_list_level = (
 			node_type: 'List',
 			start,
 			ordered: true,
-			start_number: marker.number,
+			start_number: marker.number
 		});
 	} else {
-		emit(state, {type: 'open', id, node_type: 'List', start, ordered: false});
+		emit(state, { type: 'open', id, node_type: 'List', start, ordered: false });
 	}
 	push_stack_entry(state, id, 'List', start);
 	open_list_item(state, marker);
-	state.list_levels.push({indent, ordered: marker.ordered});
+	state.list_levels.push({ indent, ordered: marker.ordered });
 };
 
 /**
@@ -256,7 +256,7 @@ const open_list_level = (
 const begin_item_run = (
 	state: MdzStreamParserState,
 	marker: MdzStreamListMarker,
-	line_start: number,
+	line_start: number
 ): void => {
 	let i = marker.content_start;
 	while (i < state.buffer.length && is_line_whitespace(state.buffer.charCodeAt(i))) {
@@ -289,7 +289,7 @@ const list_continuation_target = (state: MdzStreamParserState, indent: number): 
 const continue_run = (
 	state: MdzStreamParserState,
 	nl_pos: number,
-	content_pos: number,
+	content_pos: number
 ): boolean => {
 	accumulate_text(state, '\n', offset(state, nl_pos));
 	extend_accumulated_end(state, offset(state, content_pos));
@@ -352,9 +352,9 @@ export const try_list_start = (state: MdzStreamParserState, forced: boolean): Tr
  */
 export const process_list_line = (
 	state: MdzStreamParserState,
-	forced: boolean,
+	forced: boolean
 ): boolean | 'blockquote' => {
-	const {buffer} = state;
+	const { buffer } = state;
 	const nl_pos = state.pos;
 	const line_start = nl_pos + 1;
 	let j = line_start;
@@ -462,13 +462,19 @@ export const process_list_line = (
 				}
 				const id = alloc_id(state);
 				const cb_start = offset(state, j);
-				emit(state, {type: 'open', id, node_type: 'Codeblock', start: cb_start, lang: fence.lang});
+				emit(state, {
+					type: 'open',
+					id,
+					node_type: 'Codeblock',
+					start: cb_start,
+					lang: fence.lang
+				});
 				state.codeblock = {
 					id,
 					backtick_count: fence.backtick_count,
 					text_id: null,
 					fence_indent: indent,
-					start: cb_start,
+					start: cb_start
 				};
 				state.active_text_id = null;
 				state.pos = fence.content_start;

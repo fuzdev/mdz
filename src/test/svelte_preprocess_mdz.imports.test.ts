@@ -1,8 +1,8 @@
-import {test, assert, describe} from 'vitest';
+import { test, assert, describe } from 'vitest';
 
 import {
 	run_preprocess,
-	DEFAULT_TEST_OPTIONS,
+	DEFAULT_TEST_OPTIONS
 } from './fixtures/svelte_preprocess_mdz/svelte_preprocess_mdz_test_helpers.ts';
 
 describe('import addition', () => {
@@ -16,7 +16,7 @@ describe('import addition', () => {
 		const result = await run_preprocess(input);
 		assert.ok(
 			result.includes("import DocsLink from '@fuzdev/fuz_ui/DocsLink.svelte'"),
-			'should add DocsLink import',
+			'should add DocsLink import'
 		);
 	});
 
@@ -27,7 +27,7 @@ describe('import addition', () => {
 		const result = await run_preprocess(input);
 		assert.ok(
 			result.includes("import Code from '@fuzdev/fuz_code/Code.svelte'"),
-			'should add Code import',
+			'should add Code import'
 		);
 	});
 
@@ -109,7 +109,7 @@ describe('import deduplication', () => {
 		// The existing import from the different source should be preserved
 		assert.ok(
 			result.includes("import DocsLink from './local/DocsLink.svelte'"),
-			'should keep existing DocsLink import',
+			'should keep existing DocsLink import'
 		);
 	});
 });
@@ -182,7 +182,7 @@ describe('import resolution', () => {
 
 		const result = await run_preprocess(input, {
 			...DEFAULT_TEST_OPTIONS,
-			mdz_component_imports: ['$lib/Mdz.svelte'],
+			mdz_component_imports: ['$lib/Mdz.svelte']
 		});
 		assert.ok(result.includes('<strong>bold</strong>'), 'should transform with custom import');
 	});
@@ -296,7 +296,7 @@ describe('import removal', () => {
 		assert.ok(!result.includes('import Mdz from'), 'should remove Mdz (all transformed)');
 		assert.ok(
 			result.includes('import {default as Markdown}'),
-			'should keep Markdown (has dynamic)',
+			'should keep Markdown (has dynamic)'
 		);
 	});
 
@@ -338,7 +338,7 @@ describe('import removal', () => {
 		assert.ok(!result.includes('import Mdz,'), 'should remove Mdz default specifier');
 		assert.ok(
 			result.includes("import {something} from '@fuzdev/mdz/Mdz.svelte'"),
-			'should keep remaining specifier',
+			'should keep remaining specifier'
 		);
 		assert.ok(result.includes('import MdzPrecompiled from'), 'should add MdzPrecompiled import');
 	});
@@ -353,7 +353,7 @@ describe('import removal', () => {
 		const result = await run_preprocess(input);
 		assert.ok(
 			result.includes("import {MdzNode} from '@fuzdev/mdz/Mdz.svelte'"),
-			'should keep named import',
+			'should keep named import'
 		);
 		assert.ok(!result.includes('import Mdz,'), 'should remove default import');
 	});
@@ -368,7 +368,7 @@ describe('import removal', () => {
 		const result = await run_preprocess(input);
 		assert.ok(
 			result.includes("import {MdzNode} from '@fuzdev/mdz/Mdz.svelte'"),
-			'should keep MdzNode import',
+			'should keep MdzNode import'
 		);
 		assert.ok(!result.includes('default as Mdz'), 'should remove Mdz alias');
 	});
@@ -383,12 +383,12 @@ describe('import removal', () => {
 		const result = await run_preprocess(input);
 		assert.ok(
 			result.includes("import {something} from '@fuzdev/mdz/Mdz.svelte'"),
-			'should keep remaining specifier',
+			'should keep remaining specifier'
 		);
 		assert.ok(result.includes('import MdzPrecompiled from'), 'should add MdzPrecompiled import');
 		assert.ok(
 			result.includes("import DocsLink from '@fuzdev/fuz_ui/DocsLink.svelte'"),
-			'should add DocsLink import via carrier',
+			'should add DocsLink import via carrier'
 		);
 	});
 
@@ -403,7 +403,7 @@ describe('import removal', () => {
 		const result = await run_preprocess(input);
 		assert.ok(
 			result.includes("import {something} from '@fuzdev/mdz/Mdz.svelte'"),
-			'should keep remaining specifier',
+			'should keep remaining specifier'
 		);
 		assert.ok(result.includes('import Other'), 'should keep Other import');
 		assert.ok(result.includes('import MdzPrecompiled from'), 'should add MdzPrecompiled import');
@@ -461,11 +461,11 @@ describe('import removal', () => {
 		const result = await run_preprocess(input);
 		assert.ok(
 			result.includes("import DocsLink from '@fuzdev/fuz_ui/DocsLink.svelte'"),
-			'should add DocsLink import from consequent branch',
+			'should add DocsLink import from consequent branch'
 		);
 		assert.ok(
 			result.includes("import {resolve} from '$app/paths'"),
-			'should add resolve import from alternate branch',
+			'should add resolve import from alternate branch'
 		);
 	});
 });

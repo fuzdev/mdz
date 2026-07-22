@@ -16,18 +16,18 @@
  * unregistered-tag fallback).
  */
 
-import {describe, test, assert} from 'vitest';
-import {render} from 'svelte/server';
-import type {Component} from 'svelte';
+import { describe, test, assert } from 'vitest';
+import { render } from 'svelte/server';
+import type { Component } from 'svelte';
 
 import MdzComponent from '$lib/Mdz.svelte';
-import {mdz_parse} from '$lib/mdz.ts';
-import {mdz_to_svelte} from '$lib/mdz_to_svelte.ts';
-import {load_fixtures} from './fixtures/mdz/mdz_test_helpers.ts';
+import { mdz_parse } from '$lib/mdz.ts';
+import { mdz_to_svelte } from '$lib/mdz_to_svelte.ts';
+import { load_fixtures } from './fixtures/mdz/mdz_test_helpers.ts';
 
 // narrowed component type — the wrapper's `SvelteHTMLElements` rest-prop
 // union is too complex for `render()`'s generic inference
-const Mdz = MdzComponent as unknown as Component<{content: string}>;
+const Mdz = MdzComponent as unknown as Component<{ content: string }>;
 
 // escape_svelte_text's brace escapes — the only source of these forms in
 // generated markup (attr expression strings never contain braces: references
@@ -50,7 +50,7 @@ const svelte_markup_to_html = (markup: string): string =>
 		.replaceAll(TEXT_CLOSE_BRACE, '\u0002')
 		.replaceAll(
 			/=\{resolve\('((?:[^'\\]|\\.)*)'\)\}/g,
-			(_, s: string) => `="${attr_escape(js_unescape(s))}"`,
+			(_, s: string) => `="${attr_escape(js_unescape(s))}"`
 		)
 		.replaceAll(/=\{'((?:[^'\\]|\\.)*)'\}/g, (_, s: string) => `="${attr_escape(js_unescape(s))}"`)
 		.replaceAll(/=\{(\d+)\}/g, '="$1"')
@@ -72,10 +72,10 @@ describe('mdz_to_svelte matches the runtime renderer', () => {
 		const failures: Array<string> = [];
 		let compared = 0;
 		for (const fixture of fixtures) {
-			const result = mdz_to_svelte(mdz_parse(fixture.input), {components: {}, elements: {}});
+			const result = mdz_to_svelte(mdz_parse(fixture.input), { components: {}, elements: {} });
 			if (result.has_unconfigured_tags) continue; // intentional divergence — see module docs
 			const expected = svelte_markup_to_html(result.markup);
-			const actual = ssr_inner_html(render(Mdz, {props: {content: fixture.input}}).body);
+			const actual = ssr_inner_html(render(Mdz, { props: { content: fixture.input } }).body);
 			if (expected !== actual) {
 				failures.push(`${fixture.name}:\n  markup→ ${expected}\n  ssr→    ${actual}`);
 			}

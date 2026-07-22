@@ -1,22 +1,23 @@
 <script lang="ts">
-	import {resolve} from '$app/paths';
+	import { resolve } from '$app/paths';
 
-	import type {MdzNode, MdzNodeTableRow, MdzTableAlign} from './mdz.ts';
-	import {mdz_classify_link, mdz_is_void_element} from './mdz_helpers.ts';
+	import type { MdzNode, MdzNodeTableRow, MdzTableAlign } from './mdz.ts';
+	import { mdz_classify_link, mdz_is_void_element } from './mdz_helpers.ts';
 	import {
 		mdz_components_context,
 		mdz_elements_context,
 		mdz_base_context,
 		mdz_code_context,
-		mdz_codeblock_context,
+		mdz_codeblock_context
 	} from './mdz_contexts.ts';
 
 	const {
 		node,
-		nodes,
-	}: // exactly one of `node`/`nodes` — the array form renders a whole tree
+		nodes
+	}:
+		// exactly one of `node`/`nodes` — the array form renders a whole tree
 		// through this single component instance (used by `Mdz`)
-		{node: MdzNode; nodes?: undefined} | {node?: undefined; nodes: Array<MdzNode>} = $props();
+		{ node: MdzNode; nodes?: undefined } | { node?: undefined; nodes: Array<MdzNode> } = $props();
 
 	const get_components = mdz_components_context.get_maybe();
 	const get_elements = mdz_elements_context.get_maybe();

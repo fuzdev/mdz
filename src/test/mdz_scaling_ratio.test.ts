@@ -11,11 +11,11 @@
  * threshold.
  */
 
-import {describe, test, assert} from 'vitest';
+import { describe, test, assert } from 'vitest';
 
-import {mdz_parse} from '$lib/mdz.ts';
-import {MdzStreamParser} from '$lib/mdz_stream_parser.ts';
-import {mdz_debug_work, mdz_debug_work_reset} from '$lib/mdz_debug_work.ts';
+import { mdz_parse } from '$lib/mdz.ts';
+import { MdzStreamParser } from '$lib/mdz_stream_parser.ts';
+import { mdz_debug_work, mdz_debug_work_reset } from '$lib/mdz_debug_work.ts';
 
 /** Scan work for a full sync parse. */
 const sync_work = (content: string): number => {
@@ -56,9 +56,9 @@ const MAX_NORMALIZED = 1.5;
 const assert_subquadratic = (
 	label: string,
 	inputs: Array<string>,
-	work_fn: (input: string) => number,
+	work_fn: (input: string) => number
 ): void => {
-	const points = inputs.map((input) => ({len: input.length, work: work_fn(input)}));
+	const points = inputs.map((input) => ({ len: input.length, work: work_fn(input) }));
 	for (const p of points) assert.isAbove(p.work, 0, `${label}: nonzero work (counter wired)`);
 	for (let i = 1; i < points.length; i++) {
 		const size_ratio = points[i]!.len / points[i - 1]!.len;
@@ -68,7 +68,7 @@ const assert_subquadratic = (
 			normalized,
 			MAX_NORMALIZED,
 			`${label}: step ${i} normalized=${normalized.toFixed(3)} ` +
-				`(work ${points[i - 1]!.work}→${points[i]!.work}, len ${points[i - 1]!.len}→${points[i]!.len})`,
+				`(work ${points[i - 1]!.work}→${points[i]!.work}, len ${points[i - 1]!.len}→${points[i]!.len})`
 		);
 	}
 };
@@ -78,7 +78,7 @@ describe('parser scan work is sub-quadratic (deterministic)', () => {
 		assert_subquadratic(
 			'nested [',
 			[2000, 4000, 8000].map((n) => '['.repeat(n) + 'text'),
-			sync_work,
+			sync_work
 		);
 	});
 
@@ -86,7 +86,7 @@ describe('parser scan work is sub-quadratic (deterministic)', () => {
 		assert_subquadratic(
 			'nested <a>',
 			[1000, 2000, 4000].map((n) => '<a>'.repeat(n) + 'X</a>'),
-			sync_work,
+			sync_work
 		);
 	});
 
@@ -94,7 +94,7 @@ describe('parser scan work is sub-quadratic (deterministic)', () => {
 		assert_subquadratic(
 			'prose',
 			[2000, 4000, 8000].map((n) => 'the quick brown fox jumps over the lazy dog. '.repeat(n / 45)),
-			sync_work,
+			sync_work
 		);
 	});
 
@@ -102,7 +102,7 @@ describe('parser scan work is sub-quadratic (deterministic)', () => {
 		assert_subquadratic(
 			'hold code',
 			[4000, 8000, 16000].map((chars) => '**a `' + 'x'.repeat(chars)),
-			(input) => stream_work(input, 64),
+			(input) => stream_work(input, 64)
 		);
 	});
 
@@ -110,7 +110,7 @@ describe('parser scan work is sub-quadratic (deterministic)', () => {
 		assert_subquadratic(
 			'hold link',
 			[4000, 8000, 16000].map((chars) => '[text](https://example.com/' + 'x'.repeat(chars)),
-			(input) => stream_work(input, 64),
+			(input) => stream_work(input, 64)
 		);
 	});
 
@@ -118,9 +118,9 @@ describe('parser scan work is sub-quadratic (deterministic)', () => {
 		assert_subquadratic(
 			'mismatched tags',
 			[1000, 2000, 4000].map((n) =>
-				Array.from({length: n}, (_, i) => `<a${i}>x</nomatch>`).join(''),
+				Array.from({ length: n }, (_, i) => `<a${i}>x</nomatch>`).join('')
 			),
-			(input) => stream_work(input, input.length + 1),
+			(input) => stream_work(input, input.length + 1)
 		);
 	});
 });

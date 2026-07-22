@@ -1,7 +1,7 @@
-import type {MdzNode} from '$lib/mdz.ts';
-import {MdzStreamParser} from '$lib/mdz_stream_parser.ts';
-import {mdz_opcodes_to_nodes} from '$lib/mdz_opcodes_to_nodes.ts';
-import {load_fixtures_generic} from '../../test_helpers.ts';
+import type { MdzNode } from '$lib/mdz.ts';
+import { MdzStreamParser } from '$lib/mdz_stream_parser.ts';
+import { mdz_opcodes_to_nodes } from '$lib/mdz_opcodes_to_nodes.ts';
+import { load_fixtures_generic } from '../../test_helpers.ts';
 
 /**
  * Parse text through the streaming parser and convert to an MdzNode[] tree.
@@ -43,7 +43,7 @@ export const text_content = (node: MdzNode): string => {
 export const validate_positions = (
 	nodes: Array<MdzNode>,
 	parent_start?: number,
-	parent_end?: number,
+	parent_end?: number
 ): void => {
 	if (nodes.length === 0) return;
 
@@ -64,7 +64,7 @@ export const validate_positions = (
 		if (parent_start !== undefined && parent_end !== undefined) {
 			if (node.start < parent_start || node.end > parent_end) {
 				throw Error(
-					`Node ${i} (${node.start}-${node.end}) exceeds parent bounds (${parent_start}-${parent_end})`,
+					`Node ${i} (${node.start}-${node.end}) exceeds parent bounds (${parent_start}-${parent_end})`
 				);
 			}
 		}
@@ -81,7 +81,7 @@ export const validate_positions = (
 			// (allowing for delimiters at boundaries)
 			if (first_child.start < node.start || last_child.end > node.end) {
 				throw Error(
-					`Children (${first_child.start}-${last_child.end}) exceed parent bounds (${node.start}-${node.end})`,
+					`Children (${first_child.start}-${last_child.end}) exceed parent bounds (${node.start}-${node.end})`
 				);
 			}
 		}
@@ -94,7 +94,7 @@ export const validate_positions = (
 
 		if (current.end > next.start) {
 			throw Error(
-				`Overlapping nodes at ${i}: node[${i}] ends at ${current.end}, node[${i + 1}] starts at ${next.start}`,
+				`Overlapping nodes at ${i}: node[${i}] ends at ${current.end}, node[${i + 1}] starts at ${next.start}`
 			);
 		}
 	}
@@ -106,6 +106,6 @@ export const validate_positions = (
 export const load_fixtures = async (): Promise<Array<MdzFixture>> => {
 	return load_fixtures_generic<Array<MdzNode>>({
 		fixtures_dir: import.meta.dirname,
-		input_extension: '.mdz',
+		input_extension: '.mdz'
 	});
 };

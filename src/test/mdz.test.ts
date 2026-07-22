@@ -1,11 +1,11 @@
-import {test, assert, describe, beforeAll} from 'vitest';
+import { test, assert, describe, beforeAll } from 'vitest';
 
-import {mdz_parse} from '$lib/mdz.ts';
+import { mdz_parse } from '$lib/mdz.ts';
 import {
 	stream_parse,
 	load_fixtures,
 	validate_positions,
-	type MdzFixture,
+	type MdzFixture
 } from './fixtures/mdz/mdz_test_helpers.ts';
 
 let fixtures: Array<MdzFixture> = [];
@@ -17,11 +17,11 @@ beforeAll(async () => {
 // -- Both parsers compared with full positions --
 
 const all_parsers = [
-	{name: 'sync', parse: mdz_parse},
-	{name: 'streaming', parse: stream_parse},
+	{ name: 'sync', parse: mdz_parse },
+	{ name: 'streaming', parse: stream_parse }
 ];
 
-for (const {name, parse} of all_parsers) {
+for (const { name, parse } of all_parsers) {
 	describe(`mdz parser (${name})`, () => {
 		test('all fixtures parse correctly', () => {
 			for (const fixture of fixtures) {

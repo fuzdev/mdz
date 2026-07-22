@@ -1,5 +1,5 @@
-import type {MdzNode} from '$lib/mdz.ts';
-import type {MdzFixture} from '../../../test/fixtures/mdz/mdz_test_helpers.ts';
+import type { MdzNode } from '$lib/mdz.ts';
+import type { MdzFixture } from '../../../test/fixtures/mdz/mdz_test_helpers.ts';
 
 /**
  * Loads the parser test corpus at build time via Vite glob imports.
@@ -13,11 +13,11 @@ export const load_mdz_fixtures = (): Array<MdzFixture> => {
 	const input_modules = import.meta.glob<string>('../../../test/fixtures/mdz/**/input.mdz', {
 		eager: true,
 		query: '?raw',
-		import: 'default',
+		import: 'default'
 	});
 	const expected_modules = import.meta.glob<Array<MdzNode>>(
 		'../../../test/fixtures/mdz/**/expected.json',
-		{eager: true, import: 'default'},
+		{ eager: true, import: 'default' }
 	);
 
 	// extract fixture names from paths like `.../fixtures/bold_simple/input.mdz`
@@ -35,14 +35,14 @@ export const load_mdz_fixtures = (): Array<MdzFixture> => {
 	for (const name of Array.from(fixture_names).sort()) {
 		const input_path = Object.keys(input_modules).find((p) => p.includes(`/${name}/input.mdz`));
 		const expected_path = Object.keys(expected_modules).find((p) =>
-			p.includes(`/${name}/expected.json`),
+			p.includes(`/${name}/expected.json`)
 		);
 
 		if (input_path && expected_path) {
 			fixtures.push({
 				name,
 				input: input_modules[input_path]!,
-				expected: expected_modules[expected_path]!,
+				expected: expected_modules[expected_path]!
 			});
 		}
 	}

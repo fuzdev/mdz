@@ -12,7 +12,7 @@
  * @module
  */
 
-import type {MdzTableAlign} from './mdz.ts';
+import type { MdzTableAlign } from './mdz.ts';
 
 /**
  * Unique monotonic identifier for each node created by the parser.

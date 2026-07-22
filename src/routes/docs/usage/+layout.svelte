@@ -1,13 +1,13 @@
 <script lang="ts">
-	import type {Snippet} from 'svelte';
-	import {page} from '$app/state';
+	import type { Snippet } from 'svelte';
+	import { page } from '$app/state';
 	import Code from '@fuzdev/fuz_code/Code.svelte';
 	import DocsLink from '@fuzdev/fuz_ui/DocsLink.svelte';
 
 	import MdzRoot from '$lib/MdzRoot.svelte';
 
 	const {
-		children,
+		children
 	}: {
 		children: Snippet;
 	} = $props();

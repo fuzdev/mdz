@@ -1,6 +1,6 @@
-import type {Component} from 'svelte';
+import type { Component } from 'svelte';
 
-import {create_context} from './context_helpers.ts';
+import { create_context } from './context_helpers.ts';
 
 /**
  * Component registry for custom Svelte components that can be used in mdz content.
@@ -56,7 +56,7 @@ export const mdz_base_context = create_context<() => string | undefined>();
  * content as `reference` — the prop name matches `fuz_ui`'s `DocsLink`, so it
  * can be injected directly to auto-link backticked API identifiers.
  */
-export type MdzCodeComponent = Component<{reference: string}>;
+export type MdzCodeComponent = Component<{ reference: string }>;
 
 /**
  * Context for overriding how inline `` `code` `` spans render, via a getter
@@ -69,7 +69,7 @@ export const mdz_code_context = create_context<() => MdzCodeComponent | undefine
  * matching `@fuzdev/fuz_code`'s `Code`, so it can be injected directly for
  * syntax highlighting.
  */
-export type MdzCodeblockComponent = Component<{lang: string | null; content: string}>;
+export type MdzCodeblockComponent = Component<{ lang: string | null; content: string }>;
 
 /**
  * Context for overriding how fenced code blocks render, via a getter function.
@@ -92,7 +92,7 @@ interface MdzGetterContext<T> {
  */
 export const mdz_set_context_with_fallback = <T>(
 	context: MdzGetterContext<T>,
-	value_fn: () => T | undefined,
+	value_fn: () => T | undefined
 ): void => {
 	const ancestor = context.get_maybe();
 	context.set(() => value_fn() ?? ancestor?.());

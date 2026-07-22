@@ -13,10 +13,10 @@
  * answers linear-vs-not.
  */
 
-import {describe, test, assert} from 'vitest';
+import { describe, test, assert } from 'vitest';
 
-import {mdz_parse} from '$lib/mdz.ts';
-import {MdzStreamParser} from '$lib/mdz_stream_parser.ts';
+import { mdz_parse } from '$lib/mdz.ts';
+import { MdzStreamParser } from '$lib/mdz_stream_parser.ts';
 
 const GUARD_TIMEOUT = 2000;
 
@@ -52,17 +52,17 @@ const feed_once = (content: string): number => {
 // the linear-case ceiling, not the regression trigger.
 const SYNC_DEEP_TIMEOUT = 8000;
 describe('nested inline constructs are linear and stack-safe (Bug 5)', () => {
-	test('sync: nested unclosed [', {timeout: SYNC_DEEP_TIMEOUT}, () => {
+	test('sync: nested unclosed [', { timeout: SYNC_DEEP_TIMEOUT }, () => {
 		assert.isArray(mdz_parse('['.repeat(50_000) + 'text'));
 	});
-	test('sync: nested same-name <tag>', {timeout: SYNC_DEEP_TIMEOUT}, () => {
+	test('sync: nested same-name <tag>', { timeout: SYNC_DEEP_TIMEOUT }, () => {
 		assert.isArray(mdz_parse('<a>'.repeat(50_000) + 'X</a>'));
 	});
-	test('sync: nested closed links to the cap and beyond', {timeout: SYNC_DEEP_TIMEOUT}, () => {
+	test('sync: nested closed links to the cap and beyond', { timeout: SYNC_DEEP_TIMEOUT }, () => {
 		const n = 50_000;
 		assert.isArray(mdz_parse('['.repeat(n) + 'x' + ']'.repeat(n) + '(/u)'));
 	});
-	test('streaming table cell (delegates to the sync lexer)', {timeout: SYNC_DEEP_TIMEOUT}, () => {
+	test('streaming table cell (delegates to the sync lexer)', { timeout: SYNC_DEEP_TIMEOUT }, () => {
 		const table = `| ${'['.repeat(50_000)}X | b |\n| --- | --- |\n| c | d |\n`;
 		assert.isAbove(feed_once(table), 0);
 	});
@@ -74,17 +74,21 @@ describe('nested inline constructs are linear and stack-safe (Bug 5)', () => {
 // while the memoized scan stays in the low ms.
 describe('streaming held-candidate scans stay linear', () => {
 	const BIG = 128_000;
-	test('hold line code (unclosed ` under open **)', {timeout: GUARD_TIMEOUT}, () => {
+	test('hold line code (unclosed ` under open **)', { timeout: GUARD_TIMEOUT }, () => {
 		assert.isAbove(feed_chunked('**a `' + 'x'.repeat(BIG)), 0);
 	});
-	test('hold line link (unterminated [text](url…)', {timeout: GUARD_TIMEOUT}, () => {
+	test('hold line link (unterminated [text](url…)', { timeout: GUARD_TIMEOUT }, () => {
 		assert.isAbove(feed_chunked('[text](https://example.com/' + 'x'.repeat(BIG)), 0);
 	});
-	test('mismatched tags (unclosed <aN> + never-matching closer)', {timeout: GUARD_TIMEOUT}, () => {
-		const input = Array.from({length: 4000}, (_, i) => `<a${i}>x</nomatch>`).join('');
-		assert.isAbove(feed_once(input), 0);
-	});
-	test('deep nesting stays linear (iterative streaming path)', {timeout: GUARD_TIMEOUT}, () => {
+	test(
+		'mismatched tags (unclosed <aN> + never-matching closer)',
+		{ timeout: GUARD_TIMEOUT },
+		() => {
+			const input = Array.from({ length: 4000 }, (_, i) => `<a${i}>x</nomatch>`).join('');
+			assert.isAbove(feed_once(input), 0);
+		}
+	);
+	test('deep nesting stays linear (iterative streaming path)', { timeout: GUARD_TIMEOUT }, () => {
 		assert.isAbove(feed_once('['.repeat(50_000) + 'x'), 0);
 	});
 });

@@ -258,7 +258,7 @@ of Svelte and into mdz's own emitter — a trust-boundary change to design
 deliberately, not an incremental optimization.
 
 The three renderers (`MdzNodeView`, `MdzStreamNodeView`, `mdz_to_svelte`)
-share one grammar and stay in sync by construction: rendering *decisions*
+share one grammar and stay in sync by construction: rendering _decisions_
 (link safety + resolve-vs-raw classification via `mdz_classify_link`, void
 elements, heading ids, table header/body normalization) live in
 `mdz_helpers.ts`, and the parity tests bind their outputs. `mdz_to_svelte`
