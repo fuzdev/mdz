@@ -11,7 +11,7 @@
 import {DEV} from 'esm-env';
 
 import type {MdzNodeId, MdzNodeType, MdzOpcode} from './mdz_opcodes.ts';
-import type {MdzTableAlign} from './mdz.ts';
+import type {MdzAttribute, MdzTableAlign} from './mdz.ts';
 
 /**
  * A reactive node in the stream renderer tree.
@@ -27,6 +27,8 @@ export class MdzStreamNode {
 	reference?: string = $state();
 	link_type?: 'external' | 'internal' = $state();
 	name?: string;
+	/** Parsed tag attributes (Element/Component nodes); known at open, never mutated, so plain not `$state`. */
+	attributes?: Array<MdzAttribute>;
 	lang?: string | null;
 	heading_id?: string = $state();
 	ordered?: boolean;
@@ -105,6 +107,7 @@ export class MdzStreamState {
 				const node = new MdzStreamNode(opcode.id, opcode.node_type);
 				if (opcode.level !== undefined) node.level = opcode.level;
 				if (opcode.name !== undefined) node.name = opcode.name;
+				if (opcode.attributes !== undefined) node.attributes = opcode.attributes;
 				if (opcode.lang !== undefined) node.lang = opcode.lang;
 				if (opcode.ordered !== undefined) node.ordered = opcode.ordered;
 				if (opcode.start_number !== undefined) node.start_number = opcode.start_number;

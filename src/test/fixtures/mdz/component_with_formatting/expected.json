@@ -2,6 +2,7 @@
 	{
 		"type": "Component",
 		"name": "Alert",
+		"attributes": [],
 		"children": [
 			{
 				"type": "Text",

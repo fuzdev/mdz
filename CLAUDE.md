@@ -120,7 +120,8 @@ mdz is a **markdown dialect and renderer**:
 - CommonMark/GFM compatibility (it is a dialect, not a superset)
 - syntax highlighting (inject a highlighter — see the rendering seam)
 - a CSS framework or themed components (use fuz_css / fuz_ui)
-- sanitization of arbitrary HTML (only registered components/elements render)
+- sanitization of arbitrary HTML (only registered components/elements render,
+  and element attributes filter to a closed inert allowlist)
 
 ## Syntax
 
@@ -135,7 +136,7 @@ mdz is a **markdown dialect and renderer**:
 | Code blocks            | fenced with optional language hints; an unclosed fence consumes to EOF (or to the end of its enclosing blockquote)                                                                                                                                                                                        |
 | Horizontal rule        | `---` on its own line                                                                                                                                                                                                                                                                                     |
 | Tables                 | `\| a \| b \|` rows + a `\| --- \| :-: \|` delimiter row (colons set per-column alignment); leading **and** trailing `\|` required; inline-only cells (`` `code` `` protects pipes, `\|` is a literal pipe); a header/delimiter column-count mismatch stays a paragraph; body rows pad/truncate at render |
-| Components / elements  | `<Alert>…</Alert>` / `<aside>…</aside>` (must be registered)                                                                                                                                                                                                                                              |
+| Components / elements  | `<Alert status="error">…</Alert>` / `<aside class="box">…</aside>` (must be registered); attributes are quoted strings (`"` or `'`) or bare booleans (`<input disabled />`); **elements** filter to a closed inert allowlist (`class`, `title`, `lang`, `dir`, `role`, `aria-label`/`-hidden`/`-describedby`/`-labelledby`), **components** pass all attributes through as props; malformed forms (unquoted, spaced `=`, `={…}`, duplicate name, newline in the open tag) stay literal text |
 | Paragraphs / breaks    | blank line between paragraphs; single newlines are soft breaks; `<br />` (registered) for hard breaks                                                                                                                                                                                                     |
 
 Whitespace follows standard markdown semantics: the parser preserves
@@ -252,7 +253,11 @@ Svelte-shaped: the runtime views emit text through Svelte expressions
 `escape_svelte_text` — there is **no raw-HTML output path and no `{@html}`
 anywhere**. Unregistered components/elements render nothing, and link
 references pass the `mdz_is_safe_reference` protocol gate before becoming an
-`href`. Any future raw-HTML emission (e.g. collapsing static subtrees to
+`href`. Element attributes filter to a closed, hand-vetted allowlist of inert
+names (nothing URL-, script-, or DOM-clobbering-bearing), so element safety is
+independent of which element names a consumer registers; component attributes
+pass through as props, since registering a component is itself the trust
+decision. Any future raw-HTML emission (e.g. collapsing static subtrees to
 pre-rendered HTML strings rendered via `{@html}`) would move XSS-escaping out
 of Svelte and into mdz's own emitter — a trust-boundary change to design
 deliberately, not an incremental optimization.
@@ -260,13 +265,13 @@ deliberately, not an incremental optimization.
 The three renderers (`MdzNodeView`, `MdzStreamNodeView`, `mdz_to_svelte`)
 share one grammar and stay in sync by construction: rendering *decisions*
 (link safety + resolve-vs-raw classification via `mdz_classify_link`, void
-elements, heading ids, table header/body normalization) live in
-`mdz_helpers.ts`, and the parity tests bind their outputs. `mdz_to_svelte`
-emits **Svelte markup, not HTML** — `{`/`}` escape to Svelte expressions and
-attribute values are expressions — so its output cannot be repurposed as raw
-HTML. A fourth render target (say an HTML-string emitter) should be added by
-parameterizing the emission over a target interface, not as another
-hand-synced switch.
+elements, element attribute filtering, heading ids, table header/body
+normalization) live in `mdz_helpers.ts`, and the parity tests bind their
+outputs. `mdz_to_svelte` emits **Svelte markup, not HTML** — `{`/`}` escape
+to Svelte expressions and attribute values are expressions — so its output
+cannot be repurposed as raw HTML. A fourth render target (say an HTML-string
+emitter) should be added by parameterizing the emission over a target
+interface, not as another hand-synced switch.
 
 ### Pre-computation
 
@@ -349,4 +354,4 @@ covers the unconfigured plain defaults.
 - [`fuz_code`](../fuz_code/CLAUDE.md) — syntax highlighting; injected for code
   blocks
 - [`fuz_util`](../fuz_util/CLAUDE.md) — utility functions (peer dependency)
-- [`fuz_css`](../fuz_css/CLAUDE.md) — CSS framework (dev dependency for the docs)
+- [`fuz_css`](../fuz_css/CLAUDE.md) — semantic-first CSS framework (dev dependency for the docs)

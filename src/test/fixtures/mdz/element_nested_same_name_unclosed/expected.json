@@ -11,6 +11,7 @@
 			{
 				"type": "Element",
 				"name": "b",
+				"attributes": [],
 				"children": [
 					{
 						"type": "Text",

@@ -14,6 +14,7 @@
 	import {Library, library_context} from '@fuzdev/fuz_ui/library.svelte.ts';
 
 	import {library_json} from './library.ts';
+	import Mdz from '$lib/Mdz.svelte';
 	import MdzRoot from '$lib/MdzRoot.svelte';
 	import MdzStream from '$lib/MdzStream.svelte';
 	import {MdzStreamParser} from '$lib/mdz_stream_parser.ts';
@@ -28,7 +29,7 @@
 
 	const DEMO_CONTENT_DEFAULT = `**mdz** is a strict markdown dialect built for streaming, [Svelte](https://svelte.dev/) authoring, docs websites, and untrusted content. This text is rendering through \`MdzStreamParser\` right now, character by character.
 
-It supports markdown basics like **bold**, _italic_, ~~strikethrough~~, \`inline code\`, headings, and auto-detected links like https://www.fuz.dev. Svelte components too!
+It supports markdown basics like **bold**, _italic_, ~~strikethrough~~, \`inline code\`, headings, and auto-detected links like https://www.fuz.dev. <Mdz content="**Svelte components**" inline /> too!
 
 - lists stream as their structure arrives
   - nesting included
@@ -56,6 +57,7 @@ For more see the /docs.`;
 	const DEMO_INTERVAL_MS = 15;
 
 	const demo_elements = new Map([['br', true]]);
+	const demo_components = new Map([['Mdz', Mdz]]);
 
 	let demo_parser = $state(new MdzStreamParser());
 	let demo_state = $state(new MdzStreamState());
@@ -159,7 +161,12 @@ For more see the /docs.`;
 		</section>
 		<section class="box width_atmost_md">
 			<div class="panel shade_05 p_md width:100%" style:min-height="514px">
-				<MdzRoot elements={demo_elements} code={DocsLink} codeblock={Code}>
+				<MdzRoot
+					elements={demo_elements}
+					components={demo_components}
+					code={DocsLink}
+					codeblock={Code}
+				>
 					<MdzStream stream={demo_state} />
 				</MdzRoot>
 			</div>

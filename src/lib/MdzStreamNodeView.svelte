@@ -1,7 +1,14 @@
 <script lang="ts">
 	import {resolve} from '$app/paths';
 
-	import {mdz_classify_link, mdz_is_void_element} from './mdz_helpers.ts';
+	import {
+		mdz_classify_link,
+		mdz_is_void_element,
+		mdz_filter_element_attributes,
+		mdz_attributes_to_props,
+		mdz_format_unregistered_attributes,
+		ALLOWED_ELEMENT_ATTRIBUTES,
+	} from './mdz_helpers.ts';
 	import {
 		mdz_components_context,
 		mdz_elements_context,
@@ -10,7 +17,7 @@
 		mdz_codeblock_context,
 	} from './mdz_contexts.ts';
 	import type {MdzStreamNode} from './mdz_stream_state.svelte.ts';
-	import type {MdzTableAlign} from './mdz.ts';
+	import type {MdzAttribute, MdzTableAlign} from './mdz.ts';
 
 	const {
 		node,
@@ -47,30 +54,36 @@ tree instead of per node. -->
 {#snippet render_node(node: MdzStreamNode)}
 	{#if node.type === 'Element'}
 		{@const element_config = get_elements?.()?.get(node.name ?? '')}
-		{#if element_config !== undefined}
+		{#if element_config === true}
+			{@const attrs = mdz_filter_element_attributes(
+				node.name ?? '',
+				node.attributes ?? [],
+				ALLOWED_ELEMENT_ATTRIBUTES,
+			)}
 			{#if mdz_is_void_element(node.name ?? '')}
 				<!-- void elements cannot have content — any parsed children are dropped -->
-				<svelte:element this={node.name} />
+				<svelte:element this={node.name} {...attrs} />
 			{:else}
-				<svelte:element this={node.name}>
+				<svelte:element this={node.name} {...attrs}>
 					{#if node.children.length > 0}
 						{@render render_children(node.children)}
 					{/if}
 				</svelte:element>
 			{/if}
 		{:else}
-			{@render render_unregistered_tag(node.name ?? '', node.children)}
+			{@render render_unregistered_tag(node.name ?? '', node.attributes ?? [], node.children)}
 		{/if}
 	{:else if node.type === 'Component'}
 		{@const Component = get_components?.()?.get(node.name ?? '')}
 		{#if Component}
-			<Component>
+			{@const props = mdz_attributes_to_props(node.attributes ?? [])}
+			<Component {...props}>
 				{#if node.children.length > 0}
 					{@render render_children(node.children)}
 				{/if}
 			</Component>
 		{:else}
-			{@render render_unregistered_tag(node.name ?? '', node.children)}
+			{@render render_unregistered_tag(node.name ?? '', node.attributes ?? [], node.children)}
 		{/if}
 	{:else if node.type === 'Text'}
 		{node.content}
@@ -173,12 +186,17 @@ tree instead of per node. -->
 	{/each}
 {/snippet}
 
-{#snippet render_unregistered_tag(name: string, children: Array<MdzStreamNode>)}
+{#snippet render_unregistered_tag(
+	name: string,
+	attributes: Array<MdzAttribute>,
+	children: Array<MdzStreamNode>,
+)}
+	{@const formatted = mdz_format_unregistered_attributes(attributes)}
 	{#if children.length > 0}
-		<code class="color_c_50">&lt;{name}&gt;</code>{@render render_children(children)}<code
-			class="color_c_50">&lt;/{name}&gt;</code
-		>
+		<code class="color_c_50">&lt;{name}{formatted}&gt;</code>{@render render_children(
+			children,
+		)}<code class="color_c_50">&lt;/{name}&gt;</code>
 	{:else}
-		<code class="color_c_50">&lt;{name} /&gt;</code>
+		<code class="color_c_50">&lt;{name}{formatted} /&gt;</code>
 	{/if}
 {/snippet}

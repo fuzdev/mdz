@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "<Alert a=b>x</Alert>",
+				"start": 0,
+				"end": 20
+			}
+		],
+		"start": 0,
+		"end": 20
+	}
+]

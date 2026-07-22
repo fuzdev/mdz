@@ -339,13 +339,29 @@ GFM-style pipe tables, tightened to the streaming grain: a header row, a delimit
 _Component_ = _SelfClosingTag_ | _TagWithChildren_     <name starts [`A`-`Z`]>
 _Element_   = _SelfClosingTag_ | _TagWithChildren_     <name starts [`a`-`z`]>
 
-_SelfClosingTag_  = `<` _TagName_ SPACE* `/>`
-_TagWithChildren_ = `<` _TagName_ SPACE* `>` _InlineNode_* `</` _TagName_ `>`
+_SelfClosingTag_  = `<` _TagName_ _Attributes_? SPACE* `/>`
+_TagWithChildren_ = `<` _TagName_ _Attributes_? SPACE* `>` _InlineNode_* `</` _TagName_ `>`
 
-_TagName_ = LETTER (LETTER | DIGIT | `-` | `_`)*
+_TagName_    = LETTER (LETTER | DIGIT | `-` | `_`)*
+_Attributes_ = (SPACE+ _Attribute_)+
+_Attribute_  = _AttrName_ (`=` _AttrValue_)?
+_AttrName_   = LETTER (LETTER | DIGIT | `-` | `_`)*
+_AttrValue_  = `"` ~[`"` | NEWLINE]* `"`
+             | `'` ~[`'` | NEWLINE]* `'`
 ```
 
-Components start with an uppercase letter (`<Alert>`), elements with lowercase (`<aside>`). Attributes are not supported — a tag with anything other than optional spaces between the name and `>`/`/>` is literal text.
+Components start with an uppercase letter (`<Alert>`), elements with lowercase (`<aside>`). The closing tag is always exactly `</` _TagName_ `>` — no attributes, no spaces.
+
+**Attributes.** The open tag may carry attributes, each separated from the name and from each other by one or more literal spaces. An attribute is either a `name="value"` string (double or single quoted — a value containing one quote uses the other; there are no escape sequences) or a bare `name` meaning boolean `true` (`<input disabled />` ≡ `disabled={true}`). Empty string values are valid (`title=""`). Names use the same character set as tag names, and a `>` inside a quoted value is content, not the tag terminator (`<Alert title="a > b">` is fine). Attribute order is preserved.
+
+**Malformed attributes make the whole tag literal text**, exactly like today's other malformed tags — the `<` emits as text and the rest re-parses. Rejected forms:
+
+- unquoted values (`a=b`), spaces around `=` (`a = "b"`), and brace values (`a={5}` — reserved for a future literal form, not evaluated),
+- duplicate attribute names (Svelte compile-errors on these; mdz rejects rather than silently picking last-wins),
+- a newline anywhere in the open tag (attributes are single-line), a tab used as a separator (only literal spaces separate), an unterminated quote, a dangling `=`, or a name starting with a digit,
+- directives and namespaced/spread/shorthand forms can't parse at all, because `:`, `{`, and `}` are not attribute-name or value characters — `on:click`, `class:x`, `bind:value`, `{spread}`, `{shorthand}` all stay literal.
+
+**Enforcement is at render time, not parse time.** The parser is registry-blind: every syntactically valid attribute parses into the AST regardless of policy. The renderers then apply the split — **elements** filter their attributes to a closed, global allowlist of inert names (`class`, `title`, `lang`, `dir`, `role`, `aria-label`, `aria-hidden`, `aria-describedby`, `aria-labelledby`); anything else is dropped (the element still renders). **Components** pass every attribute through as a prop with no filtering — registering a component is the trust decision.
 
 A non-self-closing tag commits only if its exact closing tag exists later in the input with no paragraph break in between; otherwise the `<` renders as literal text. Children can include any inline formatting and nested tags.
 

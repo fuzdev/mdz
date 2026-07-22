@@ -767,6 +767,37 @@ describe('mdz parser parity', () => {
 		}
 	});
 
+	describe('tag attribute chunking', () => {
+		// attributes ride the open tag, so the same open/close decisions must hold
+		// across every chunk boundary — a value streamed a char at a time resolves
+		// to the same tree as the one-shot parse, and every invalid form (brace
+		// value, duplicate name, unterminated quote) reverts to literal text
+		// identically. The `</a>`-in-value case proves the quoted value is consumed
+		// atomically: the real closer is the final `</a>`, not the one in the value.
+		for (const input of [
+			'<Alert status="error">x</Alert>',
+			"<Alert status='error'>x</Alert>",
+			'<span hidden>y</span>',
+			'<Alert title="">x</Alert>',
+			'<Alert title="a > b">x</Alert>',
+			'<Alert a="1" b c="3">x</Alert>',
+			'<Alert disabled/>',
+			'<Alert disabled />',
+			'<Alert count={5}>x</Alert>', // invalid brace value → literal
+			'<a x="1" x="2">z</a>', // duplicate name → literal
+			'<a x="</a>">y</a>', // `</a>` inside the value is content, not the closer
+		]) {
+			test(`one-shot matches mdz_parse for ${JSON.stringify(input)}`, () => {
+				assert.deepEqual(stream_parse_text(input), mdz_parse(input));
+			});
+			for (const chunk_size of [1, 2, 3]) {
+				test(`chunk_size=${chunk_size} matches mdz_parse for ${JSON.stringify(input)}`, () => {
+					assert.deepEqual(stream_parse_chunked(input, chunk_size), mdz_parse(input));
+				});
+			}
+		}
+	});
+
 	describe('mid-stack revert ordering', () => {
 		// a failed-closer revert dissolves a mid-stack frame while optimistic
 		// containers above it stay open — the replacement delimiter text must
@@ -879,6 +910,14 @@ describe('mdz parser parity', () => {
 			'<a_>x</a_>',
 			'a</b',
 			'</x> a',
+			// tag attributes: string/bare values, `>`-in-value, duplicate revert,
+			// and a `</a>`-shaped substring inside a value (atomic consumption —
+			// the real closer is the final `</a>`, not the one in the value)
+			'<Alert status="error">x</Alert>',
+			'<span hidden>y</span>',
+			'<a x="a>b">y</a>',
+			'<a x="1" x="2">z</a>',
+			'<a x="</a>">y</a>',
 			// doubled-delimiter and italic-closer holds
 			'a~x~~y~~z',
 			'_a_x',

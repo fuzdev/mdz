@@ -1,6 +1,6 @@
 import {test, assert, describe} from 'vitest';
 
-import type {MdzNode, MdzNodeComponent, MdzNodeElement} from '$lib/mdz.ts';
+import type {MdzAttribute, MdzNode, MdzNodeComponent, MdzNodeElement} from '$lib/mdz.ts';
 import {
 	is_letter,
 	is_tag_name_char,
@@ -14,6 +14,9 @@ import {
 	mdz_is_url,
 	mdz_is_safe_reference,
 	mdz_is_void_element,
+	ALLOWED_ELEMENT_ATTRIBUTES,
+	mdz_filter_element_attributes,
+	mdz_format_unregistered_attributes,
 	match_url_prefix_case_insensitive,
 	ascii_to_lower,
 	mdz_resolve_relative_path,
@@ -57,6 +60,7 @@ const link = (reference: string, children: Array<MdzNode>): MdzNode => ({
 const component = (name: string, children: Array<MdzNode>): MdzNodeComponent => ({
 	type: 'Component',
 	name,
+	attributes: [],
 	children,
 	start: 0,
 	end: 0,
@@ -64,6 +68,7 @@ const component = (name: string, children: Array<MdzNode>): MdzNodeComponent => 
 const element = (name: string, children: Array<MdzNode>): MdzNodeElement => ({
 	type: 'Element',
 	name,
+	attributes: [],
 	children,
 	start: 0,
 	end: 0,
@@ -764,5 +769,94 @@ describe('mdz_extract_single_tag', () => {
 
 	test('returns null for only whitespace text nodes', () => {
 		assert.equal(mdz_extract_single_tag([text('  '), text('\n')]), null);
+	});
+});
+
+// helper to create attributes with dummy positions
+const attr = (name: string, value: string | true = true): MdzAttribute => ({
+	name,
+	value,
+	start: 0,
+	end: 0,
+});
+
+describe('mdz_filter_element_attributes', () => {
+	test('passes through allowed attribute names', () => {
+		assert.deepEqual(
+			mdz_filter_element_attributes(
+				'div',
+				[attr('class', 'box'), attr('title', 'hi')],
+				ALLOWED_ELEMENT_ATTRIBUTES,
+			),
+			{class: 'box', title: 'hi'},
+		);
+	});
+
+	test('passes through an allowed aria attribute', () => {
+		assert.deepEqual(
+			mdz_filter_element_attributes(
+				'span',
+				[attr('aria-label', 'close')],
+				ALLOWED_ELEMENT_ATTRIBUTES,
+			),
+			{'aria-label': 'close'},
+		);
+	});
+
+	test('drops disallowed attribute names', () => {
+		assert.deepEqual(
+			mdz_filter_element_attributes(
+				'div',
+				[attr('class', 'box'), attr('onclick', 'x'), attr('id', 'y')],
+				ALLOWED_ELEMENT_ATTRIBUTES,
+			),
+			{class: 'box'},
+		);
+	});
+
+	test('preserves a boolean `true` value', () => {
+		assert.deepEqual(
+			mdz_filter_element_attributes(
+				'span',
+				[attr('aria-hidden', true)],
+				ALLOWED_ELEMENT_ATTRIBUTES,
+			),
+			{'aria-hidden': true},
+		);
+	});
+
+	test('returns an empty object for empty input', () => {
+		assert.deepEqual(mdz_filter_element_attributes('div', [], ALLOWED_ELEMENT_ATTRIBUTES), {});
+	});
+});
+
+describe('mdz_format_unregistered_attributes', () => {
+	test('formats a string-valued attribute', () => {
+		assert.equal(mdz_format_unregistered_attributes([attr('status', 'error')]), ' status="error"');
+	});
+
+	test('formats a bare boolean attribute', () => {
+		assert.equal(mdz_format_unregistered_attributes([attr('disabled', true)]), ' disabled');
+	});
+
+	test('formats a mix of string and boolean attributes', () => {
+		assert.equal(
+			mdz_format_unregistered_attributes([attr('status', 'error'), attr('disabled', true)]),
+			' status="error" disabled',
+		);
+	});
+
+	test('returns an empty string for empty input', () => {
+		assert.equal(mdz_format_unregistered_attributes([]), '');
+	});
+
+	test('uses single quotes for a value containing a double quote', () => {
+		// a `"`-containing value must have been single-quoted at the source
+		// (a `"`-delimited value can't hold `"`), so the placeholder stays balanced
+		assert.equal(mdz_format_unregistered_attributes([attr('title', 'a"b')]), " title='a\"b'");
+	});
+
+	test('uses double quotes for a value containing a single quote', () => {
+		assert.equal(mdz_format_unregistered_attributes([attr('title', "a'b")]), ` title="a'b"`);
 	});
 });

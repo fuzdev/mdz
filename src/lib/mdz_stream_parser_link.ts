@@ -6,8 +6,12 @@
  */
 
 import type {MdzNodeTypeContainer} from './mdz_opcodes.ts';
+import type {MdzAttribute} from './mdz.ts';
 import {
 	A_UPPER,
+	APOSTROPHE,
+	DOUBLE_QUOTE,
+	EQUALS,
 	LEFT_BRACKET,
 	LEFT_PAREN,
 	MAX_INLINE_NESTING_DEPTH,
@@ -211,11 +215,77 @@ export const try_tag_open = (state: MdzStreamParserState): TryResult => {
 
 	const name = state.buffer.slice(name_start, i);
 
-	// skip whitespace
-	while (i < state.buffer.length && state.buffer.charCodeAt(i) === SPACE) {
-		i++;
+	// Attribute loop: consume space-separated attributes until `/>` or `>`.
+	// This widens the held-tag-open rescan surface (the TODO above) with the
+	// attribute/value text — still line-bounded, since a newline anywhere aborts
+	// the whole tag (`not_match`). Every buffer-end point holds (`need_more`) so
+	// the same tree is produced regardless of where feeds split. The quoted-value
+	// terminator search reuses `buffer_index_of` (memoized, append-aware) so a
+	// long streamed value doesn't rescan quadratically across held retries,
+	// matching `try_complete_link`.
+	const attributes: Array<MdzAttribute> = [];
+	const seen = new Set<string>();
+	for (;;) {
+		// skip a run of literal spaces only (tabs/newlines are not SPACE)
+		let had_space = false;
+		while (i < state.buffer.length && state.buffer.charCodeAt(i) === SPACE) {
+			i++;
+			had_space = true;
+		}
+		if (i >= state.buffer.length) return 'need_more';
+
+		const c = state.buffer.charCodeAt(i);
+		// `/>` or `>` ends the open tag — break to the existing self-close / commit
+		if (c === SLASH || c === RIGHT_ANGLE) break;
+		// otherwise an attribute name must follow, space-separated from what
+		// precedes it (`<a x="1"y="2">` — `y` abuts the closing quote — reverts)
+		if (!is_letter(c)) return 'not_match';
+		if (!had_space) return 'not_match';
+
+		// collect the attribute name (same grammar as tag names)
+		const attr_start = i;
+		i++; // first char already passed is_letter
+		while (i < state.buffer.length && is_tag_name_char(state.buffer.charCodeAt(i))) {
+			i++;
+		}
+		if (i >= state.buffer.length) return 'need_more'; // mid-name — could still grow
+		const attr_name = state.buffer.slice(attr_start, i);
+		// duplicate names are ambiguous (Svelte compile-errors) → literal tag
+		if (seen.has(attr_name)) return 'not_match';
+		seen.add(attr_name);
+
+		let value: string | true = true; // bare name is boolean `true`
+		if (state.buffer.charCodeAt(i) === EQUALS) {
+			i++; // consume =
+			if (i >= state.buffer.length) return 'need_more'; // nothing after `=` yet
+			// the value must be immediately quoted — no space, no `{`, no unquoted
+			const quote_code = state.buffer.charCodeAt(i);
+			if (quote_code !== DOUBLE_QUOTE && quote_code !== APOSTROPHE) return 'not_match';
+			i++; // consume opening quote
+			const value_start = i;
+			// find the matching quote and the next newline via the memoized,
+			// append-aware search; a `>` inside the value is content, consumed
+			// atomically here so a `</Name>`-shaped substring never reaches
+			// `try_close_tag`
+			const quote_str = quote_code === DOUBLE_QUOTE ? '"' : "'";
+			const q = buffer_index_of(state, quote_str, value_start);
+			const n = buffer_index_of(state, '\n', value_start);
+			if (q !== -1 && (n === -1 || q < n)) {
+				value = state.buffer.slice(value_start, q);
+				i = q + 1; // past the closing quote
+			} else if (n !== -1 && (q === -1 || n < q)) {
+				return 'not_match'; // newline inside the value → literal tag
+			} else {
+				return 'need_more'; // neither found yet — unterminated so far, hold
+			}
+		}
+		attributes.push({
+			name: attr_name,
+			value,
+			start: offset(state, attr_start),
+			end: offset(state, i),
+		});
 	}
-	if (i >= state.buffer.length) return 'need_more';
 
 	// check for self-closing />
 	if (state.buffer.charCodeAt(i) === SLASH && i + 1 >= state.buffer.length) {
@@ -230,7 +300,7 @@ export const try_tag_open = (state: MdzStreamParserState): TryResult => {
 		ensure_paragraph(state);
 		const id = alloc_id(state);
 		const tag_start = offset(state, start);
-		emit(state, {type: 'open', id, node_type, start: tag_start, name});
+		emit(state, {type: 'open', id, node_type, start: tag_start, name, attributes});
 		emit(state, {type: 'close', id, end: offset(state, i + 2)});
 		state.active_text_id = null;
 		state.pos = i + 2;
@@ -253,8 +323,8 @@ export const try_tag_open = (state: MdzStreamParserState): TryResult => {
 	ensure_paragraph(state);
 	const id = alloc_id(state);
 	const tag_start = offset(state, start);
-	const delimiter = state.buffer.slice(start, i); // e.g., "<Alert>"
-	emit(state, {type: 'open', id, node_type, start: tag_start, name});
+	const delimiter = state.buffer.slice(start, i); // e.g., "<Alert>" or "<Alert x="1">"
+	emit(state, {type: 'open', id, node_type, start: tag_start, name, attributes});
 	push_stack_entry(state, id, node_type, tag_start, delimiter, name);
 	state.active_text_id = null;
 	state.pos = i;

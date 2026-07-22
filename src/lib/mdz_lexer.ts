@@ -26,6 +26,9 @@ import {
 	LEFT_ANGLE,
 	RIGHT_ANGLE,
 	SLASH,
+	EQUALS,
+	APOSTROPHE,
+	DOUBLE_QUOTE,
 	PERIOD,
 	LEFT_BRACKET,
 	LEFT_PAREN,
@@ -58,7 +61,7 @@ import {
 	TEXT_SCAN_CLASS,
 } from './mdz_helpers.ts';
 
-import type {MdzTableAlign} from './mdz.ts';
+import type {MdzAttribute, MdzTableAlign} from './mdz.ts';
 import {mdz_debug_work} from './mdz_debug_work.ts';
 
 //
@@ -177,12 +180,14 @@ export interface MdzTokenTagOpen extends MdzTokenBase {
 	type: 'tag_open';
 	name: string;
 	is_component: boolean;
+	attributes: Array<MdzAttribute>;
 }
 
 export interface MdzTokenTagSelfClose extends MdzTokenBase {
 	type: 'tag_self_close';
 	name: string;
 	is_component: boolean;
+	attributes: Array<MdzAttribute>;
 }
 
 export interface MdzTokenTagClose extends MdzTokenBase {
@@ -1784,9 +1789,86 @@ export class MdzLexer {
 		const first_char_code = tag_name.charCodeAt(0);
 		const is_component = first_char_code >= A_UPPER && first_char_code <= Z_UPPER;
 
-		// Skip whitespace
-		while (this.#index < this.#text.length && this.#text.charCodeAt(this.#index) === SPACE) {
-			this.#index++;
+		// Attribute loop: consume space-separated attributes until `/>` or `>`.
+		// Registry-blind — every syntactically valid attribute is parsed here;
+		// policy (allowlist filtering) happens at render/build time. The scan is
+		// a single forward pass bounded by the line: any newline (or a missing
+		// separator, bad value, or duplicate name) rejects the whole tag to
+		// literal text via the shared `#failed_tag` bailout below.
+		const attributes: Array<MdzAttribute> = [];
+		const seen = new Set<string>(); // O(1) duplicate-name detection
+		for (;;) {
+			// skip a run of literal spaces only (tabs/newlines are not SPACE, so
+			// they fall through to the reject path — the single-line, space-only rule)
+			let had_space = false;
+			while (this.#index < this.#text.length && this.#text.charCodeAt(this.#index) === SPACE) {
+				this.#index++;
+				had_space = true;
+			}
+			const c = this.#index < this.#text.length ? this.#text.charCodeAt(this.#index) : -1;
+			// `/>` or `>` ends the open tag — break to the existing self-close / commit
+			if (c === SLASH || c === RIGHT_ANGLE) break;
+			// otherwise an attribute name must follow, space-separated from what
+			// precedes it (`<a x="1"y="2">` rejects — `y` abuts the closing quote)
+			if (c === -1 || !had_space || !is_letter(c)) {
+				this.#failed_tag.add(`${start}:${bound}`);
+				this.#index = start + 1;
+				this.#emit_text('<', start);
+				return;
+			}
+			// collect the attribute name (same grammar as tag names)
+			const attr_start = this.#index;
+			this.#index++; // first char already passed is_letter
+			while (
+				this.#index < this.#text.length &&
+				is_tag_name_char(this.#text.charCodeAt(this.#index))
+			) {
+				this.#index++;
+			}
+			const name = this.#text.slice(attr_start, this.#index);
+			// duplicate names are ambiguous (Svelte compile-errors) → literal tag
+			if (seen.has(name)) {
+				this.#failed_tag.add(`${start}:${bound}`);
+				this.#index = start + 1;
+				this.#emit_text('<', start);
+				return;
+			}
+			seen.add(name);
+			let value: string | true = true; // bare name is boolean `true`
+			if (this.#index < this.#text.length && this.#text.charCodeAt(this.#index) === EQUALS) {
+				this.#index++; // consume =
+				// the value must be immediately quoted — no space after `=`, no
+				// `{` brace literal, no unquoted value (this one check covers all)
+				const quote = this.#index < this.#text.length ? this.#text.charCodeAt(this.#index) : -1;
+				if (quote !== DOUBLE_QUOTE && quote !== APOSTROPHE) {
+					this.#failed_tag.add(`${start}:${bound}`);
+					this.#index = start + 1;
+					this.#emit_text('<', start);
+					return;
+				}
+				this.#index++; // consume opening quote
+				const value_start = this.#index;
+				// scan to the matching quote, bounded by newline / text end — NOT
+				// by `#max_search_index` (the open-tag scan never is); a `>` inside
+				// the value is content, consumed atomically before `>` is sought
+				while (
+					this.#index < this.#text.length &&
+					this.#text.charCodeAt(this.#index) !== quote &&
+					this.#text.charCodeAt(this.#index) !== NEWLINE
+				) {
+					this.#index++;
+				}
+				if (this.#index >= this.#text.length || this.#text.charCodeAt(this.#index) === NEWLINE) {
+					// unterminated quote (or newline inside the value) → literal tag
+					this.#failed_tag.add(`${start}:${bound}`);
+					this.#index = start + 1;
+					this.#emit_text('<', start);
+					return;
+				}
+				value = this.#text.slice(value_start, this.#index);
+				this.#index++; // consume closing quote
+			}
+			attributes.push({name, value, start: attr_start, end: this.#index});
 		}
 
 		// Check for self-closing />
@@ -1800,6 +1882,7 @@ export class MdzLexer {
 				type: 'tag_self_close',
 				name: tag_name,
 				is_component,
+				attributes,
 				start,
 				end: this.#index,
 			});
@@ -1841,7 +1924,14 @@ export class MdzLexer {
 
 		// Emit tag_open
 		const open_token_index = this.#tokens.length;
-		this.#tokens.push({type: 'tag_open', name: tag_name, is_component, start, end: this.#index});
+		this.#tokens.push({
+			type: 'tag_open',
+			name: tag_name,
+			is_component,
+			attributes,
+			start,
+			end: this.#index,
+		});
 
 		// Tokenize children until the closing tag. Each iteration narrows
 		// `#max_search_index` to the next closer so a child's delimiter scan

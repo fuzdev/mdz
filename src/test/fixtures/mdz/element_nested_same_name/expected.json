@@ -2,6 +2,7 @@
 	{
 		"type": "Element",
 		"name": "b",
+		"attributes": [],
 		"children": [
 			{
 				"type": "Text",
@@ -12,6 +13,7 @@
 			{
 				"type": "Element",
 				"name": "b",
+				"attributes": [],
 				"children": [
 					{
 						"type": "Text",

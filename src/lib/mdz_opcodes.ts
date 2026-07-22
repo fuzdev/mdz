@@ -12,7 +12,7 @@
  * @module
  */
 
-import type {MdzTableAlign} from './mdz.ts';
+import type {MdzAttribute, MdzTableAlign} from './mdz.ts';
 
 /**
  * Unique monotonic identifier for each node created by the parser.
@@ -66,6 +66,8 @@ export interface MdzOpcodeOpen {
 	level?: 1 | 2 | 3 | 4 | 5 | 6;
 	/** Tag name. Present when `node_type` is `'Element'` or `'Component'`. */
 	name?: string;
+	/** Parsed attributes. Present (possibly empty) when `node_type` is `'Element'` or `'Component'`. */
+	attributes?: Array<MdzAttribute>;
 	/** Language hint. Present when `node_type` is `'Codeblock'`. */
 	lang?: string | null;
 	/** Whether the list is ordered. Present when `node_type` is `'List'`. */
