@@ -1,8 +1,9 @@
 /**
  * Complexity regression guards for the parser's anti-quadratic / anti-
  * exponential work — the one measurement class that's machine-state
- * independent enough to gate CI (see the "Measurement robustness" note in the
- * mdz perf lore). These are deliberately NOT wall-clock-threshold assertions
+ * independent enough to gate CI: complexity is a property of the algorithm,
+ * so it holds across machines, while throughput is not.
+ * These are deliberately NOT wall-clock-threshold assertions
  * (the dev machine swings ~2×); each input is sized so the fixed parser
  * finishes in well under a millisecond while a reverted (super-linear) parser
  * would blow past the vitest timeout by orders of magnitude. The timeout is
