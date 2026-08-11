@@ -31,6 +31,10 @@ for the designs and intros. mdz is the result of 5+ years of prototyping ideas.
 > some features (like attributes) are not yet implemented.
 > Feedback is welcome!
 
+## Contributing
+
+[fuz.dev/contributing](https://www.fuz.dev/contributing)
+
 ## License
 
 [MIT](LICENSE)
