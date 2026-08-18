@@ -250,9 +250,12 @@ mdz renders untrusted content, and the escaping story is deliberately
 Svelte-shaped: the runtime views emit text through Svelte expressions
 (auto-escaped) and the preprocessor emits Svelte markup escaped by fuz_util's
 `escape_svelte_text` — there is **no raw-HTML output path and no `{@html}`
-anywhere**. Unregistered components/elements render nothing, and link
-references pass the `mdz_is_safe_reference` protocol gate before becoming an
-`href`. Any future raw-HTML emission (e.g. collapsing static subtrees to
+anywhere**. Unregistered components/elements never become live markup — the
+runtime views render a visible inert placeholder (the escaped tag name as
+`<code>`, children still rendered as mdz content) and `mdz_to_svelte` sets
+`has_unconfigured_tags` so the preprocessor skips precompiling such trees.
+Link references pass the `mdz_is_safe_reference` protocol gate before
+becoming an `href`. Any future raw-HTML emission (e.g. collapsing static subtrees to
 pre-rendered HTML strings rendered via `{@html}`) would move XSS-escaping out
 of Svelte and into mdz's own emitter — a trust-boundary change to design
 deliberately, not an incremental optimization.
