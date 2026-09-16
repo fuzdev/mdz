@@ -164,7 +164,7 @@ For more see the /docs.`;
 				</MdzRoot>
 			</div>
 			<div class="my_lg row gap_md width:100%">
-				<button type="button" class="plain" onclick={demo_play}> replay </button>
+				<button type="button" class="plain" onclick={demo_play}>replay</button>
 				<button type="button" class="plain" onclick={demo_reset} disabled={!demo_modified}>
 					reset
 				</button>

@@ -16,11 +16,11 @@
 <TomeContent {tome}>
 	<section>
 		<p>
-			<DeclarationLink name="svelte_preprocess_mdz" /> is a Svelte preprocessor that compiles static <TomeLink
-				slug="usage">mdz</TomeLink
-			> content to Svelte markup at build time. Instead of parsing mdz at runtime and rendering dynamically,
-			the preprocessor replaces the <DeclarationLink name="Mdz" /> component with
-			<DeclarationLink name="MdzPrecompiled" /> containing pre-rendered children.
+			<DeclarationLink name="svelte_preprocess_mdz" /> is a Svelte preprocessor that compiles static
+			<TomeLink slug="usage">mdz</TomeLink> content to Svelte markup at build time. Instead of
+			parsing mdz at runtime and rendering dynamically, the preprocessor replaces the
+			<DeclarationLink name="Mdz" /> component with <DeclarationLink name="MdzPrecompiled" />
+			containing pre-rendered children.
 		</p>
 	</section>
 
@@ -45,10 +45,10 @@ export default {
 };`}
 		/>
 		<p>
-			The preprocessor should run before other preprocessors like
-			<code>vitePreprocess()</code> so it can parse the original Svelte source. The input to <DeclarationLink
-				name="svelte_preprocess_mdz"
-			/> is <DeclarationLink name="SveltePreprocessMdzOptions" />.
+			The preprocessor should run before other preprocessors like <code>vitePreprocess()</code> so
+			it can parse the original Svelte source. The input to
+			<DeclarationLink name="svelte_preprocess_mdz" /> is
+			<DeclarationLink name="SveltePreprocessMdzOptions" />.
 		</p>
 	</TomeSection>
 
@@ -133,14 +133,13 @@ export default {
 		<p>
 			The preprocessor reads <code>base</code>, resolves relative paths to absolute via
 			<code>mdz_resolve_relative_path()</code>, and emits the resolved <code>href</code> values.
-			<code>base</code> must be a static string literal — dynamic expressions cause the call to fall back
-			to runtime rendering.
+			<code>base</code> must be a static string literal — dynamic expressions cause the call to fall
+			back to runtime rendering.
 		</p>
 		<p>
 			Without <code>base</code>, relative paths are kept as raw hrefs and the browser resolves them
-			against the current URL at click time. This is a preprocessor-only attribute; at runtime <DeclarationLink
-				name="Mdz"
-			/> accepts a <code>base</code> prop with the same meaning.
+			against the current URL at click time. This is a preprocessor-only attribute; at runtime
+			<DeclarationLink name="Mdz" /> accepts a <code>base</code> prop with the same meaning.
 		</p>
 	</TomeSection>
 

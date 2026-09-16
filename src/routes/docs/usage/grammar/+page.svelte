@@ -21,7 +21,11 @@
 	</p>
 	<table class="mb_lg">
 		<thead>
-			<tr><th>Feature</th><th>CommonMark/GFM</th><th>mdz</th></tr>
+			<tr>
+				<th>Feature</th>
+				<th>CommonMark/GFM</th>
+				<th>mdz</th>
+			</tr>
 		</thead>
 		<tbody>
 			<tr>
@@ -37,18 +41,18 @@
 			<tr>
 				<td>strikethrough</td>
 				<td><code>~~text~~</code>, and <code>~text~</code> on github.com</td>
-				<td
-					><code>~~text~~</code> only — a single <code>~</code> is always literal, so
-					<code>~/dev/paths</code> never strike</td
-				>
+				<td>
+					<code>~~text~~</code> only — a single <code>~</code> is always literal, so
+					<code>~/dev/paths</code> never strike
+				</td>
 			</tr>
 			<tr>
 				<td>doubled delimiters</td>
 				<td><code>__text__</code> bold, <code>~~text~~</code> strike</td>
-				<td
-					><code>~~text~~</code> strikes; <code>__text__</code> stays literal — underscore runs
-					never pair, so <code>__init__</code> is safe</td
-				>
+				<td>
+					<code>~~text~~</code> strikes; <code>__text__</code> stays literal — underscore runs never
+					pair, so <code>__init__</code> is safe
+				</td>
 			</tr>
 			<tr>
 				<td>horizontal rule</td>
@@ -73,7 +77,7 @@
 			<tr>
 				<td>list markers</td>
 				<td><code>-</code> <code>*</code> <code>+</code>, <code>N.</code> <code>N)</code></td>
-				<td><code>- </code> and <code>N. </code> only, exactly one space</td>
+				<td><code>-</code> and <code>N.</code> only, exactly one space</td>
 			</tr>
 			<tr>
 				<td>spaces after list marker</td>
@@ -88,9 +92,9 @@
 			<tr>
 				<td>list nesting</td>
 				<td>content-column arithmetic, 4-column tab stops</td>
-				<td
-					>indent past the deepest level nests, dedent snaps to the nearest level; tab = 1 column</td
-				>
+				<td>
+					indent past the deepest level nests, dedent snaps to the nearest level; tab = 1 column
+				</td>
 			</tr>
 			<tr>
 				<td>lazy continuation</td>
@@ -110,10 +114,10 @@
 			<tr>
 				<td>block constructs on a marker line</td>
 				<td><code>- - a</code> nests; a fence, quote, or table can open mid-marker-line</td>
-				<td
-					>marker-line remainder is always inline content (a table must start on its own indented
-					line)</td
-				>
+				<td>
+					marker-line remainder is always inline content (a table must start on its own indented
+					line)
+				</td>
 			</tr>
 			<tr>
 				<td>dedent inside a list item's fence</td>
@@ -128,10 +132,10 @@
 			<tr>
 				<td>blockquote marker</td>
 				<td><code>&gt;</code>, space optional, tab ok, 0–3 indent slop</td>
-				<td
-					>a <code>&gt;</code> run (<code>&gt;&gt;</code> or <code>&gt; &gt;</code>) + exactly one
-					space or end of line; <code>&gt;a</code> and an indented <code>&gt;</code> stay literal</td
-				>
+				<td>
+					a <code>&gt;</code> run (<code>&gt;&gt;</code> or <code>&gt; &gt;</code>) + exactly one
+					space or end of line; <code>&gt;a</code> and an indented <code>&gt;</code> stay literal
+				</td>
 			</tr>
 			<tr>
 				<td>empty blockquotes</td>
@@ -156,26 +160,25 @@
 			<tr>
 				<td>tables</td>
 				<td>pipe tables; outer <code>|</code> optional (<code>a | b</code>)</td>
-				<td
-					>leading <strong>and</strong> trailing <code>|</code> required (<code>| a | b |</code
-					>)</td
-				>
+				<td>
+					leading <strong>and</strong> trailing <code>|</code> required (<code>| a | b |</code>)
+				</td>
 			</tr>
 			<tr>
 				<td>literal pipe in a table cell</td>
-				<td
-					><code>\|</code> escape; a <code>|</code> inside <code>`code`</code> still splits the cell</td
-				>
+				<td>
+					<code>\|</code> escape; a <code>|</code> inside <code>`code`</code> still splits the cell
+				</td>
 				<td><code>`code`</code> protects its pipes; <code>\|</code> also escapes one</td>
 			</tr>
 			<tr>
 				<td>tag scoping</td>
 				<td>a code span can contain raw-HTML closers — backtick scans ignore tags</td>
-				<td
-					>inline delimiters never pair across the enclosing tag's closer, so
-					<code>&lt;b&gt;`a&lt;/b&gt;x`</code> keeps the tag; nested same-name tags consume the nearest
-					closer first</td
-				>
+				<td>
+					inline delimiters never pair across the enclosing tag's closer, so
+					<code>&lt;b&gt;`a&lt;/b&gt;x`</code> keeps the tag; nested same-name tags consume the
+					nearest closer first
+				</td>
 			</tr>
 			<tr>
 				<td>reference links</td>
@@ -185,26 +188,26 @@
 			<tr>
 				<td>link text</td>
 				<td>balanced <code>[ ]</code> nest</td>
-				<td
-					>the first bare <code>]</code> between children ends it (inside a code span it's content); parens
-					are plain text, balanced or not</td
-				>
+				<td>
+					the first bare <code>]</code> between children ends it (inside a code span it's content);
+					parens are plain text, balanced or not
+				</td>
 			</tr>
 			<tr>
 				<td>link destinations</td>
 				<td>balanced parens, <code>&lt;url&gt;</code> form, optional <code>"title"</code></td>
-				<td
-					>the first <code>)</code> after <code>](</code> ends the reference — no nesting, no titles;
-					any whitespace invalidates the link</td
-				>
+				<td>
+					the first <code>)</code> after <code>](</code> ends the reference — no nesting, no titles;
+					any whitespace invalidates the link
+				</td>
 			</tr>
 			<tr>
 				<td>inline nesting depth</td>
 				<td>no depth limit</td>
-				<td
-					>link/tag containers cap out — deeply nested <code>[</code>/<code>&lt;tag&gt;</code> render
-					literal (a strict untrusted-content bound)</td
-				>
+				<td>
+					link/tag containers cap out — deeply nested <code>[</code>/<code>&lt;tag&gt;</code> render
+					literal (a strict untrusted-content bound)
+				</td>
 			</tr>
 			<tr>
 				<td>hard breaks</td>

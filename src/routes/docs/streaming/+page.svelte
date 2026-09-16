@@ -146,14 +146,12 @@ const y = 1336;
 		<section>
 			<p>
 				Use the <code>Mdz</code> component (see <TomeLink slug="usage" />) when you have complete
-				content upfront. For content that arrives incrementally (e.g. from an LLM), use <DeclarationLink
-					name="MdzStreamParser"
-				/> with
-				<DeclarationLink name="MdzStreamState" /> and <DeclarationLink name="MdzStream" />. The
-				parser emits opcodes as rendering instructions — never re-parsing — and the state applies
-				them as fine-grained Svelte mutations. The streaming design is derived from
-				<a href="https://github.com/pngwn">@pngwn</a>'s ideas in this
-				<a href="https://bsky.app/profile/pngwn.at/post/3mi527zntb22n">Bluesky thread</a>
+				content upfront. For content that arrives incrementally (e.g. from an LLM), use
+				<DeclarationLink name="MdzStreamParser" /> with <DeclarationLink name="MdzStreamState" />
+				and <DeclarationLink name="MdzStream" />. The parser emits opcodes as rendering instructions
+				— never re-parsing — and the state applies them as fine-grained Svelte mutations. The
+				streaming design is derived from <a href="https://github.com/pngwn">@pngwn</a>'s ideas in
+				this <a href="https://bsky.app/profile/pngwn.at/post/3mi527zntb22n">Bluesky thread</a>
 				(<a href="https://pngwn.at/">pngwn.at</a>), which originated the approach mdz implements:
 				restrict the dialect so streaming is tractable, render optimistically and correct when
 				wrong, minimize work by never re-parsing, and emit serializable target-agnostic opcodes
@@ -233,11 +231,14 @@ const y = 1336;
 			<div class="panel shade_05 mb_lg p_md" style:min-height="300px">
 				{#if stream_pos === 0}
 					<p class="color_d_50">
-						(press <button
+						(press
+						<button
 							type="button"
 							class="inline color_d sm"
-							onclick={() => (stream_running ? stream_pause() : stream_start())}>stream</button
-						> to begin)
+							onclick={() => (stream_running ? stream_pause() : stream_start())}
+						>
+							stream
+						</button> to begin)
 					</p>
 				{:else}
 					<MdzStream stream={stream_state} />
@@ -245,13 +246,14 @@ const y = 1336;
 			</div>
 			<Details>
 				{#snippet summary()}
-					opcodes ({stream_recent_opcodes.length === STREAM_OPCODES_MAX
+					opcodes
+					({stream_recent_opcodes.length === STREAM_OPCODES_MAX
 						? `last ${STREAM_OPCODES_MAX}`
 						: stream_recent_opcodes.length})
 				{/snippet}
 				<p>
-					Each character fed to <DeclarationLink name="MdzStreamParser" /> can emit zero or more opcodes.
-					This shows the most recent {STREAM_OPCODES_MAX}: watch <code>open</code>,
+					Each character fed to <DeclarationLink name="MdzStreamParser" /> can emit zero or more
+					opcodes. This shows the most recent {STREAM_OPCODES_MAX}: watch <code>open</code>,
 					<code>text</code>, <code>close</code> sequences form, and <code>revert</code> when an
 					optimistic assumption (e.g. unclosed <code>~~</code>) is abandoned.
 				</p>

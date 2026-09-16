@@ -83,16 +83,15 @@ const y = 1336;
 			<p>
 				This section has each feature's syntax with live rendered examples. The
 				<a href={resolve('/docs/usage/grammar')}>formal grammar</a> is the normative syntax
-				reference, and the <TomeLink slug="introduction" /> covers what mdz is for and the principles
-				behind it.
+				reference, and the <TomeLink slug="introduction" /> covers what mdz is for and the
+				principles behind it.
 			</p>
 			<p>
 				mdz was created to author content with <a href="https://svelte.dev/">Svelte</a> components
 				and to render TSDoc/JSDoc comments on docs websites — hence the domain-specific behavior:
-				linkified
-				<code>`backtick-wrapped`</code> declarations and modules, auto-detected URLs prefixed with
-				<code>https://</code>, <code>/</code>, <code>./</code>, and <code>../</code>, and registered
-				Svelte components in content.
+				linkified <code>`backtick-wrapped`</code> declarations and modules, auto-detected URLs
+				prefixed with <code>https://</code>, <code>/</code>, <code>./</code>, and <code>../</code>,
+				and registered Svelte components in content.
 			</p>
 			<Code lang="ts" content="import Mdz from '@fuzdev/mdz/Mdz.svelte';" />
 			<Code content={`<Mdz content="${usage_example}" />`} />
@@ -112,8 +111,8 @@ const y = 1336;
 			<TomeSectionHeader text="Streaming" />
 			<p>
 				mdz renders content incrementally as it arrives (e.g. from an LLM), with no re-parsing. See
-				the <TomeLink slug="streaming" /> docs for the live demo, the opcode design, and the three rendering
-				paths.
+				the <TomeLink slug="streaming" /> docs for the live demo, the opcode design, and the three
+				rendering paths.
 			</p>
 		</TomeSection>
 
@@ -143,8 +142,7 @@ const y = 1336;
 			<ul>
 				<li>standard markdown link syntax</li>
 				<li>
-					external URLs starting with <code>https://</code> or
-					<code>http://</code>
+					external URLs starting with <code>https://</code> or <code>http://</code>
 				</li>
 				<li>absolute paths starting with <code>/</code></li>
 				<li>relative paths starting with <code>./</code> or <code>../</code></li>
@@ -175,17 +173,15 @@ const y = 1336;
 			<Mdz content={triple_linebreak_example} class="mb_xl5" />
 			<p>
 				To force a line break within a paragraph, use an explicit <code>&lt;br /&gt;</code> (it's an
-				HTML element, so it must be <TomeLink slug="usage" hash="HTML-elements">registered</TomeLink
-				>):
+				HTML element, so it must be
+				<TomeLink slug="usage" hash="HTML-elements">registered</TomeLink>):
 			</p>
 			<Code content={hard_break_example} />
 			<Mdz content={hard_break_example} class="mb_xl5" />
 			<p>
 				To instead render every newline as a line break — handy for chat-style user input — see the
-				<code>whitespace</code> prop in the <TomeLink slug="usage" hash="Whitespace"
-					>whitespace</TomeLink
-				>
-				section.
+				<code>whitespace</code> prop in the
+				<TomeLink slug="usage" hash="Whitespace">whitespace</TomeLink> section.
 			</p>
 		</TomeSection>
 
@@ -203,15 +199,15 @@ const y = 1336;
 		<TomeSection>
 			<TomeSectionHeader text="Lists" />
 			<p>
-				Unordered items use <code>-</code>, ordered items use <code>1.</code> — each followed by a space.
-				A marker at column 0 starts a list; indenting nests:
+				Unordered items use <code>-</code>, ordered items use <code>1.</code> — each followed by a
+				space. A marker at column 0 starts a list; indenting nests:
 			</p>
 			<Code content={list_example} />
 			<Mdz content={list_example} class="mb_xl5" />
 			<p>
 				Ordered lists render GFM-style: the first item's number sets <code>start</code> and the
-				browser numbers the rest, so the <code>1.</code>/<code>1.</code>/<code>1.</code> reordering idiom
-				works — but authored numbers are preserved in the AST:
+				browser numbers the rest, so the <code>1.</code>/<code>1.</code>/<code>1.</code> reordering
+				idiom works — but authored numbers are preserved in the AST:
 			</p>
 			<Code content={list_ordered_example} />
 			<Mdz content={list_ordered_example} class="mb_xl5" />
@@ -228,22 +224,22 @@ const y = 1336;
 			<TomeSectionHeader text="Blockquotes" />
 			<p>
 				Prefix each line with <code>&gt;</code> and a space — a quote's content is a mini-document,
-				so headings, lists, code blocks, and deeper quotes all work inside. A bare
-				<code>&gt;</code> line breaks paragraphs within the quote, and a blank line ends it:
+				so headings, lists, code blocks, and deeper quotes all work inside. A bare <code>&gt;</code>
+				line breaks paragraphs within the quote, and a blank line ends it:
 			</p>
 			<Code content={blockquote_example} />
 			<Mdz content={blockquote_example} class="mb_xl5" />
 			<p>
-				The space is required (<code>&gt;a</code> is literal text) and there is no lazy continuation —
-				every quoted line carries the prefix.
+				The space is required (<code>&gt;a</code> is literal text) and there is no lazy continuation
+				— every quoted line carries the prefix.
 			</p>
 		</TomeSection>
 
 		<TomeSection>
 			<TomeSectionHeader text="Code blocks" />
 			<p>
-				mdz uses <a href="https://code.fuz.dev/">fuz_code</a> for syntax highlighting. Use three or more
-				backticks with optional language hint:
+				mdz uses <a href="https://code.fuz.dev/">fuz_code</a> for syntax highlighting. Use three or
+				more backticks with optional language hint:
 			</p>
 			<Code content={code_block_example} />
 			<Mdz content={code_block_example} class="mb_xl5" />
@@ -257,8 +253,8 @@ const y = 1336;
 			<TomeSectionHeader text="Horizontal rules" />
 			<p>
 				Use exactly three hyphens (<code>---</code>) at the start of a line to create a horizontal
-				rule. No blank lines are required around it. mdz has no setext headings, so
-				<code>---</code> after a paragraph is always an HR:
+				rule. No blank lines are required around it. mdz has no setext headings, so <code>---</code>
+				after a paragraph is always an HR:
 			</p>
 			<Code content={hr_example} />
 			<Mdz content={hr_example} class="mb_xl5" />
@@ -274,9 +270,9 @@ const y = 1336;
 			<Mdz content={table_example} class="mb_xl5" />
 			<p>
 				Cells hold inline content only. A literal <code>|</code> in a cell comes from an inline-code
-				span (<code>`a | b`</code> keeps its pipe, unlike GFM) or the <code>\|</code> escape — the one
-				escape mdz has. The header and delimiter rows must share a column count or the whole block stays
-				a paragraph; body rows pad or truncate to that count when rendered.
+				span (<code>`a | b`</code> keeps its pipe, unlike GFM) or the <code>\|</code> escape — the
+				one escape mdz has. The header and delimiter rows must share a column count or the whole
+				block stays a paragraph; body rows pad or truncate to that count when rendered.
 			</p>
 		</TomeSection>
 
@@ -286,8 +282,8 @@ const y = 1336;
 				The parser preserves whitespace in text nodes exactly as authored — single newlines stay
 				literal <code>\n</code> characters and no <code>&lt;br&gt;</code> nodes are created. How
 				that whitespace <em>renders</em> is the consumer's choice via the <code>whitespace</code>
-				prop, which sets <code>white-space</code> on the wrapper element. By default no style is applied,
-				so whitespace collapses like standard markdown:
+				prop, which sets <code>white-space</code> on the wrapper element. By default no style is
+				applied, so whitespace collapses like standard markdown:
 			</p>
 			<Code content={`<Mdz content="${whitespace_example}" />`} />
 			<div class="mb_lg">
@@ -327,7 +323,8 @@ const y = 1336;
 </MdzRoot>`}
 			/>
 			<p>
-				Unregistered elements render as <Mdz content="<tag-name />" inline /> placeholders for security.
+				Unregistered elements render as <Mdz content="<tag-name />" inline /> placeholders for
+				security.
 			</p>
 		</TomeSection>
 
@@ -347,8 +344,7 @@ const y = 1336;
 </MdzRoot>`}
 			/>
 			<p>
-				Unregistered components render as <Mdz content="<ComponentName />" inline />
-				placeholders.
+				Unregistered components render as <Mdz content="<ComponentName />" inline /> placeholders.
 			</p>
 			<aside>
 				tip: You can put a <code>SvelteMap</code> in the component and element registries.
@@ -358,9 +354,8 @@ const y = 1336;
 		<TomeSection>
 			<TomeSectionHeader text="Advanced usage" />
 			<p>
-				For more control, use <DeclarationLink name="mdz_parse" /> directly with <DeclarationLink
-					name="MdzNodeView"
-				/>:
+				For more control, use <DeclarationLink name="mdz_parse" /> directly with
+				<DeclarationLink name="MdzNodeView" />:
 			</p>
 			<Code
 				content={`import {mdz_parse} from '@fuzdev/mdz/mdz.js';
@@ -392,7 +387,11 @@ const nodes = mdz_parse(content);`}
 			</p>
 			<table class="mb_lg">
 				<thead>
-					<tr><th>Feature</th><th>CommonMark/GFM</th><th>mdz</th></tr>
+					<tr>
+						<th>Feature</th>
+						<th>CommonMark/GFM</th>
+						<th>mdz</th>
+					</tr>
 				</thead>
 				<tbody>
 					<tr>
@@ -408,18 +407,18 @@ const nodes = mdz_parse(content);`}
 					<tr>
 						<td>strikethrough</td>
 						<td><code>~~text~~</code>, and <code>~text~</code> on github.com</td>
-						<td
-							><code>~~text~~</code> only — a single <code>~</code> is always literal, so
-							<code>~/dev/paths</code> never strike</td
-						>
+						<td>
+							<code>~~text~~</code> only — a single <code>~</code> is always literal, so
+							<code>~/dev/paths</code> never strike
+						</td>
 					</tr>
 					<tr>
 						<td>doubled delimiters</td>
 						<td><code>__text__</code> bold, <code>~~text~~</code> strike</td>
-						<td
-							><code>~~text~~</code> strikes; <code>__text__</code> stays literal — underscore runs
-							never pair, so <code>__init__</code> is safe</td
-						>
+						<td>
+							<code>~~text~~</code> strikes; <code>__text__</code> stays literal — underscore runs
+							never pair, so <code>__init__</code> is safe
+						</td>
 					</tr>
 					<tr>
 						<td>setext headings</td>
@@ -434,18 +433,18 @@ const nodes = mdz_parse(content);`}
 					<tr>
 						<td>lazy continuation</td>
 						<td>yes — dedented/unprefixed lines continue lists and quotes</td>
-						<td
-							>none — list continuation must be indented past the marker; every quote line carries
-							its prefix</td
-						>
+						<td>
+							none — list continuation must be indented past the marker; every quote line carries
+							its prefix
+						</td>
 					</tr>
 					<tr>
 						<td>tables</td>
 						<td>pipe tables; outer <code>|</code> optional; <code>\|</code> escapes cell pipes</td>
-						<td
-							>leading and trailing <code>|</code> required; <code>`code`</code> protects pipes and
-							<code>\|</code> escapes one</td
-						>
+						<td>
+							leading and trailing <code>|</code> required; <code>`code`</code> protects pipes and
+							<code>\|</code> escapes one
+						</td>
 					</tr>
 					<tr>
 						<td>reference links</td>
@@ -470,9 +469,9 @@ const nodes = mdz_parse(content);`}
 				Every smaller divergence — list nesting and empty items, blockquote prefixes, tag scoping,
 				link parsing — is enumerated in the
 				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-				<a href={`${resolve('/docs/usage/grammar')}#commonmark-and-gfm-divergences`}
-					>full divergence table</a
-				>
+				<a href={`${resolve('/docs/usage/grammar')}#commonmark-and-gfm-divergences`}>
+					full divergence table
+				</a>
 				on the <a href={resolve('/docs/usage/grammar')}>formal grammar</a> page.
 			</p>
 		</TomeSection>
@@ -481,23 +480,23 @@ const nodes = mdz_parse(content);`}
 			<TomeSectionHeader text="More docs" />
 			<ul>
 				<li>
-					<strong><TomeLink slug="streaming" /></strong>
-					— live demo, rendering paths, opcode design, and the streaming model
+					<strong><TomeLink slug="streaming" /></strong> — live demo, rendering paths, opcode
+					design, and the streaming model
 				</li>
 				<li>
-					<strong><TomeLink slug="svelte_preprocess_mdz" /></strong>
-					— compiles static content to plain Svelte markup at build time
+					<strong><TomeLink slug="svelte_preprocess_mdz" /></strong> — compiles static content to
+					plain Svelte markup at build time
 				</li>
 				<li>
 					<strong>
 						<a href={resolve('/docs/usage/grammar')}>grammar</a>
 					</strong>
-					— the formal grammar (the normative syntax reference) and the full CommonMark/GFM divergence
-					table
+					— the formal grammar (the normative syntax reference) and the full CommonMark/GFM
+					divergence table
 				</li>
 				<li>
-					<strong><TomeLink slug="fixtures" /></strong>
-					— renders every test fixture live with its parsed JSON
+					<strong><TomeLink slug="fixtures" /></strong> — renders every test fixture live with its
+					parsed JSON
 				</li>
 			</ul>
 		</TomeSection>

@@ -97,8 +97,9 @@ tree instead of per node. -->
 			<a href={resolve(link.href as any)}>{@render render_children(node.children)}</a>
 		{:else if link.kind === 'external'}
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-			<a href={link.href} target="_blank" rel="noopener">{@render render_children(node.children)}</a
-			>
+			<a href={link.href} target="_blank" rel="noopener">
+				{@render render_children(node.children)}
+			</a>
 		{:else}
 			<!-- fragment/query/relative/bare references skip resolve() (it accepts only absolute paths) -->
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
@@ -128,14 +129,18 @@ tree instead of per node. -->
 		<table>
 			{#if header_row}
 				<thead>
-					<tr>{@render render_cells(header_row, 'th', align)}</tr>
+					<tr>
+						{@render render_cells(header_row, 'th', align)}
+					</tr>
 				</thead>
 			{/if}
 			{#if node.children.length > (header_row ? 1 : 0)}
 				<tbody>
 					{#each node.children as row (row.id)}
 						{#if !row.header}
-							<tr>{@render render_cells(row, 'td', align)}</tr>
+							<tr>
+								{@render render_cells(row, 'td', align)}
+							</tr>
 						{/if}
 					{/each}
 				</tbody>
@@ -177,8 +182,10 @@ tree instead of per node. -->
 {#snippet render_unregistered_tag(name: string, children: Array<MdzStreamNode>)}
 	{#if children.length > 0}
 		<code class="color_c_50">&lt;{name}&gt;</code>{@render render_children(children)}<code
-			class="color_c_50">&lt;/{name}&gt;</code
+			class="color_c_50"
 		>
+			&lt;/{name}&gt;
+		</code>
 	{:else}
 		<code class="color_c_50">&lt;{name} /&gt;</code>
 	{/if}

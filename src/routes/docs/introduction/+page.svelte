@@ -80,29 +80,30 @@
 		<TomeSectionHeader text="Principles" />
 		<ul>
 			<li>
-				<strong>Streaming is a property of the grammar, not just the parser</strong> — every ambiguity
-				resolves within a bounded hold or an explicit, local opcode; constructs that break this (setext
-				headings, reference links, the loose/tight list distinction) are excluded rather than worked around.
+				<strong>Streaming is a property of the grammar, not just the parser</strong> — every
+				ambiguity resolves within a bounded hold or an explicit, local opcode; constructs that break
+				this (setext headings, reference links, the loose/tight list distinction) are excluded
+				rather than worked around.
 			</li>
 			<li>
 				<strong>One syntax per feature</strong> — <code>**bold**</code>, <code>_italic_</code>,
 				<code>~~strike~~</code>, no alternate spellings.
 			</li>
 			<li>
-				<strong>Chunking doesn't change the result</strong> — the streamed tree matches the one-shot parse
-				(documented adversarial cases aside), and the parser never re-parses.
+				<strong>Chunking doesn't change the result</strong> — the streamed tree matches the one-shot
+				parse (documented adversarial cases aside), and the parser never re-parses.
 			</li>
 			<li>
 				<strong>Predictable over permissive</strong> — false negatives over false positives:
 				<code>__init__</code>, intraword underscores, and stray <code>*</code> stay literal.
 			</li>
 			<li>
-				<strong>Structure is the parser's job; presentation is the renderer's</strong> — whitespace style,
-				syntax highlighting, and rich components inject at the rendering seam.
+				<strong>Structure is the parser's job; presentation is the renderer's</strong> — whitespace
+				style, syntax highlighting, and rich components inject at the rendering seam.
 			</li>
 			<li>
-				<strong>Nothing renders by default except mdz</strong> — HTML elements and Svelte components must
-				be registered; unregistered tags render as visible placeholders.
+				<strong>Nothing renders by default except mdz</strong> — HTML elements and Svelte components
+				must be registered; unregistered tags render as visible placeholders.
 			</li>
 		</ul>
 	</TomeSection>
@@ -111,8 +112,8 @@
 		<TomeSectionHeader text="Install" />
 		<Code lang={null} content="npm i -D @fuzdev/mdz" />
 		<p>
-			Svelte, SvelteKit, and <code>@fuzdev/fuz_util</code> are peer dependencies (fuz_util is used only
-			by the build-time preprocessor).
+			Svelte, SvelteKit, and <code>@fuzdev/fuz_util</code> are peer dependencies (fuz_util is used
+			only by the build-time preprocessor).
 		</p>
 	</TomeSection>
 
@@ -129,8 +130,9 @@
 const nodes = mdz_parse('# Heading\\n\\nSome **bold** text.');`}
 		/>
 		<p>
-			The <TomeLink slug="usage" /> docs walk through the full dialect with interactive examples, and
-			the <a href={resolve('/docs/usage/grammar')}>formal grammar</a> is the normative syntax reference.
+			The <TomeLink slug="usage" /> docs walk through the full dialect with interactive examples,
+			and the <a href={resolve('/docs/usage/grammar')}>formal grammar</a> is the normative syntax
+			reference.
 		</p>
 	</TomeSection>
 
@@ -145,8 +147,8 @@ const nodes = mdz_parse('# Heading\\n\\nSome **bold** text.');`}
 			styles by statically scanning source for element names, but mdz emits table cells, headings,
 			and opt-in HTML through dynamic <code>&lt;svelte:element&gt;</code> that static analysis can't
 			see — so those base styles get stripped. Opt them back in with the plugin's
-			<code>additional_elements</code> option (a list, or <code>'all'</code> for the full base reset).
-			This rough edge in the fuz_css integration is expected to be revisited.
+			<code>additional_elements</code> option (a list, or <code>'all'</code> for the full base
+			reset). This rough edge in the fuz_css integration is expected to be revisited.
 		</p>
 		<Code lang="ts" content={`vite_plugin_fuz_css({additional_elements: 'all'})`} />
 	</TomeSection>
@@ -154,10 +156,11 @@ const nodes = mdz_parse('# Heading\\n\\nSome **bold** text.');`}
 	<TomeSection>
 		<TomeSectionHeader text="Streaming" />
 		<p>
-			Feed chunks to <DeclarationLink name="MdzStreamParser" /> as they arrive (e.g. from an LLM) and
-			render the emitted opcodes with <DeclarationLink name="MdzStream" /> — the final tree is identical
-			to what <DeclarationLink name="mdz_parse" /> produces for the same input, regardless of chunking.
-			See the <TomeLink slug="streaming" /> docs for the live demo, usage, and the opcode design.
+			Feed chunks to <DeclarationLink name="MdzStreamParser" /> as they arrive (e.g. from an LLM)
+			and render the emitted opcodes with <DeclarationLink name="MdzStream" /> — the final tree is
+			identical to what <DeclarationLink name="mdz_parse" /> produces for the same input, regardless
+			of chunking. See the <TomeLink slug="streaming" /> docs for the live demo, usage, and the
+			opcode design.
 		</p>
 	</TomeSection>
 
@@ -169,7 +172,8 @@ const nodes = mdz_parse('# Heading\\n\\nSome **bold** text.');`}
 			<DeclarationLink name="MdzRoot" /> — the prop contracts match fuz_ui's
 			<a href="https://ui.fuz.dev/docs/api/DocsLink.svelte#DocsLink"><code>DocsLink</code></a>
 			(auto-linked API identifiers) and fuz_code's
-			<a href="https://code.fuz.dev/docs/api/Code.svelte#Code"><code>Code</code></a> (syntax highlighting):
+			<a href="https://code.fuz.dev/docs/api/Code.svelte#Code"><code>Code</code></a> (syntax
+			highlighting):
 		</p>
 		<Code
 			lang="svelte"
@@ -184,8 +188,8 @@ const nodes = mdz_parse('# Heading\\n\\nSome **bold** text.');`}
 		<p>
 			<DeclarationLink name="svelte_preprocess_mdz" /> compiles static
 			<code>&lt;Mdz content="…"&gt;</code> usages to pre-rendered markup at build time, eliminating
-			runtime parsing for known-static content — see the <TomeLink slug="svelte_preprocess_mdz" /> docs
-			for setup and options.
+			runtime parsing for known-static content — see the <TomeLink slug="svelte_preprocess_mdz" />
+			docs for setup and options.
 		</p>
 	</TomeSection>
 </TomeContent>
