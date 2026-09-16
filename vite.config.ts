@@ -13,5 +13,5 @@ export default defineConfig({
 		vite_plugin_fuz_css({ additional_elements: 'all' }),
 		vite_plugin_pkg_json()
 	],
-	optimizeDeps: { exclude: ['@fuzdev/blake3_wasm'] }
+	optimizeDeps: { exclude: ['@fuzdev/blake3-wasm'] }
 });
