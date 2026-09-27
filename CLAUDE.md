@@ -337,7 +337,7 @@ covers the unconfigured plain defaults.
 
 - TypeScript strict mode
 - Svelte 5 with runes API
-- Prettier with tabs, 100 char width
+- tsv (`gro format`) with tabs, 100 char width
 - Tests in `src/test/` (not co-located)
 - snake_case for functions/variables, PascalCase for types/components
 - explicit `.js` extensions in imports
