@@ -14,10 +14,7 @@ to plain Svelte markup.
 
 For coding conventions, see Skill(fuz-stack).
 
-## Committing
-
-`git add` and `git commit` are denied by `.claude/settings.local.json` in this
-repo — make the edits and stop, the user commits.
+## Releases
 
 IMPORTANT: never bump the package version or publish — that's the user's
 responsibility.
