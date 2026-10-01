@@ -26,7 +26,7 @@
 	const library = new Library(library_json);
 	library_context.set(() => library);
 
-	const DEMO_CONTENT_DEFAULT = `**mdz** is a strict markdown dialect built for streaming, [Svelte](https://svelte.dev/) authoring, docs websites, and untrusted content. This text is rendering through \`MdzStreamParser\` right now, character by character.
+	const DEMO_CONTENT_DEFAULT = `**mdz** is a strict markdown dialect built for streaming, [Svelte](https://svelte.dev/) authoring, docs websites, and untrusted content. This text is rendering through \`MdzStreamParser\` character by character.
 
 It supports markdown basics like **bold**, _italic_, ~~strikethrough~~, \`inline code\`, headings, and auto-detected links like https://www.fuz.dev. Svelte components too!
 
