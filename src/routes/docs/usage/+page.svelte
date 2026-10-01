@@ -1,5 +1,9 @@
 <script lang="ts">
+	// the CSS Custom Highlight API rules for the playground source live in theme_highlight.css
+	import '@fuzdev/fuz_code/theme_highlight.css';
+
 	import Code from '@fuzdev/fuz_code/Code.svelte';
+	import CodeTextarea from '@fuzdev/fuz_code/CodeTextarea.svelte';
 	import { resolve } from '$app/paths';
 	import { tome_get_by_slug } from '@fuzdev/fuz_ui/tome.ts';
 	import TomeContent from '@fuzdev/fuz_ui/TomeContent.svelte';
@@ -100,8 +104,12 @@ const y = 1336;
 
 		<TomeSection>
 			<TomeSectionHeader text="Playground" />
-			<textarea bind:value={playground_content} aria-label="mdz source" style:height="230px"
-			></textarea>
+			<CodeTextarea
+				bind:value={playground_content}
+				lang="md"
+				style="height: 230px"
+				aria-label="mdz source"
+			/>
 			<div class="panel shade_05 mb_lg p_md">
 				<Mdz content={playground_content} />
 			</div>

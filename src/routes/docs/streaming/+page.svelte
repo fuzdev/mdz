@@ -1,6 +1,10 @@
 <script lang="ts">
+	// the CSS Custom Highlight API rules for the demo source live in theme_highlight.css
+	import '@fuzdev/fuz_code/theme_highlight.css';
+
 	import { onMount } from 'svelte';
 	import Code from '@fuzdev/fuz_code/Code.svelte';
+	import CodeTextarea from '@fuzdev/fuz_code/CodeTextarea.svelte';
 	import { tome_get_by_slug } from '@fuzdev/fuz_ui/tome.ts';
 	import TomeContent from '@fuzdev/fuz_ui/TomeContent.svelte';
 	import TomeSection from '@fuzdev/fuz_ui/TomeSection.svelte';
@@ -165,11 +169,13 @@ const y = 1336;
 				Click the stream button below — each character is fed one at a time to show how constructs
 				build incrementally:
 			</p>
-			<textarea
-				style:height="300px"
+			<CodeTextarea
 				bind:value={stream_content}
+				lang="md"
+				style="height: 300px"
 				oninput={stream_reset}
-				aria-label="streaming mdz source"></textarea>
+				aria-label="streaming mdz source"
+			/>
 			<div class="row gap_md mb_md flex-wrap:wrap">
 				<button
 					style:width="85px"
