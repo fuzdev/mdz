@@ -240,7 +240,7 @@ const y = 1336;
 						(press
 						<button
 							type="button"
-							class="inline color_d sm"
+							class="inline palette_d sized_sm"
 							onclick={() => (stream_running ? stream_pause() : stream_start())}
 						>
 							stream
