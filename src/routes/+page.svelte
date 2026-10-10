@@ -197,7 +197,7 @@ For more see the /docs.`;
 			</div>
 		</section>
 		<section>
-			<Card href={DOCS_PATH} icon="">docs</Card>
+			<Card href={DOCS_PATH}>docs</Card>
 		</section>
 		<section>
 			<DocsFooter repo_url={site.repo_url} root_url={FUZ_DEV_URL} />
