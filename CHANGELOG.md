@@ -1,5 +1,11 @@
 # @fuzdev/mdz
 
+## 0.4.0
+
+### Minor Changes
+
+- **breaking** feat: support SvelteKit 3 (`@sveltejs/kit` peer `^3`); TSDoc examples for `SveltePreprocessMdzOptions.components` and `MdzToSvelteOptions.components` use `#lib/` import paths, and `svelte_preprocess_mdz`'s `@returns` points at `sveltekit({preprocess})` in `vite.config.ts` ([f5e37c7](https://github.com/fuzdev/mdz/commit/f5e37c7))
+
 ## 0.3.0
 
 ### Minor Changes
