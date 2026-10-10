@@ -363,7 +363,7 @@ describe('empty children', () => {
 
 describe('on_error', () => {
 	test('throw mode throws on parse failure', async () => {
-		const mdz_module = await import('$lib/mdz.ts');
+		const mdz_module = await import('#lib/mdz.ts');
 		const spy = vi.spyOn(mdz_module, 'mdz_parse').mockImplementation(() => {
 			throw new Error('mock parse failure');
 		});
@@ -391,7 +391,7 @@ describe('on_error', () => {
 	});
 
 	test('log mode skips failed transformation and logs error', async () => {
-		const mdz_module = await import('$lib/mdz.ts');
+		const mdz_module = await import('#lib/mdz.ts');
 		const parse_spy = vi.spyOn(mdz_module, 'mdz_parse').mockImplementation(() => {
 			throw new Error('mock parse failure');
 		});
@@ -644,7 +644,7 @@ describe('ternary/conditional expressions', () => {
 	});
 
 	test('on_error throw mode throws on ternary branch parse failure', async () => {
-		const mdz_module = await import('$lib/mdz.ts');
+		const mdz_module = await import('#lib/mdz.ts');
 		const spy = vi.spyOn(mdz_module, 'mdz_parse').mockImplementation(() => {
 			throw new Error('mock ternary parse failure');
 		});
@@ -673,7 +673,7 @@ describe('ternary/conditional expressions', () => {
 	});
 
 	test('on_error log mode skips ternary on branch parse failure', async () => {
-		const mdz_module = await import('$lib/mdz.ts');
+		const mdz_module = await import('#lib/mdz.ts');
 		const parse_spy = vi.spyOn(mdz_module, 'mdz_parse').mockImplementation(() => {
 			throw new Error('mock ternary parse failure');
 		});

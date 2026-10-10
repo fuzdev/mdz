@@ -25,11 +25,11 @@ import {
 	benchmark_baseline_format
 } from '@fuzdev/fuz_util/benchmark_baseline.ts';
 
-import Mdz from '$lib/Mdz.svelte';
-import MdzStream from '$lib/MdzStream.svelte';
-import { MdzStreamParser } from '$lib/mdz_stream_parser.ts';
-import { MdzStreamState } from '$lib/mdz_stream_state.svelte.ts';
-import type { MdzOpcode } from '$lib/mdz_opcodes.ts';
+import Mdz from '#lib/Mdz.svelte';
+import MdzStream from '#lib/MdzStream.svelte';
+import { MdzStreamParser } from '#lib/mdz_stream_parser.ts';
+import { MdzStreamState } from '#lib/mdz_stream_state.svelte.ts';
+import type { MdzOpcode } from '#lib/mdz_opcodes.ts';
 import { benchmark_inputs } from './benchmark_inputs.ts';
 
 // vitest's reporter intercepts `console.log`; write to stdout directly so the

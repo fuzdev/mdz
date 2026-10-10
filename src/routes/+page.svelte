@@ -14,10 +14,10 @@
 	import { Library, library_context } from '@fuzdev/fuz_ui/library.svelte.ts';
 
 	import { library_json } from './library.ts';
-	import MdzRoot from '$lib/MdzRoot.svelte';
-	import MdzStream from '$lib/MdzStream.svelte';
-	import { MdzStreamParser } from '$lib/mdz_stream_parser.ts';
-	import { MdzStreamState } from '$lib/mdz_stream_state.svelte.ts';
+	import MdzRoot from '#lib/MdzRoot.svelte';
+	import MdzStream from '#lib/MdzStream.svelte';
+	import { MdzStreamParser } from '#lib/mdz_stream_parser.ts';
+	import { MdzStreamState } from '#lib/mdz_stream_state.svelte.ts';
 
 	const site = site_context.get();
 

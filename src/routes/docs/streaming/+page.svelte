@@ -14,11 +14,11 @@
 	import Details from '@fuzdev/fuz_ui/Details.svelte';
 	import DocsLink from '@fuzdev/fuz_ui/DocsLink.svelte';
 
-	import Mdz from '$lib/Mdz.svelte';
-	import MdzStream from '$lib/MdzStream.svelte';
-	import { MdzStreamParser } from '$lib/mdz_stream_parser.ts';
-	import { MdzStreamState } from '$lib/mdz_stream_state.svelte.ts';
-	import MdzRoot from '$lib/MdzRoot.svelte';
+	import Mdz from '#lib/Mdz.svelte';
+	import MdzStream from '#lib/MdzStream.svelte';
+	import { MdzStreamParser } from '#lib/mdz_stream_parser.ts';
+	import { MdzStreamState } from '#lib/mdz_stream_state.svelte.ts';
+	import MdzRoot from '#lib/MdzRoot.svelte';
 	import mdz_paths from './mdz_streaming_paths.mdz?raw';
 	import mdz_picking from './mdz_streaming_picking.mdz?raw';
 	import mdz_opcodes from './mdz_streaming_opcodes.mdz?raw';

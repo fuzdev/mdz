@@ -1,6 +1,6 @@
 import { test, assert, describe, beforeAll } from 'vitest';
 
-import { mdz_parse } from '$lib/mdz.ts';
+import { mdz_parse } from '#lib/mdz.ts';
 import {
 	stream_parse,
 	load_fixtures,

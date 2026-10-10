@@ -20,9 +20,9 @@ import { describe, test, assert } from 'vitest';
 import { render } from 'svelte/server';
 import type { Component } from 'svelte';
 
-import MdzComponent from '$lib/Mdz.svelte';
-import { mdz_parse } from '$lib/mdz.ts';
-import { mdz_to_svelte } from '$lib/mdz_to_svelte.ts';
+import MdzComponent from '#lib/Mdz.svelte';
+import { mdz_parse } from '#lib/mdz.ts';
+import { mdz_to_svelte } from '#lib/mdz_to_svelte.ts';
 import { load_fixtures } from './fixtures/mdz/mdz_test_helpers.ts';
 
 // narrowed component type — the wrapper's `SvelteHTMLElements` rest-prop

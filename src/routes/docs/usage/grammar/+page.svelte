@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Mdz from '$lib/Mdz.svelte';
+	import Mdz from '#lib/Mdz.svelte';
 	import mdz_grammar from './mdz_grammar.mdz?raw';
 </script>
 

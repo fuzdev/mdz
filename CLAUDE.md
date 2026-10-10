@@ -337,7 +337,7 @@ covers the unconfigured plain defaults.
 - tsv (`gro format`) with tabs, 100 char width
 - Tests in `src/test/` (not co-located)
 - snake_case for functions/variables, PascalCase for types/components
-- explicit `.js` extensions in imports
+- real source extensions in imports (`.ts`, `.svelte`); `src/lib` imports relatively, everything else via `#lib/*` / `#routes/*`
 
 ## Related projects
 

@@ -13,9 +13,9 @@
 
 import { describe, test, assert } from 'vitest';
 
-import { mdz_parse } from '$lib/mdz.ts';
-import { MdzStreamParser } from '$lib/mdz_stream_parser.ts';
-import { mdz_debug_work, mdz_debug_work_reset } from '$lib/mdz_debug_work.ts';
+import { mdz_parse } from '#lib/mdz.ts';
+import { MdzStreamParser } from '#lib/mdz_stream_parser.ts';
+import { mdz_debug_work, mdz_debug_work_reset } from '#lib/mdz_debug_work.ts';
 
 /** Scan work for a full sync parse. */
 const sync_work = (content: string): number => {

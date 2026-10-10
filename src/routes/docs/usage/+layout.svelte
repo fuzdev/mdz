@@ -4,7 +4,7 @@
 	import Code from '@fuzdev/fuz_code/Code.svelte';
 	import DocsLink from '@fuzdev/fuz_ui/DocsLink.svelte';
 
-	import MdzRoot from '$lib/MdzRoot.svelte';
+	import MdzRoot from '#lib/MdzRoot.svelte';
 
 	const {
 		children

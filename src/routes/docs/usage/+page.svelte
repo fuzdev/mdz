@@ -14,8 +14,8 @@
 	import Alert from '@fuzdev/fuz_ui/Alert.svelte';
 	import DocsLink from '@fuzdev/fuz_ui/DocsLink.svelte';
 
-	import Mdz from '$lib/Mdz.svelte';
-	import MdzRoot from '$lib/MdzRoot.svelte';
+	import Mdz from '#lib/Mdz.svelte';
+	import MdzRoot from '#lib/MdzRoot.svelte';
 
 	const TOME_SLUG = 'usage';
 	const tome = tome_get_by_slug(TOME_SLUG);

@@ -21,10 +21,10 @@
 
 import { test, assert, describe } from 'vitest';
 
-import { mdz_parse, type MdzNode } from '$lib/mdz.ts';
-import { MAX_INLINE_NESTING_DEPTH } from '$lib/mdz_helpers.ts';
-import { MdzStreamParser } from '$lib/mdz_stream_parser.ts';
-import { mdz_opcodes_to_nodes } from '$lib/mdz_opcodes_to_nodes.ts';
+import { mdz_parse, type MdzNode } from '#lib/mdz.ts';
+import { MAX_INLINE_NESTING_DEPTH } from '#lib/mdz_helpers.ts';
+import { MdzStreamParser } from '#lib/mdz_stream_parser.ts';
+import { mdz_opcodes_to_nodes } from '#lib/mdz_opcodes_to_nodes.ts';
 
 /** Compact structural summary of a node tree — text/code inline, containers as `Type:tag(children)`. */
 const summarize = (nodes: Array<MdzNode>): string =>

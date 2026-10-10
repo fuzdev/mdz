@@ -1,7 +1,7 @@
 import type { Task } from '@fuzdev/gro';
 import { join } from 'node:path';
 
-import { mdz_parse } from '$lib/mdz.ts';
+import { mdz_parse } from '#lib/mdz.ts';
 import { run_update_task } from '../../test_helpers.ts';
 
 export const task: Task = {

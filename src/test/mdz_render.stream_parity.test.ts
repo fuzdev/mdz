@@ -21,11 +21,11 @@ import { describe, test, assert } from 'vitest';
 import { render } from 'svelte/server';
 import type { Component } from 'svelte';
 
-import MdzComponent from '$lib/Mdz.svelte';
-import MdzStreamComponent from '$lib/MdzStream.svelte';
-import { MdzStreamParser } from '$lib/mdz_stream_parser.ts';
-import { MdzStreamState } from '$lib/mdz_stream_state.svelte.ts';
-import type { MdzNode } from '$lib/mdz.ts';
+import MdzComponent from '#lib/Mdz.svelte';
+import MdzStreamComponent from '#lib/MdzStream.svelte';
+import { MdzStreamParser } from '#lib/mdz_stream_parser.ts';
+import { MdzStreamState } from '#lib/mdz_stream_state.svelte.ts';
+import type { MdzNode } from '#lib/mdz.ts';
 import { load_fixtures } from './fixtures/mdz/mdz_test_helpers.ts';
 
 const Mdz = MdzComponent as unknown as Component<{ content: string }>;

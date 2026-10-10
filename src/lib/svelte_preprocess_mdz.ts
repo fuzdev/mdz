@@ -56,7 +56,7 @@ export interface SveltePreprocessMdzOptions {
 	/**
 	 * Component import mapping for mdz content.
 	 * Key: component name as used in mdz (e.g., 'Alert').
-	 * Value: import path (e.g., '$lib/Alert.svelte').
+	 * Value: import path (e.g., '#lib/Alert.svelte').
 	 *
 	 * If mdz content references a component not in this map,
 	 * that `Mdz` usage is skipped (left as runtime).
@@ -116,7 +116,7 @@ const PRECOMPILED_NAME = 'MdzPrecompiled';
  * Creates a Svelte preprocessor that compiles static `Mdz` content at build time.
  *
  * @param options - configuration for component/element resolution and file filtering
- * @returns a Svelte `PreprocessorGroup` for use in `svelte.config.js`
+ * @returns a Svelte `PreprocessorGroup` for a `preprocess` option, like `sveltekit({preprocess})` in `vite.config.ts`
  */
 export const svelte_preprocess_mdz = (
 	options: SveltePreprocessMdzOptions = {}

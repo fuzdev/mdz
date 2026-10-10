@@ -1,4 +1,4 @@
-import type { MdzNode } from '$lib/mdz.ts';
+import type { MdzNode } from '#lib/mdz.ts';
 import type { MdzFixture } from '../../../test/fixtures/mdz/mdz_test_helpers.ts';
 
 /**

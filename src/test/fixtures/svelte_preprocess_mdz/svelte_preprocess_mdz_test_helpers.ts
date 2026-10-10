@@ -3,7 +3,7 @@ import { preprocess } from 'svelte/compiler';
 import {
 	svelte_preprocess_mdz,
 	type SveltePreprocessMdzOptions
-} from '$lib/svelte_preprocess_mdz.ts';
+} from '#lib/svelte_preprocess_mdz.ts';
 import { load_fixtures_generic } from '../../test_helpers.ts';
 
 /**
@@ -13,9 +13,9 @@ import { load_fixtures_generic } from '../../test_helpers.ts';
  * covers the unconfigured plain `<code>` / `<pre><code>` defaults.
  */
 export const DEFAULT_TEST_OPTIONS = {
-	components: { Alert: '$lib/Alert.svelte', Card: '$lib/Card.svelte' },
+	components: { Alert: '#lib/Alert.svelte', Card: '#lib/Card.svelte' },
 	elements: { aside: true, details: true, summary: true, br: true },
-	compiled_component_import: '$lib/MdzPrecompiled.svelte',
+	compiled_component_import: '#lib/MdzPrecompiled.svelte',
 	code_component_import: '@fuzdev/fuz_ui/DocsLink.svelte',
 	codeblock_component_import: '@fuzdev/fuz_code/Code.svelte'
 } satisfies SveltePreprocessMdzOptions;

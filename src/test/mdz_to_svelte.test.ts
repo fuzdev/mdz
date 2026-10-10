@@ -2,12 +2,12 @@ import { test, assert, describe } from 'vitest';
 
 import { escape_svelte_text } from '@fuzdev/fuz_util/svelte_preprocess_helpers.ts';
 
-import { mdz_parse, type MdzNode } from '$lib/mdz.ts';
+import { mdz_parse, type MdzNode } from '#lib/mdz.ts';
 import {
 	mdz_to_svelte,
 	type MdzToSvelteOptions,
 	type MdzToSvelteResult
-} from '$lib/mdz_to_svelte.ts';
+} from '#lib/mdz_to_svelte.ts';
 
 /** Renderer imports matching the docs site: inline code → DocsLink, codeblocks → fuz_code's Code. */
 const DOCS_RENDERER_IMPORTS: Pick<
@@ -429,9 +429,9 @@ describe('mdz_to_svelte', () => {
 		});
 
 		test('renders configured component with import', () => {
-			const result = convert('<Alert>warning</Alert>', { Alert: '$lib/Alert.svelte' });
+			const result = convert('<Alert>warning</Alert>', { Alert: '#lib/Alert.svelte' });
 			assert.equal(result.markup, '<Alert>warning</Alert>');
-			assert_import(result, 'Alert', '$lib/Alert.svelte', 'default');
+			assert_import(result, 'Alert', '#lib/Alert.svelte', 'default');
 			assert.equal(result.has_unconfigured_tags, false);
 		});
 
@@ -466,7 +466,7 @@ describe('mdz_to_svelte', () => {
 		});
 
 		test('renders configured component with formatted children', () => {
-			const result = convert('<Alert>**bold** note</Alert>', { Alert: '$lib/Alert.svelte' });
+			const result = convert('<Alert>**bold** note</Alert>', { Alert: '#lib/Alert.svelte' });
 			assert.ok(result.markup.includes('<strong>bold</strong>'));
 			assert.ok(result.markup.includes('<Alert>'));
 		});
@@ -515,14 +515,14 @@ describe('mdz_to_svelte', () => {
 		});
 
 		test('adds configured component imports', () => {
-			const result = convert('<Alert>warning</Alert>', { Alert: '$lib/Alert.svelte' });
-			assert_import(result, 'Alert', '$lib/Alert.svelte', 'default');
+			const result = convert('<Alert>warning</Alert>', { Alert: '#lib/Alert.svelte' });
+			assert_import(result, 'Alert', '#lib/Alert.svelte', 'default');
 		});
 
 		test('collects multiple imports', () => {
 			const result = convert(
 				'`fn` and [link](/path) and <Alert>hi</Alert>',
-				{ Alert: '$lib/Alert.svelte' },
+				{ Alert: '#lib/Alert.svelte' },
 				{},
 				DOCS_RENDERER_IMPORTS
 			);
@@ -674,7 +674,7 @@ describe('mdz_to_svelte', () => {
 
 		test('handles single component without paragraph wrapper', () => {
 			// mdz parser wraps single components directly (MDX convention)
-			const result = convert('<Alert>text</Alert>', { Alert: '$lib/Alert.svelte' });
+			const result = convert('<Alert>text</Alert>', { Alert: '#lib/Alert.svelte' });
 			// Should NOT be wrapped in <p>
 			assert.ok(!result.markup.includes('<p>'));
 			assert.equal(result.markup, '<Alert>text</Alert>');

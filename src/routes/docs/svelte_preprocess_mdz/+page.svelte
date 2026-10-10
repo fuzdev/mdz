@@ -27,22 +27,28 @@
 	<TomeSection>
 		<TomeSectionHeader text="Setup" />
 		<p>
-			Add the preprocessor, <ModuleLink module_path="svelte_preprocess_mdz.ts" />, to
-			<code>svelte.config.js</code>:
+			Add the preprocessor, <ModuleLink module_path="svelte_preprocess_mdz.ts" />, to the
+			<code>sveltekit()</code> plugin options in <code>vite.config.ts</code>:
 		</p>
 		<Code
-			lang="js"
-			content={`import {svelte_preprocess_mdz} from '@fuzdev/mdz/svelte_preprocess_mdz.js';
+			lang="ts"
+			content={`import {defineConfig} from 'vite';
+import {sveltekit} from '@sveltejs/kit/vite';
+import {svelte_preprocess_mdz} from '@fuzdev/mdz/svelte_preprocess_mdz.js';
 
-export default {
-  preprocess: [
-    svelte_preprocess_mdz({
-      components: {Alert: '$lib/Alert.svelte'},
-      elements: {aside: true, details: true},
+export default defineConfig({
+  plugins: [
+    sveltekit({
+      preprocess: [
+        svelte_preprocess_mdz({
+          components: {Alert: '#lib/Alert.svelte'},
+          elements: {aside: true, details: true},
+        }),
+        // ...other preprocessors
+      ],
     }),
-    // ...other preprocessors
   ],
-};`}
+});`}
 		/>
 		<p>
 			The preprocessor should run before other preprocessors like <code>vitePreprocess()</code> so

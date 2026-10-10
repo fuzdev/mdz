@@ -14,8 +14,8 @@
 
 import { describe, test, assert } from 'vitest';
 
-import { mdz_parse } from '$lib/mdz.ts';
-import { MdzStreamParser } from '$lib/mdz_stream_parser.ts';
+import { mdz_parse } from '#lib/mdz.ts';
+import { MdzStreamParser } from '#lib/mdz_stream_parser.ts';
 
 const GUARD_TIMEOUT = 2000;
 

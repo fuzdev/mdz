@@ -2,8 +2,8 @@ import { test, assert, describe, beforeAll } from 'vitest';
 import { parse } from 'svelte/compiler';
 import { escape_js_string } from '@fuzdev/fuz_util/string.ts';
 
-import { mdz_to_svelte } from '$lib/mdz_to_svelte.ts';
-import type { SveltePreprocessMdzOptions } from '$lib/svelte_preprocess_mdz.ts';
+import { mdz_to_svelte } from '#lib/mdz_to_svelte.ts';
+import type { SveltePreprocessMdzOptions } from '#lib/svelte_preprocess_mdz.ts';
 import {
 	load_fixtures as load_mdz_fixtures,
 	type MdzFixture

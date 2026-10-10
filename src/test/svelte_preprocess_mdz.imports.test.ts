@@ -63,7 +63,7 @@ describe('import addition', () => {
 <Mdz content="<Alert>warning</Alert>" />`;
 
 		const result = await run_preprocess(input);
-		assert.ok(result.includes("import Alert from '$lib/Alert.svelte'"), 'should add Alert import');
+		assert.ok(result.includes("import Alert from '#lib/Alert.svelte'"), 'should add Alert import');
 	});
 });
 
@@ -175,14 +175,14 @@ describe('import resolution', () => {
 
 	test('respects custom mdz_component_imports', async () => {
 		const input = `<script lang="ts">
-	import Mdz from '$lib/Mdz.svelte';
+	import Mdz from '#lib/Mdz.svelte';
 </script>
 
 <Mdz content="**bold**" />`;
 
 		const result = await run_preprocess(input, {
 			...DEFAULT_TEST_OPTIONS,
-			mdz_component_imports: ['$lib/Mdz.svelte']
+			mdz_component_imports: ['#lib/Mdz.svelte']
 		});
 		assert.ok(result.includes('<strong>bold</strong>'), 'should transform with custom import');
 	});

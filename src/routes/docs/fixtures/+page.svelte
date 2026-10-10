@@ -10,8 +10,8 @@
 	import TomeSectionHeader from '@fuzdev/fuz_ui/TomeSectionHeader.svelte';
 	import Details from '@fuzdev/fuz_ui/Details.svelte';
 
-	import Mdz from '$lib/Mdz.svelte';
-	import MdzRoot from '$lib/MdzRoot.svelte';
+	import Mdz from '#lib/Mdz.svelte';
+	import MdzRoot from '#lib/MdzRoot.svelte';
 	import { load_mdz_fixtures } from './fixtures.ts';
 
 	const TOME_SLUG = 'fixtures';

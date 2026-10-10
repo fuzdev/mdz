@@ -1,6 +1,6 @@
-import type { MdzNode } from '$lib/mdz.ts';
-import { MdzStreamParser } from '$lib/mdz_stream_parser.ts';
-import { mdz_opcodes_to_nodes } from '$lib/mdz_opcodes_to_nodes.ts';
+import type { MdzNode } from '#lib/mdz.ts';
+import { MdzStreamParser } from '#lib/mdz_stream_parser.ts';
+import { mdz_opcodes_to_nodes } from '#lib/mdz_opcodes_to_nodes.ts';
 import { load_fixtures_generic } from '../../test_helpers.ts';
 
 /**

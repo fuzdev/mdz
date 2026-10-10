@@ -38,7 +38,7 @@ const component_local_name = (import_path: string): string =>
  */
 export interface MdzToSvelteOptions {
 	/**
-	 * Component name to import path mapping (e.g., `{Alert: '$lib/Alert.svelte'}`).
+	 * Component name to import path mapping (e.g., `{Alert: '#lib/Alert.svelte'}`).
 	 * If content references a component not in this map, `has_unconfigured_tags` is set.
 	 */
 	components: Record<string, string>;
