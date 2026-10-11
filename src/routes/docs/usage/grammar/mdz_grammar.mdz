@@ -171,7 +171,7 @@ After scanning, trailing `.` `,` `;` `:` `!` `?` characters are trimmed from the
 
 **Link types and rendering:**
 
-Link nodes carry `link_type`: `'external'` for `http(s)://` references, `'internal'` for paths. Absolute paths resolve through SvelteKit's `resolve()`; relative paths resolve against the `base` prop/context when provided, or pass through as raw hrefs otherwise.
+Link nodes carry `link_type`: `'external'` for `http(s)://` references, `'internal'` for paths. Absolute paths are authored URLs, not route ids: they render verbatim under the app's base path (SvelteKit's `resolve()` in its pathname form), so `(group)` segments, interior `//`, `[...]`, and any `?query`/`#fragment` stay as written — only a leading `/` or `\` run collapses to one `/`, keeping the link under the base. Relative paths resolve against the `base` prop/context when provided (then render like absolute paths), or pass through as raw hrefs otherwise.
 
 As defense in depth, the renderers also strip `href` from any reference that contains `:` without an `http(s)://` prefix — see `mdz_is_safe_reference`.
 

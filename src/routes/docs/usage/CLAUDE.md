@@ -35,7 +35,10 @@ faithfully.
 mdz auto-links four path patterns:
 
 - `https://` and `http://` - external URLs (`link_type: 'external'`)
-- `/path` - absolute internal paths, resolved via SvelteKit `resolve()`
+- `/path` - absolute internal paths, rendered verbatim under the base via
+  SvelteKit `resolve()`'s pathname form (never a route id, so `(group)`
+  segments, interior `//`, and `[...]` stay as written; a leading `/` or `\`
+  run collapses to one `/`)
 - `./path` - relative internal paths (same directory)
 - `../path` - relative internal paths (parent directory)
 
@@ -68,7 +71,8 @@ wrapping in `MdzRoot`. Components and elements must come from `MdzRoot` or
 a manually set context.
 
 When `base` is set, relative paths (`./`, `../`) are resolved to absolute
-paths using `mdz_resolve_relative_path()` and SvelteKit's `resolve()`.
+paths using `mdz_resolve_relative_path()`, then render like any absolute path
+through SvelteKit's `resolve()`.
 Without `base`, relative paths use raw hrefs (browser resolves them).
 
 The fallback pattern is encapsulated in `mdz_set_context_with_fallback()` —

@@ -17,6 +17,7 @@ import {
 	match_url_prefix_case_insensitive,
 	ascii_to_lower,
 	mdz_resolve_relative_path,
+	mdz_classify_link,
 	mdz_extract_single_tag,
 	ASTERISK,
 	UNDERSCORE,
@@ -715,6 +716,86 @@ describe('mdz_resolve_relative_path', () => {
 
 	test('skips internal double slashes', () => {
 		assert.equal(mdz_resolve_relative_path('.//bar', '/docs/foo/'), '/docs/foo/bar');
+	});
+});
+
+describe('mdz_classify_link', () => {
+	test('absolute references resolve in pathname form, verbatim', () => {
+		for (const [reference, path] of [
+			['/docs/foo', 'docs/foo'],
+			['/', ''],
+			['/a/(b)/c', 'a/(b)/c'],
+			['/a//b/', 'a//b/'],
+			['/a/[x]', 'a/[x]'],
+			['/docs/[x+2f]', 'docs/[x+2f]'],
+			['/docs#x', 'docs#x'],
+			['/docs?y=1#x', 'docs?y=1#x'],
+			['/#x', '#x']
+		] as const) {
+			assert.deepEqual(mdz_classify_link(reference, 'internal', undefined), {
+				kind: 'resolve',
+				path
+			});
+		}
+	});
+
+	test('a leading `/`, `\\`, tab, or newline run collapses so the path stays under the base', () => {
+		for (const reference of [
+			'//evil.com/a',
+			'/\\evil.com/a',
+			'/\\/\\evil.com/a',
+			'/\t/evil.com/a',
+			'/\n/evil.com/a',
+			'/\r/evil.com/a'
+		]) {
+			assert.deepEqual(mdz_classify_link(reference, 'internal', undefined), {
+				kind: 'resolve',
+				path: 'evil.com/a'
+			});
+		}
+	});
+
+	test('a `\\` run after joining a relative reference to `base` collapses too', () => {
+		for (const [reference, base] of [
+			['./\\evil.com/a', '/'],
+			['../\\evil.com/a', '/docs/'],
+			['./a', '\\evil.com/']
+		] as const) {
+			assert.deepEqual(mdz_classify_link(reference, 'internal', base), {
+				kind: 'resolve',
+				path: 'evil.com/a'
+			});
+		}
+	});
+
+	test('relative references resolve against `base` in pathname form', () => {
+		assert.deepEqual(mdz_classify_link('./(b)/c', 'internal', '/docs/(g)/'), {
+			kind: 'resolve',
+			path: 'docs/(g)/(b)/c'
+		});
+		assert.deepEqual(mdz_classify_link('../d', 'internal', '/docs/'), {
+			kind: 'resolve',
+			path: 'd'
+		});
+	});
+
+	test('fragment, query, relative, and bare references stay raw', () => {
+		for (const reference of ['#x', '?y=1', './a', '../a', 'a/b']) {
+			assert.deepEqual(mdz_classify_link(reference, 'internal', undefined), {
+				kind: 'internal',
+				href: reference
+			});
+		}
+	});
+
+	test('external and unsafe references', () => {
+		assert.deepEqual(mdz_classify_link('https://fuz.dev', 'external', undefined), {
+			kind: 'external',
+			href: 'https://fuz.dev'
+		});
+		assert.deepEqual(mdz_classify_link('javascript:alert(1)', 'internal', undefined), {
+			kind: 'unsafe'
+		});
 	});
 });
 

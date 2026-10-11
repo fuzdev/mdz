@@ -260,7 +260,7 @@ describe('dynamic base prop', () => {
 <Mdz content="see ./bar" base="/docs/foo/" />`;
 
 		const result = await run_preprocess(input);
-		assert.ok(result.includes("resolve('/docs/foo/bar')"), 'should resolve relative path');
+		assert.ok(result.includes("resolve('docs/foo/bar')"), 'should resolve relative path');
 		assert.ok(result.includes('<MdzPrecompiled>'), 'should use MdzPrecompiled');
 		assert.ok(!result.includes('base='), 'should exclude base from output');
 	});
@@ -274,7 +274,7 @@ describe('dynamic base prop', () => {
 
 		const result = await run_preprocess(input);
 		assert.ok(
-			result.includes("resolve('/docs/foo/bar')"),
+			result.includes("resolve('docs/foo/bar')"),
 			'should resolve with normalized trailing slash'
 		);
 	});

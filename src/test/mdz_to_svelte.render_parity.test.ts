@@ -41,7 +41,8 @@ const attr_escape = (s: string): string => s.replaceAll('&', '&amp;').replaceAll
 /**
  * Convert `mdz_to_svelte` output (Svelte template markup, plain default
  * config) to the HTML the equivalent runtime template server-renders.
- * `resolve()` is the identity here — the test env has no SvelteKit base.
+ * `resolve()` just prepends `/` to its pathname argument here — the test env
+ * has no SvelteKit base.
  */
 const svelte_markup_to_html = (markup: string): string =>
 	markup
@@ -50,7 +51,7 @@ const svelte_markup_to_html = (markup: string): string =>
 		.replaceAll(TEXT_CLOSE_BRACE, '\u0002')
 		.replaceAll(
 			/=\{resolve\('((?:[^'\\]|\\.)*)'\)\}/g,
-			(_, s: string) => `="${attr_escape(js_unescape(s))}"`
+			(_, s: string) => `="/${attr_escape(js_unescape(s))}"`
 		)
 		.replaceAll(/=\{'((?:[^'\\]|\\.)*)'\}/g, (_, s: string) => `="${attr_escape(js_unescape(s))}"`)
 		.replaceAll(/=\{(\d+)\}/g, '="$1"')

@@ -817,6 +817,20 @@ export const mdz_resolve_relative_path = (reference: string, base: string): stri
 	return segments.join('/');
 };
 
+// `/a` → `a`, `//a` → `a` — the pathname form `resolve()` takes; `\` counts as a
+// slash too, and tab/LF/CR are dropped, since browsers read `/\host` and
+// `/<tab>/host` as protocol-relative
+const strip_leading_slashes = (path: string): string => {
+	let i = 0;
+	for (;;) {
+		const c = path.charCodeAt(i);
+		if (c !== SLASH && c !== BACKSLASH && c !== TAB && c !== NEWLINE && c !== CARRIAGE_RETURN)
+			break;
+		i++;
+	}
+	return path.slice(i);
+};
+
 /**
  * How a `Link` node's `reference` should render, shared by all three renderers
  * (`MdzNodeView`, `MdzStreamNodeView`, `mdz_to_svelte`) so the safety gate and
@@ -826,8 +840,13 @@ export const mdz_resolve_relative_path = (reference: string, base: string): stri
 export type MdzLinkRender =
 	/** Unsafe protocol — render children only, no `<a>`. */
 	| { kind: 'unsafe' }
-	/** Route/relative path — wrap in `resolve()` (needs `$app/paths`). */
-	| { kind: 'resolve'; href: string }
+	/**
+	 * Absolute path — render `resolve(path)` (needs `$app/paths`). `path` is the
+	 * reference minus its leading slash, SvelteKit's pathname form, which only
+	 * prepends the base path (or `#` under hash routing; a relative `./`/`../`
+	 * prefix under `paths.relative` SSR) and keeps the rest verbatim.
+	 */
+	| { kind: 'resolve'; path: string }
 	/** Internal fragment/query/relative/bare ref — raw `href`, no `resolve()`. */
 	| { kind: 'internal'; href: string }
 	/** External link — raw `href` plus `target="_blank" rel="noopener"`. */
@@ -836,6 +855,13 @@ export type MdzLinkRender =
 /**
  * Classify a `Link` reference into how it should render. Pure — no rendering,
  * no context; `base` is the resolved base path (or `undefined`).
+ *
+ * Absolute references are authored URLs, not SvelteKit route ids: they classify
+ * as `resolve` with the base-relative pathname, never a leading-slash route id,
+ * whose resolution would drop `(group)` and empty segments, decode `[x+nn]`
+ * escapes, and throw on `[param]` segments. A leading `/` followed by any `/`
+ * or `\` run collapses to one `/`, so `//host` and `/\host` stay under the base
+ * rather than becoming protocol-relative.
  * @nodocs
  */
 export const mdz_classify_link = (
@@ -846,19 +872,14 @@ export const mdz_classify_link = (
 	if (!mdz_is_safe_reference(reference)) return { kind: 'unsafe' };
 	if (link_type === 'internal') {
 		if (reference.startsWith('.') && base) {
-			return { kind: 'resolve', href: mdz_resolve_relative_path(reference, base) };
+			return {
+				kind: 'resolve',
+				path: strip_leading_slashes(mdz_resolve_relative_path(reference, base))
+			};
 		}
-		// fragment/query/relative/bare — `resolve()` only accepts absolute paths or
-		// route ids and throws on anything else
-		if (
-			reference.startsWith('#') ||
-			reference.startsWith('?') ||
-			reference.startsWith('.') ||
-			!reference.startsWith('/')
-		) {
-			return { kind: 'internal', href: reference };
-		}
-		return { kind: 'resolve', href: reference };
+		// fragment/query/relative/bare — not under the base, so a raw `href`
+		if (!reference.startsWith('/')) return { kind: 'internal', href: reference };
+		return { kind: 'resolve', path: strip_leading_slashes(reference) };
 	}
 	return { kind: 'external', href: reference };
 };

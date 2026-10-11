@@ -1,0 +1,78 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "See ",
+				"start": 0,
+				"end": 4
+			},
+			{
+				"type": "Link",
+				"reference": "/docs/(group)/page",
+				"children": [
+					{
+						"type": "Text",
+						"content": "/docs/(group)/page",
+						"start": 4,
+						"end": 22
+					}
+				],
+				"link_type": "internal",
+				"start": 4,
+				"end": 22
+			},
+			{
+				"type": "Text",
+				"content": " and ",
+				"start": 22,
+				"end": 27
+			},
+			{
+				"type": "Link",
+				"reference": "/a//b",
+				"children": [
+					{
+						"type": "Text",
+						"content": "/a//b",
+						"start": 27,
+						"end": 32
+					}
+				],
+				"link_type": "internal",
+				"start": 27,
+				"end": 32
+			},
+			{
+				"type": "Text",
+				"content": " and ",
+				"start": 32,
+				"end": 37
+			},
+			{
+				"type": "Link",
+				"reference": "/docs?q=1#x//y",
+				"children": [
+					{
+						"type": "Text",
+						"content": "/docs?q=1#x//y",
+						"start": 37,
+						"end": 51
+					}
+				],
+				"link_type": "internal",
+				"start": 37,
+				"end": 51
+			},
+			{
+				"type": "Text",
+				"content": " here.",
+				"start": 51,
+				"end": 57
+			}
+		],
+		"start": 0,
+		"end": 57
+	}
+]

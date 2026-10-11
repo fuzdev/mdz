@@ -228,7 +228,7 @@ describe('mdz_to_svelte', () => {
 	describe('link nodes', () => {
 		test('renders internal link with resolve', () => {
 			const result = convert('[docs](/docs/foo)');
-			assert.ok(result.markup.includes("href={resolve('/docs/foo')}"));
+			assert.ok(result.markup.includes("href={resolve('docs/foo')}"));
 			assert.ok(result.markup.includes('>docs</a>'));
 			assert_import(result, 'resolve', '$app/paths', 'named');
 		});
@@ -261,13 +261,41 @@ describe('mdz_to_svelte', () => {
 
 		test('renders auto-detected internal path', () => {
 			const result = convert('see /docs/api');
-			assert.ok(result.markup.includes("href={resolve('/docs/api')}"));
+			assert.ok(result.markup.includes("href={resolve('docs/api')}"));
 			assert_import(result, 'resolve', '$app/paths', 'named');
+		});
+
+		test('emits internal paths verbatim in pathname form', () => {
+			const result = convert('see /a/(b)/c and /a//b and /docs?y=1#x//z');
+			assert.ok(result.markup.includes("href={resolve('a/(b)/c')}"));
+			assert.ok(result.markup.includes("href={resolve('a//b')}"));
+			assert.ok(result.markup.includes("href={resolve('docs?y=1#x//z')}"));
+			assert_import(result, 'resolve', '$app/paths', 'named');
+		});
+
+		test('emits `[x]` segments of hand-built trees in pathname form', () => {
+			const nodes: Array<MdzNode> = [
+				{
+					type: 'Link',
+					reference: '/a/[x]',
+					link_type: 'internal',
+					start: 0,
+					end: 6,
+					children: [{ type: 'Text', content: 'x', start: 0, end: 1 }]
+				}
+			];
+			const result = mdz_to_svelte(nodes, { components: {}, elements: {} });
+			assert.equal(result.markup, "<a href={resolve('a/[x]')}>x</a>");
+		});
+
+		test('collapses a leading `//` to stay under the base', () => {
+			const result = convert('[x](//example.com/a)');
+			assert.ok(result.markup.includes("href={resolve('example.com/a')}"));
 		});
 
 		test('escapes special chars in link reference', () => {
 			const result = convert("[docs](/docs/it's)");
-			assert.ok(result.markup.includes("resolve('/docs/it\\'s')"));
+			assert.ok(result.markup.includes("resolve('docs/it\\'s')"));
 		});
 
 		test('renders link with formatted children', () => {
@@ -557,7 +585,7 @@ describe('mdz_to_svelte', () => {
 				elements: {},
 				base: '/docs/foo/'
 			});
-			assert.ok(result.markup.includes("href={resolve('/docs/foo/bar')}"));
+			assert.ok(result.markup.includes("href={resolve('docs/foo/bar')}"));
 			assert_import(result, 'resolve', '$app/paths', 'named');
 		});
 
@@ -568,14 +596,14 @@ describe('mdz_to_svelte', () => {
 				elements: {},
 				base: '/docs/foo/'
 			});
-			assert.ok(result.markup.includes("href={resolve('/docs/foo')}"));
+			assert.ok(result.markup.includes("href={resolve('docs/foo')}"));
 			assert_import(result, 'resolve', '$app/paths', 'named');
 		});
 
 		test('base without trailing slash resolves correctly', () => {
 			const nodes = mdz_parse('see ./bar');
 			const result = mdz_to_svelte(nodes, { components: {}, elements: {}, base: '/docs/foo' });
-			assert.ok(result.markup.includes("href={resolve('/docs/foo/bar')}"));
+			assert.ok(result.markup.includes("href={resolve('docs/foo/bar')}"));
 		});
 
 		test('base does not affect absolute paths', () => {
@@ -585,7 +613,7 @@ describe('mdz_to_svelte', () => {
 				elements: {},
 				base: '/docs/foo/'
 			});
-			assert.ok(result.markup.includes("href={resolve('/docs/api')}"));
+			assert.ok(result.markup.includes("href={resolve('docs/api')}"));
 		});
 
 		test('base does not affect fragment links', () => {
@@ -617,7 +645,7 @@ describe('mdz_to_svelte', () => {
 				elements: {},
 				base: '/docs/foo/'
 			});
-			assert.ok(result.markup.includes("href={resolve('/docs/foo/bar')}"));
+			assert.ok(result.markup.includes("href={resolve('docs/foo/bar')}"));
 			assert.ok(result.markup.includes('>bar</a>'));
 		});
 
@@ -634,7 +662,7 @@ describe('mdz_to_svelte', () => {
 				elements: {},
 				base: '/docs/foo/'
 			});
-			assert.ok(result.markup.includes("href={resolve('/docs/baz')}"));
+			assert.ok(result.markup.includes("href={resolve('docs/baz')}"));
 		});
 
 		test('multiple relative links in same content resolve independently', () => {
@@ -644,8 +672,8 @@ describe('mdz_to_svelte', () => {
 				elements: {},
 				base: '/docs/foo/'
 			});
-			assert.ok(result.markup.includes("href={resolve('/docs/foo/bar')}"));
-			assert.ok(result.markup.includes("href={resolve('/docs/baz')}"));
+			assert.ok(result.markup.includes("href={resolve('docs/foo/bar')}"));
+			assert.ok(result.markup.includes("href={resolve('docs/baz')}"));
 		});
 	});
 

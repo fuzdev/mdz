@@ -27,6 +27,11 @@
 	const get_code = mdz_code_context.get_maybe();
 	const get_codeblock = mdz_codeblock_context.get_maybe();
 
+	// `resolve()`'s pathname branch, widened to runtime strings: the app's `Path` union
+	// only types known routes, and mdz references are authored content. Sound because
+	// `mdz_classify_link` strips the leading slash, so the call never takes the route-id branch.
+	const resolve_pathname = resolve as (pathname: string) => string;
+
 	// While a Code/Codeblock container is open, streamed text accumulates in
 	// `children`; `MdzStreamState` collapses it into `content` at close. Joining
 	// the children makes the content visible as it streams instead of popping in
@@ -94,14 +99,14 @@ tree instead of per node. -->
 		{#if link.kind === 'unsafe'}
 			{@render render_children(node.children)}
 		{:else if link.kind === 'resolve'}
-			<a href={resolve(link.href as any)}>{@render render_children(node.children)}</a>
+			<a href={resolve_pathname(link.path)}>{@render render_children(node.children)}</a>
 		{:else if link.kind === 'external'}
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 			<a href={link.href} target="_blank" rel="noopener">
 				{@render render_children(node.children)}
 			</a>
 		{:else}
-			<!-- fragment/query/relative/bare references skip resolve() (it accepts only absolute paths) -->
+			<!-- fragment/query/relative/bare references aren't under the base, so they skip resolve() -->
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 			<a href={link.href}>{@render render_children(node.children)}</a>
 		{/if}

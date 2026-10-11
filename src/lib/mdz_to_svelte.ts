@@ -53,8 +53,9 @@ export interface MdzToSvelteOptions {
 
 	/**
 	 * Base path for resolving relative links (e.g., `'/docs/usage/'`).
-	 * When provided, relative references (`./`, `../`) are resolved to absolute paths
-	 * and passed through `resolve()`. Trailing slash recommended.
+	 * When provided, relative references (`./`, `../`) are resolved against it and,
+	 * like absolute references, passed through `resolve()` in its pathname form.
+	 * Trailing slash recommended.
 	 */
 	base?: string;
 
@@ -140,7 +141,7 @@ export const mdz_to_svelte = (
 				if (link.kind === 'unsafe') return children_markup;
 				if (link.kind === 'resolve') {
 					imports.set('resolve', { path: '$app/paths', kind: 'named' });
-					return `<a href={resolve('${escape_js_string(link.href)}')}>${children_markup}</a>`;
+					return `<a href={resolve('${escape_js_string(link.path)}')}>${children_markup}</a>`;
 				}
 				if (link.kind === 'external') {
 					return `<a href={'${escape_js_string(link.href)}'} target="_blank" rel="noopener">${children_markup}</a>`;

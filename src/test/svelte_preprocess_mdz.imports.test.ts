@@ -40,7 +40,7 @@ describe('import addition', () => {
 
 		const result = await run_preprocess(input);
 		assert.ok(result.includes("import {resolve} from '$app/paths'"), 'should add resolve import');
-		assert.ok(result.includes("resolve('/docs/foo')"), 'should use resolve for internal link');
+		assert.ok(result.includes("resolve('docs/foo')"), 'should use resolve for internal link');
 	});
 
 	test('does not add resolve import for fragment links', async () => {
