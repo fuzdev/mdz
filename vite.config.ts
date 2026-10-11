@@ -60,7 +60,7 @@ export default defineConfig({
 			},
 			version: { name: execSync('git rev-parse HEAD').toString().trim() }
 		}),
-		svelte_docinfo(),
+		svelte_docinfo({ onDuplicates: 'throw' }),
 		// mdz renders arbitrary markdown that can't be detected,
 		// so this avoids optimizing away needed styles with `'all'`
 		vite_plugin_fuz_css({ additional_elements: 'all' }),
