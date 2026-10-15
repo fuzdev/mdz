@@ -20,13 +20,16 @@ import {
 	ALLOWED_ELEMENT_ATTRIBUTES
 } from './mdz_helpers.ts';
 
-// emits parsed attributes as Svelte markup (strings as JS-expression attributes,
-// booleans bare), matching the file's `name={'...'}` idiom for string attrs. Each
-// entry gets a leading space, so the result splices straight after the tag name.
+// emits parsed attributes as Svelte markup, matching the file's `name={'...'}`
+// idiom for string attrs. Booleans emit as `name={true}`, not bare — a bare
+// attribute compiles to `name=""`, while the runtime views spread `true`, which
+// Svelte renders per attribute (`aria-hidden="true"`); the expression form
+// keeps precompiled and runtime output identical. Each entry gets a leading
+// space, so the result splices straight after the tag name.
 const format_attributes = (entries: Array<[string, string | true]>): string => {
 	let out = '';
 	for (const [name, value] of entries) {
-		out += value === true ? ` ${name}` : ` ${name}={'${escape_js_string(value)}'}`;
+		out += value === true ? ` ${name}={true}` : ` ${name}={'${escape_js_string(value)}'}`;
 	}
 	return out;
 };

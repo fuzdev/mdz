@@ -360,7 +360,9 @@ const y = 1336;
 			<Mdz content={component_example} class="mb_xl5" />
 			<p>
 				Component attributes pass through as props without filtering — registering a component is
-				the trust decision:
+				the trust decision. With untrusted content, register only components that are safe to
+				receive any string props, since a component that spreads rest props onto an element forwards
+				attributes like <code>style</code> and <code>href</code>:
 			</p>
 			<Code content={component_props_example} />
 			<Mdz content={component_props_example} class="mb_xl5" />

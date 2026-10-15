@@ -742,16 +742,18 @@ describe('mdz_to_svelte', () => {
 			assert.notInclude(result.markup, 'onclick');
 		});
 
-		test('emits a bare boolean element attribute', () => {
+		test('emits a bare boolean element attribute as `{true}`', () => {
+			// not bare — Svelte compiles a bare attribute to `aria-hidden=""`, which
+			// ARIA reads as unset, while the runtime spread renders `"true"`
 			const result = convert('<aside aria-hidden>hi</aside>', {}, { aside: true });
-			assert.equal(result.markup, `<aside aria-hidden>hi</aside>`);
+			assert.equal(result.markup, `<aside aria-hidden={true}>hi</aside>`);
 		});
 
 		test('passes component attributes through as props (string + bare boolean)', () => {
 			const result = convert('<Alert status="error" dismissible>hi</Alert>', {
 				Alert: '#lib/Alert.svelte'
 			});
-			assert.equal(result.markup, `<Alert status={'error'} dismissible>hi</Alert>`);
+			assert.equal(result.markup, `<Alert status={'error'} dismissible={true}>hi</Alert>`);
 			assert_import(result, 'Alert', '#lib/Alert.svelte', 'default');
 		});
 
