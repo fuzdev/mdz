@@ -313,7 +313,12 @@ environment); `mdz_to_svelte.render_parity.test.ts` binds `mdz_to_svelte`'s
 generated markup to the runtime renderer's SSR output across the whole fixture
 corpus (normalized), and `mdz_render.stream_parity.test.ts` binds `MdzStream`'s
 SSR to `Mdz`'s — so the build-time, sync, and streaming render paths can't
-drift silently. Complexity invariants are guarded two ways:
+drift silently. Both skip tag-bearing input, so tags have their own pair:
+`mdz_render.tag_parity.test.ts` binds `MdzStream` to `Mdz` with registries set
+(attribute and prop filtering, the component boundary, placeholders), and
+`mdz_to_svelte.attribute_parity.test.ts` compiles `mdz_to_svelte`'s output with
+Svelte and diffs its SSR against the runtime's, so attribute semantics are
+Svelte's own on both sides. Complexity invariants are guarded two ways:
 `mdz_scaling.test.ts` runs nested-construct and streaming-hold inputs at large
 `n` under generous timeouts (a regression overflows or times out), and
 `mdz_scaling_ratio.test.ts` asserts machine-independent work ratios via the

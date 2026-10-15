@@ -1,6 +1,12 @@
 import { test, assert, describe } from 'vitest';
 
-import type { MdzAttribute, MdzNode, MdzNodeComponent, MdzNodeElement } from '#lib/mdz.ts';
+import {
+	mdz_parse,
+	type MdzAttribute,
+	type MdzNode,
+	type MdzNodeComponent,
+	type MdzNodeElement
+} from '#lib/mdz.ts';
 import {
 	is_letter,
 	is_tag_name_char,
@@ -939,5 +945,30 @@ describe('mdz_format_unregistered_attributes', () => {
 
 	test('uses double quotes for a value containing a single quote', () => {
 		assert.equal(mdz_format_unregistered_attributes([attr('title', "a'b")]), ` title="a'b"`);
+	});
+
+	test('round-trips through the parser', () => {
+		// the placeholder text re-parses to the same attributes — names, values,
+		// order, and booleans — across quote styles, empty values, and the
+		// characters the value scan treats as content (`>`, `<`, `/`, `=`, spaces)
+		const sources = [
+			'<X a="1">c</X>',
+			"<X a='1' b>c</X>",
+			`<X title='say "hi"' lang="it's">c</X>`,
+			'<X a="" b="x > y < z / = w" c>c</X>',
+			'<X data-x="1" aria-label="l" z_9="z" />'
+		];
+		const tag_attributes = (source: string): Array<[string, string | true]> => {
+			const node = mdz_parse(source)[0] as MdzNodeComponent;
+			assert.equal(node.type, 'Component', source);
+			return node.attributes.map((a) => [a.name, a.value]);
+		};
+		for (const source of sources) {
+			const original = tag_attributes(source);
+			const formatted = `<X${mdz_format_unregistered_attributes(
+				original.map(([name, value]) => attr(name, value))
+			)} />`;
+			assert.deepEqual(tag_attributes(formatted), original, formatted);
+		}
 	});
 });

@@ -15,7 +15,8 @@ import { load_fixtures_generic } from '../../test_helpers.ts';
 export const DEFAULT_TEST_OPTIONS = {
 	components: {
 		Alert: { path: '#lib/Alert.svelte', props: ['status', 'dismissible'] },
-		Card: '#lib/Card.svelte'
+		Card: '#lib/Card.svelte',
+		Echo: { path: '#lib/Echo.svelte', props: 'all' }
 	},
 	elements: { aside: true, details: true, summary: true, br: true },
 	compiled_component_import: '#lib/MdzPrecompiled.svelte',
