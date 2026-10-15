@@ -52,10 +52,18 @@ export default defineConfig({
 				},
 				// likewise, the corpus carries sample same-page fragment links (`[x](#frag)`)
 				// whose ids only exist in the fixture's imagined document, not on the page —
-				// tolerate those on the fixtures page, but keep missing-id checks fatal elsewhere
-				handleMissingId: ({ path, message }) => {
-					if (path?.startsWith('/docs/fixtures')) return;
-					throw new Error(message);
+				// tolerate those on the fixtures page, but keep missing-id checks fatal elsewhere.
+				// `path` is the page missing the id (a corpus link like `/docs#x//y` targets a
+				// real page), so filter on `referrers`, the pages holding the link
+				handleMissingId: ({ path, id, referrers, message }) => {
+					const real_referrers = referrers.filter((r) => !r.startsWith('/docs/fixtures'));
+					if (real_referrers.length === 0) return;
+					if (real_referrers.length === referrers.length) throw new Error(message);
+					// mixed: report only the referrers outside the fixtures page
+					throw new Error(
+						`no element with id="${id}" exists on ${path}, linked from:\n` +
+							real_referrers.map((r) => `  - ${r}`).join('\n')
+					);
 				}
 			},
 			version: { name: execSync('git rev-parse HEAD').toString().trim() }
