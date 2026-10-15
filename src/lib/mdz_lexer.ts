@@ -1804,7 +1804,7 @@ export class MdzLexer {
 		// policy (allowlist filtering) happens at render/build time. The scan is
 		// a single forward pass bounded by the line: any newline (or a missing
 		// separator, bad value, or duplicate name) rejects the whole tag to
-		// literal text via the shared `#failed_tag` bailout below.
+		// literal text via the shared `#reject_tag` bailout.
 		const attributes: Array<MdzAttribute> = [];
 		const seen = new Set<string>(); // O(1) duplicate-name detection
 		for (;;) {
@@ -1821,9 +1821,7 @@ export class MdzLexer {
 			// otherwise an attribute name must follow, space-separated from what
 			// precedes it (`<a x="1"y="2">` rejects — `y` abuts the closing quote)
 			if (c === -1 || !had_space || !is_letter(c)) {
-				this.#failed_tag.add(`${start}:${bound}`);
-				this.#index = start + 1;
-				this.#emit_text('<', start);
+				this.#reject_tag(start, bound);
 				return;
 			}
 			// collect the attribute name (same grammar as tag names)
@@ -1838,9 +1836,7 @@ export class MdzLexer {
 			const name = this.#text.slice(attr_start, this.#index);
 			// duplicate names are ambiguous (Svelte compile-errors) → literal tag
 			if (seen.has(name)) {
-				this.#failed_tag.add(`${start}:${bound}`);
-				this.#index = start + 1;
-				this.#emit_text('<', start);
+				this.#reject_tag(start, bound);
 				return;
 			}
 			seen.add(name);
@@ -1851,9 +1847,7 @@ export class MdzLexer {
 				// `{` brace literal, no unquoted value (this one check covers all)
 				const quote = this.#index < this.#text.length ? this.#text.charCodeAt(this.#index) : -1;
 				if (quote !== DOUBLE_QUOTE && quote !== APOSTROPHE) {
-					this.#failed_tag.add(`${start}:${bound}`);
-					this.#index = start + 1;
-					this.#emit_text('<', start);
+					this.#reject_tag(start, bound);
 					return;
 				}
 				this.#index++; // consume opening quote
@@ -1870,9 +1864,7 @@ export class MdzLexer {
 				}
 				if (this.#index >= this.#text.length || this.#text.charCodeAt(this.#index) === NEWLINE) {
 					// unterminated quote (or newline inside the value) → literal tag
-					this.#failed_tag.add(`${start}:${bound}`);
-					this.#index = start + 1;
-					this.#emit_text('<', start);
+					this.#reject_tag(start, bound);
 					return;
 				}
 				value = this.#text.slice(value_start, this.#index);
@@ -1901,9 +1893,7 @@ export class MdzLexer {
 
 		// Check for >
 		if (this.#index >= this.#text.length || this.#text.charCodeAt(this.#index) !== RIGHT_ANGLE) {
-			this.#failed_tag.add(`${start}:${bound}`);
-			this.#index = start + 1;
-			this.#emit_text('<', start);
+			this.#reject_tag(start, bound);
 			return;
 		}
 		this.#index++; // consume >
@@ -1920,15 +1910,11 @@ export class MdzLexer {
 		const search_limit = Math.min(this.#max_search_index, this.#text.length);
 		const closing_tag_pos = this.#index_of(closing_tag, this.#index);
 		if (closing_tag_pos === -1 || closing_tag_pos > search_limit) {
-			this.#failed_tag.add(`${start}:${bound}`);
-			this.#index = start + 1;
-			this.#emit_text('<', start);
+			this.#reject_tag(start, bound);
 			return;
 		}
 		if (this.#has_paragraph_break_between(this.#index, closing_tag_pos)) {
-			this.#failed_tag.add(`${start}:${bound}`);
-			this.#index = start + 1;
-			this.#emit_text('<', start);
+			this.#reject_tag(start, bound);
 			return;
 		}
 
@@ -1982,8 +1968,15 @@ export class MdzLexer {
 		// (the `#revert_tokens_from_link_open` pattern; the old fallthrough
 		// left a dangling `tag_open` whose parser fallback discarded content)
 		this.#max_search_index = saved_max;
-		this.#failed_tag.add(`${start}:${bound}`);
 		this.#tokens.splice(open_token_index);
+		this.#reject_tag(start, bound);
+	}
+
+	// a tag open at `start` that can't commit: memoizes the failure for this
+	// `bound` so re-entries bail fast, then emits the `<` as text and resumes
+	// scanning after it — the rest re-parses as ordinary content
+	#reject_tag(start: number, bound: number): void {
+		this.#failed_tag.add(`${start}:${bound}`);
 		this.#index = start + 1;
 		this.#emit_text('<', start);
 	}
