@@ -37,4 +37,4 @@ for the designs and intros. mdz is the result of 5+ years of prototyping ideas.
 
 ## License
 
-[MIT](LICENSE)
+[0BSD](LICENSE)
