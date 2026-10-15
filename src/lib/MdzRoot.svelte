@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type {Snippet} from 'svelte';
+	import type { Snippet } from 'svelte';
 
 	import {
 		mdz_base_context,
@@ -11,7 +11,7 @@
 		type MdzCodeComponent,
 		type MdzCodeblockComponent,
 		type MdzComponents,
-		type MdzElements,
+		type MdzElements
 	} from './mdz_contexts.ts';
 
 	const {
@@ -20,7 +20,7 @@
 		elements,
 		code,
 		codeblock,
-		children,
+		children
 	}: {
 		base?: string;
 		components?: MdzComponents;

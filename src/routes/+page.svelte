@@ -2,23 +2,23 @@
 	// the CSS Custom Highlight API rules for the editable source live in theme_highlight.css
 	import '@fuzdev/fuz_code/theme_highlight.css';
 
-	import {onMount} from 'svelte';
+	import { onMount } from 'svelte';
 	import Code from '@fuzdev/fuz_code/Code.svelte';
 	import CodeTextarea from '@fuzdev/fuz_code/CodeTextarea.svelte';
 	import DocsLink from '@fuzdev/fuz_ui/DocsLink.svelte';
 	import DocsFooter from '@fuzdev/fuz_ui/DocsFooter.svelte';
 	import Card from '@fuzdev/fuz_ui/Card.svelte';
-	import {site_context} from '@fuzdev/fuz_ui/site.svelte.ts';
-	import {FUZ_DEV_URL, MAIN_HEADER_MARGIN_TOP} from '@fuzdev/fuz_ui/constants.ts';
-	import {DOCS_PATH} from '@fuzdev/fuz_ui/docs_helpers.svelte.ts';
-	import {Library, library_context} from '@fuzdev/fuz_ui/library.svelte.ts';
+	import { site_context } from '@fuzdev/fuz_ui/site.svelte.ts';
+	import { FUZ_DEV_URL, MAIN_HEADER_MARGIN_TOP } from '@fuzdev/fuz_ui/constants.ts';
+	import { DOCS_PATH } from '@fuzdev/fuz_ui/docs_helpers.svelte.ts';
+	import { Library, library_context } from '@fuzdev/fuz_ui/library.svelte.ts';
 
-	import {library_json} from './library.ts';
-	import Mdz from '$lib/Mdz.svelte';
-	import MdzRoot from '$lib/MdzRoot.svelte';
-	import MdzStream from '$lib/MdzStream.svelte';
-	import {MdzStreamParser} from '$lib/mdz_stream_parser.ts';
-	import {MdzStreamState} from '$lib/mdz_stream_state.svelte.ts';
+	import { library_json } from './library.ts';
+	import Mdz from '#lib/Mdz.svelte';
+	import MdzRoot from '#lib/MdzRoot.svelte';
+	import MdzStream from '#lib/MdzStream.svelte';
+	import { MdzStreamParser } from '#lib/mdz_stream_parser.ts';
+	import { MdzStreamState } from '#lib/mdz_stream_state.svelte.ts';
 
 	const site = site_context.get();
 
@@ -27,7 +27,7 @@
 	const library = new Library(library_json);
 	library_context.set(() => library);
 
-	const DEMO_CONTENT_DEFAULT = `**mdz** is a strict markdown dialect built for streaming, [Svelte](https://svelte.dev/) authoring, docs websites, and untrusted content. This text is rendering through \`MdzStreamParser\` right now, character by character.
+	const DEMO_CONTENT_DEFAULT = `**mdz** is a strict markdown dialect built for streaming, [Svelte](https://svelte.dev/) authoring, docs websites, and untrusted content. This text is rendering through \`MdzStreamParser\` character by character.
 
 It supports markdown basics like **bold**, _italic_, ~~strikethrough~~, \`inline code\`, headings, and auto-detected links like https://www.fuz.dev. <Mdz content="**Svelte components**" inline /> too!
 
@@ -171,7 +171,7 @@ For more see the /docs.`;
 				</MdzRoot>
 			</div>
 			<div class="my_lg row gap_md width:100%">
-				<button type="button" class="plain" onclick={demo_play}> replay </button>
+				<button type="button" class="plain" onclick={demo_play}>replay</button>
 				<button type="button" class="plain" onclick={demo_reset} disabled={!demo_modified}>
 					reset
 				</button>
@@ -204,7 +204,7 @@ For more see the /docs.`;
 			</div>
 		</section>
 		<section>
-			<Card href={DOCS_PATH} icon="">docs</Card>
+			<Card href={DOCS_PATH}>docs</Card>
 		</section>
 		<section>
 			<DocsFooter repo_url={site.repo_url} root_url={FUZ_DEV_URL} />

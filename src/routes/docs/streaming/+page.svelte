@@ -1,7 +1,11 @@
 <script lang="ts">
-	import {onMount} from 'svelte';
+	// the CSS Custom Highlight API rules for the demo source live in theme_highlight.css
+	import '@fuzdev/fuz_code/theme_highlight.css';
+
+	import { onMount } from 'svelte';
 	import Code from '@fuzdev/fuz_code/Code.svelte';
-	import {tome_get_by_slug} from '@fuzdev/fuz_ui/tome.ts';
+	import CodeTextarea from '@fuzdev/fuz_code/CodeTextarea.svelte';
+	import { tome_get_by_slug } from '@fuzdev/fuz_ui/tome.ts';
 	import TomeContent from '@fuzdev/fuz_ui/TomeContent.svelte';
 	import TomeSection from '@fuzdev/fuz_ui/TomeSection.svelte';
 	import TomeSectionHeader from '@fuzdev/fuz_ui/TomeSectionHeader.svelte';
@@ -10,11 +14,11 @@
 	import Details from '@fuzdev/fuz_ui/Details.svelte';
 	import DocsLink from '@fuzdev/fuz_ui/DocsLink.svelte';
 
-	import Mdz from '$lib/Mdz.svelte';
-	import MdzStream from '$lib/MdzStream.svelte';
-	import {MdzStreamParser} from '$lib/mdz_stream_parser.ts';
-	import {MdzStreamState} from '$lib/mdz_stream_state.svelte.ts';
-	import MdzRoot from '$lib/MdzRoot.svelte';
+	import Mdz from '#lib/Mdz.svelte';
+	import MdzStream from '#lib/MdzStream.svelte';
+	import { MdzStreamParser } from '#lib/mdz_stream_parser.ts';
+	import { MdzStreamState } from '#lib/mdz_stream_state.svelte.ts';
+	import MdzRoot from '#lib/MdzRoot.svelte';
 	import mdz_paths from './mdz_streaming_paths.mdz?raw';
 	import mdz_picking from './mdz_streaming_picking.mdz?raw';
 	import mdz_opcodes from './mdz_streaming_opcodes.mdz?raw';
@@ -68,7 +72,7 @@ const y = 1336;
 		stream_state.apply_batch(ops);
 		stream_recent_opcodes = [
 			...stream_recent_opcodes,
-			...ops.map((op) => JSON.stringify(op)),
+			...ops.map((op) => JSON.stringify(op))
 		].slice(-STREAM_OPCODES_MAX);
 	};
 
@@ -146,14 +150,12 @@ const y = 1336;
 		<section>
 			<p>
 				Use the <code>Mdz</code> component (see <TomeLink slug="usage" />) when you have complete
-				content upfront. For content that arrives incrementally (e.g. from an LLM), use <DeclarationLink
-					name="MdzStreamParser"
-				/> with
-				<DeclarationLink name="MdzStreamState" /> and <DeclarationLink name="MdzStream" />. The
-				parser emits opcodes as rendering instructions — never re-parsing — and the state applies
-				them as fine-grained Svelte mutations. The streaming design is derived from
-				<a href="https://github.com/pngwn">@pngwn</a>'s ideas in this
-				<a href="https://bsky.app/profile/pngwn.at/post/3mi527zntb22n">Bluesky thread</a>
+				content upfront. For content that arrives incrementally (e.g. from an LLM), use
+				<DeclarationLink name="MdzStreamParser" /> with <DeclarationLink name="MdzStreamState" />
+				and <DeclarationLink name="MdzStream" />. The parser emits opcodes as rendering instructions
+				— never re-parsing — and the state applies them as fine-grained Svelte mutations. The
+				streaming design is derived from <a href="https://github.com/pngwn">@pngwn</a>'s ideas in
+				this <a href="https://bsky.app/profile/pngwn.at/post/3mi527zntb22n">Bluesky thread</a>
 				(<a href="https://pngwn.at/">pngwn.at</a>), which originated the approach mdz implements:
 				restrict the dialect so streaming is tractable, render optimistically and correct when
 				wrong, minimize work by never re-parsing, and emit serializable target-agnostic opcodes
@@ -167,12 +169,13 @@ const y = 1336;
 				Click the stream button below — each character is fed one at a time to show how constructs
 				build incrementally:
 			</p>
-			<textarea
-				style:height="300px"
+			<CodeTextarea
 				bind:value={stream_content}
+				lang="md"
+				style="height: 300px"
 				oninput={stream_reset}
 				aria-label="streaming mdz source"
-			></textarea>
+			/>
 			<div class="row gap_md mb_md flex-wrap:wrap">
 				<button
 					style:width="85px"
@@ -234,11 +237,14 @@ const y = 1336;
 			<div class="panel shade_05 mb_lg p_md" style:min-height="300px">
 				{#if stream_pos === 0}
 					<p class="color_d_50">
-						(press <button
+						(press
+						<button
 							type="button"
-							class="inline color_d sm"
-							onclick={() => (stream_running ? stream_pause() : stream_start())}>stream</button
-						> to begin)
+							class="inline palette_d sized_sm"
+							onclick={() => (stream_running ? stream_pause() : stream_start())}
+						>
+							stream
+						</button> to begin)
 					</p>
 				{:else}
 					<MdzStream stream={stream_state} />
@@ -246,13 +252,14 @@ const y = 1336;
 			</div>
 			<Details>
 				{#snippet summary()}
-					opcodes ({stream_recent_opcodes.length === STREAM_OPCODES_MAX
+					opcodes
+					({stream_recent_opcodes.length === STREAM_OPCODES_MAX
 						? `last ${STREAM_OPCODES_MAX}`
 						: stream_recent_opcodes.length})
 				{/snippet}
 				<p>
-					Each character fed to <DeclarationLink name="MdzStreamParser" /> can emit zero or more opcodes.
-					This shows the most recent {STREAM_OPCODES_MAX}: watch <code>open</code>,
+					Each character fed to <DeclarationLink name="MdzStreamParser" /> can emit zero or more
+					opcodes. This shows the most recent {STREAM_OPCODES_MAX}: watch <code>open</code>,
 					<code>text</code>, <code>close</code> sequences form, and <code>revert</code> when an
 					optimistic assumption (e.g. unclosed <code>~~</code>) is abandoned.
 				</p>

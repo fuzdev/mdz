@@ -1,6 +1,6 @@
-import {test, assert, describe} from 'vitest';
+import { test, assert, describe } from 'vitest';
 
-import type {MdzAttribute, MdzNode, MdzNodeComponent, MdzNodeElement} from '$lib/mdz.ts';
+import type { MdzAttribute, MdzNode, MdzNodeComponent, MdzNodeElement } from '#lib/mdz.ts';
 import {
 	is_letter,
 	is_tag_name_char,
@@ -20,6 +20,7 @@ import {
 	match_url_prefix_case_insensitive,
 	ascii_to_lower,
 	mdz_resolve_relative_path,
+	mdz_classify_link,
 	mdz_extract_single_tag,
 	ASTERISK,
 	UNDERSCORE,
@@ -34,28 +35,28 @@ import {
 	SPACE,
 	LEFT_BRACKET,
 	RIGHT_BRACKET,
-	LEFT_PAREN,
-} from '$lib/mdz_helpers.ts';
+	LEFT_PAREN
+} from '#lib/mdz_helpers.ts';
 
 /* eslint-disable no-script-url */
 
 // helper to create nodes with dummy positions
-const text = (content: string): MdzNode => ({type: 'Text', content, start: 0, end: 0});
-const bold = (children: Array<MdzNode>): MdzNode => ({type: 'Bold', children, start: 0, end: 0});
+const text = (content: string): MdzNode => ({ type: 'Text', content, start: 0, end: 0 });
+const bold = (children: Array<MdzNode>): MdzNode => ({ type: 'Bold', children, start: 0, end: 0 });
 const italic = (children: Array<MdzNode>): MdzNode => ({
 	type: 'Italic',
 	children,
 	start: 0,
-	end: 0,
+	end: 0
 });
-const code = (content: string): MdzNode => ({type: 'Code', content, start: 0, end: 0});
+const code = (content: string): MdzNode => ({ type: 'Code', content, start: 0, end: 0 });
 const link = (reference: string, children: Array<MdzNode>): MdzNode => ({
 	type: 'Link',
 	reference,
 	children,
 	link_type: 'external',
 	start: 0,
-	end: 0,
+	end: 0
 });
 const component = (name: string, children: Array<MdzNode>): MdzNodeComponent => ({
 	type: 'Component',
@@ -63,7 +64,7 @@ const component = (name: string, children: Array<MdzNode>): MdzNodeComponent => 
 	attributes: [],
 	children,
 	start: 0,
-	end: 0,
+	end: 0
 });
 const element = (name: string, children: Array<MdzNode>): MdzNodeElement => ({
 	type: 'Element',
@@ -71,7 +72,7 @@ const element = (name: string, children: Array<MdzNode>): MdzNodeElement => ({
 	attributes: [],
 	children,
 	start: 0,
-	end: 0,
+	end: 0
 });
 
 describe('is_letter', () => {
@@ -215,7 +216,7 @@ describe('mdz_trim_url_punctuation', () => {
 	test('handles balanced parentheses (Wikipedia-style URLs)', () => {
 		assert.equal(
 			mdz_trim_url_punctuation('https://en.wikipedia.org/wiki/Foo_(bar)'),
-			'https://en.wikipedia.org/wiki/Foo_(bar)',
+			'https://en.wikipedia.org/wiki/Foo_(bar)'
 		);
 	});
 
@@ -243,7 +244,7 @@ describe('mdz_trim_url_punctuation', () => {
 	test('keeps nested balanced parens', () => {
 		assert.equal(
 			mdz_trim_url_punctuation('https://en.wikipedia.org/wiki/Foo_(bar_(baz))'),
-			'https://en.wikipedia.org/wiki/Foo_(bar_(baz))',
+			'https://en.wikipedia.org/wiki/Foo_(bar_(baz))'
 		);
 	});
 
@@ -392,7 +393,7 @@ describe('mdz_text_content', () => {
 	test('recurses into nested formatting', () => {
 		assert.equal(
 			mdz_text_content([bold([text('bold '), italic([text('and italic')])])]),
-			'bold and italic',
+			'bold and italic'
 		);
 	});
 
@@ -405,7 +406,7 @@ describe('mdz_text_content', () => {
 	});
 
 	test('returns empty string for nodes without content or children', () => {
-		const hr: MdzNode = {type: 'Hr', start: 0, end: 0};
+		const hr: MdzNode = { type: 'Hr', start: 0, end: 0 };
 		assert.equal(mdz_text_content([hr]), '');
 	});
 
@@ -414,7 +415,7 @@ describe('mdz_text_content', () => {
 	});
 
 	test('skips Hr nodes interspersed with text', () => {
-		const hr: MdzNode = {type: 'Hr', start: 0, end: 0};
+		const hr: MdzNode = { type: 'Hr', start: 0, end: 0 };
 		assert.equal(mdz_text_content([text('before'), hr, text('after')]), 'beforeafter');
 	});
 });
@@ -435,7 +436,7 @@ describe('mdz_heading_id', () => {
 	test('handles code in headings', () => {
 		assert.equal(
 			mdz_heading_id([text('The '), code('foo'), text(' function')]),
-			'the-foo-function',
+			'the-foo-function'
 		);
 	});
 });
@@ -723,6 +724,86 @@ describe('mdz_resolve_relative_path', () => {
 	});
 });
 
+describe('mdz_classify_link', () => {
+	test('absolute references resolve in pathname form, verbatim', () => {
+		for (const [reference, path] of [
+			['/docs/foo', 'docs/foo'],
+			['/', ''],
+			['/a/(b)/c', 'a/(b)/c'],
+			['/a//b/', 'a//b/'],
+			['/a/[x]', 'a/[x]'],
+			['/docs/[x+2f]', 'docs/[x+2f]'],
+			['/docs#x', 'docs#x'],
+			['/docs?y=1#x', 'docs?y=1#x'],
+			['/#x', '#x']
+		] as const) {
+			assert.deepEqual(mdz_classify_link(reference, 'internal', undefined), {
+				kind: 'resolve',
+				path
+			});
+		}
+	});
+
+	test('a leading `/`, `\\`, tab, or newline run collapses so the path stays under the base', () => {
+		for (const reference of [
+			'//evil.com/a',
+			'/\\evil.com/a',
+			'/\\/\\evil.com/a',
+			'/\t/evil.com/a',
+			'/\n/evil.com/a',
+			'/\r/evil.com/a'
+		]) {
+			assert.deepEqual(mdz_classify_link(reference, 'internal', undefined), {
+				kind: 'resolve',
+				path: 'evil.com/a'
+			});
+		}
+	});
+
+	test('a `\\` run after joining a relative reference to `base` collapses too', () => {
+		for (const [reference, base] of [
+			['./\\evil.com/a', '/'],
+			['../\\evil.com/a', '/docs/'],
+			['./a', '\\evil.com/']
+		] as const) {
+			assert.deepEqual(mdz_classify_link(reference, 'internal', base), {
+				kind: 'resolve',
+				path: 'evil.com/a'
+			});
+		}
+	});
+
+	test('relative references resolve against `base` in pathname form', () => {
+		assert.deepEqual(mdz_classify_link('./(b)/c', 'internal', '/docs/(g)/'), {
+			kind: 'resolve',
+			path: 'docs/(g)/(b)/c'
+		});
+		assert.deepEqual(mdz_classify_link('../d', 'internal', '/docs/'), {
+			kind: 'resolve',
+			path: 'd'
+		});
+	});
+
+	test('fragment, query, relative, and bare references stay raw', () => {
+		for (const reference of ['#x', '?y=1', './a', '../a', 'a/b']) {
+			assert.deepEqual(mdz_classify_link(reference, 'internal', undefined), {
+				kind: 'internal',
+				href: reference
+			});
+		}
+	});
+
+	test('external and unsafe references', () => {
+		assert.deepEqual(mdz_classify_link('https://fuz.dev', 'external', undefined), {
+			kind: 'external',
+			href: 'https://fuz.dev'
+		});
+		assert.deepEqual(mdz_classify_link('javascript:alert(1)', 'internal', undefined), {
+			kind: 'unsafe'
+		});
+	});
+});
+
 describe('mdz_extract_single_tag', () => {
 	test('returns component node when it is the only node', () => {
 		const comp = component('Alert', [text('warning')]);
@@ -777,7 +858,7 @@ const attr = (name: string, value: string | true = true): MdzAttribute => ({
 	name,
 	value,
 	start: 0,
-	end: 0,
+	end: 0
 });
 
 describe('mdz_filter_element_attributes', () => {
@@ -786,9 +867,9 @@ describe('mdz_filter_element_attributes', () => {
 			mdz_filter_element_attributes(
 				'div',
 				[attr('class', 'box'), attr('title', 'hi')],
-				ALLOWED_ELEMENT_ATTRIBUTES,
+				ALLOWED_ELEMENT_ATTRIBUTES
 			),
-			{class: 'box', title: 'hi'},
+			{ class: 'box', title: 'hi' }
 		);
 	});
 
@@ -797,9 +878,9 @@ describe('mdz_filter_element_attributes', () => {
 			mdz_filter_element_attributes(
 				'span',
 				[attr('aria-label', 'close')],
-				ALLOWED_ELEMENT_ATTRIBUTES,
+				ALLOWED_ELEMENT_ATTRIBUTES
 			),
-			{'aria-label': 'close'},
+			{ 'aria-label': 'close' }
 		);
 	});
 
@@ -808,9 +889,9 @@ describe('mdz_filter_element_attributes', () => {
 			mdz_filter_element_attributes(
 				'div',
 				[attr('class', 'box'), attr('onclick', 'x'), attr('id', 'y')],
-				ALLOWED_ELEMENT_ATTRIBUTES,
+				ALLOWED_ELEMENT_ATTRIBUTES
 			),
-			{class: 'box'},
+			{ class: 'box' }
 		);
 	});
 
@@ -819,9 +900,9 @@ describe('mdz_filter_element_attributes', () => {
 			mdz_filter_element_attributes(
 				'span',
 				[attr('aria-hidden', true)],
-				ALLOWED_ELEMENT_ATTRIBUTES,
+				ALLOWED_ELEMENT_ATTRIBUTES
 			),
-			{'aria-hidden': true},
+			{ 'aria-hidden': true }
 		);
 	});
 
@@ -842,7 +923,7 @@ describe('mdz_format_unregistered_attributes', () => {
 	test('formats a mix of string and boolean attributes', () => {
 		assert.equal(
 			mdz_format_unregistered_attributes([attr('status', 'error'), attr('disabled', true)]),
-			' status="error" disabled',
+			' status="error" disabled'
 		);
 	});
 

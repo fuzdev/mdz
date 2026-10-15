@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type {Snippet} from 'svelte';
-	import type {SvelteHTMLElements} from 'svelte/elements';
+	import type { Snippet } from 'svelte';
+	import type { SvelteHTMLElements } from 'svelte/elements';
 
-	import type {MdzWhitespace} from './mdz_contexts.ts';
+	import type { MdzWhitespace } from './mdz_contexts.ts';
 
 	/**
 	 * Wrapper for precompiled mdz content. Used by `svelte_preprocess_mdz`.

@@ -8,16 +8,16 @@
  * @module
  */
 
-import {UnreachableError} from '@fuzdev/fuz_util/error.ts';
-import {escape_svelte_text} from '@fuzdev/fuz_util/svelte_preprocess_helpers.ts';
-import {escape_js_string} from '@fuzdev/fuz_util/string.ts';
+import { UnreachableError } from '@fuzdev/fuz_util/error.ts';
+import { escape_svelte_text } from '@fuzdev/fuz_util/svelte_preprocess_helpers.ts';
+import { escape_js_string } from '@fuzdev/fuz_util/string.ts';
 
-import type {MdzNode, MdzNodeTableRow} from './mdz.ts';
+import type { MdzNode, MdzNodeTableRow } from './mdz.ts';
 import {
 	mdz_is_void_element,
 	mdz_classify_link,
 	mdz_filter_element_attributes,
-	ALLOWED_ELEMENT_ATTRIBUTES,
+	ALLOWED_ELEMENT_ATTRIBUTES
 } from './mdz_helpers.ts';
 
 // emits parsed attributes as Svelte markup (strings as JS-expression attributes,
@@ -39,7 +39,7 @@ export interface MdzToSvelteResult {
 	markup: string;
 
 	/** Required imports: `Map<local_name, {path, kind}>`. */
-	imports: Map<string, {path: string; kind: 'default' | 'named'}>;
+	imports: Map<string, { path: string; kind: 'default' | 'named' }>;
 
 	/** Whether content references unconfigured Component or Element tags. */
 	has_unconfigured_tags: boolean;
@@ -54,7 +54,7 @@ const component_local_name = (import_path: string): string =>
  */
 export interface MdzToSvelteOptions {
 	/**
-	 * Component name to import path mapping (e.g., `{Alert: '$lib/Alert.svelte'}`).
+	 * Component name to import path mapping (e.g., `{Alert: '#lib/Alert.svelte'}`).
 	 * If content references a component not in this map, `has_unconfigured_tags` is set.
 	 */
 	components: Record<string, string>;
@@ -69,8 +69,9 @@ export interface MdzToSvelteOptions {
 
 	/**
 	 * Base path for resolving relative links (e.g., `'/docs/usage/'`).
-	 * When provided, relative references (`./`, `../`) are resolved to absolute paths
-	 * and passed through `resolve()`. Trailing slash recommended.
+	 * When provided, relative references (`./`, `../`) are resolved against it and,
+	 * like absolute references, passed through `resolve()` in its pathname form.
+	 * Trailing slash recommended.
 	 */
 	base?: string;
 
@@ -101,10 +102,10 @@ export interface MdzToSvelteOptions {
  */
 export const mdz_to_svelte = (
 	nodes: Array<MdzNode>,
-	options: MdzToSvelteOptions,
+	options: MdzToSvelteOptions
 ): MdzToSvelteResult => {
-	const {components, elements, base, code_component_import, codeblock_component_import} = options;
-	const imports: Map<string, {path: string; kind: 'default' | 'named'}> = new Map();
+	const { components, elements, base, code_component_import, codeblock_component_import } = options;
+	const imports: Map<string, { path: string; kind: 'default' | 'named' }> = new Map();
 	let has_unconfigured_tags = false;
 
 	const render_nodes = (children: Array<MdzNode>): string => {
@@ -121,7 +122,7 @@ export const mdz_to_svelte = (
 					return `<code>${escape_svelte_text(node.content)}</code>`;
 				}
 				const name = component_local_name(code_component_import);
-				imports.set(name, {path: code_component_import, kind: 'default'});
+				imports.set(name, { path: code_component_import, kind: 'default' });
 				return `<${name} reference={'${escape_js_string(node.content)}'} />`;
 			}
 
@@ -132,7 +133,7 @@ export const mdz_to_svelte = (
 					return `<pre><code>${escape_svelte_text(node.content)}</code></pre>`;
 				}
 				const name = component_local_name(codeblock_component_import);
-				imports.set(name, {path: codeblock_component_import, kind: 'default'});
+				imports.set(name, { path: codeblock_component_import, kind: 'default' });
 				return `<${name} ${lang_attr} content={'${escape_js_string(node.content)}'} />`;
 			}
 
@@ -155,8 +156,8 @@ export const mdz_to_svelte = (
 				const link = mdz_classify_link(node.reference, node.link_type, base);
 				if (link.kind === 'unsafe') return children_markup;
 				if (link.kind === 'resolve') {
-					imports.set('resolve', {path: '$app/paths', kind: 'named'});
-					return `<a href={resolve('${escape_js_string(link.href)}')}>${children_markup}</a>`;
+					imports.set('resolve', { path: '$app/paths', kind: 'named' });
+					return `<a href={resolve('${escape_js_string(link.path)}')}>${children_markup}</a>`;
 				}
 				if (link.kind === 'external') {
 					return `<a href={'${escape_js_string(link.href)}'} target="_blank" rel="noopener">${children_markup}</a>`;
@@ -183,7 +184,7 @@ export const mdz_to_svelte = (
 				return `<blockquote>${render_nodes(node.children)}</blockquote>`;
 
 			case 'Table': {
-				const {align} = node;
+				const { align } = node;
 				const render_row = (row: MdzNodeTableRow, tag: 'th' | 'td'): string => {
 					let cells = '';
 					// normalize to the column count: pad short rows, ignore extra cells
@@ -232,8 +233,8 @@ export const mdz_to_svelte = (
 				// runtime output stay identical (its DEV-warn fires at build time too)
 				const attrs_str = format_attributes(
 					Object.entries(
-						mdz_filter_element_attributes(node.name, node.attributes, ALLOWED_ELEMENT_ATTRIBUTES),
-					),
+						mdz_filter_element_attributes(node.name, node.attributes, ALLOWED_ELEMENT_ATTRIBUTES)
+					)
 				);
 				if (mdz_is_void_element(node.name)) {
 					// void elements cannot have content — any parsed children are dropped
@@ -248,10 +249,10 @@ export const mdz_to_svelte = (
 					has_unconfigured_tags = true;
 					return '';
 				}
-				imports.set(node.name, {path: import_path, kind: 'default'});
+				imports.set(node.name, { path: import_path, kind: 'default' });
 				// pass-through — every attribute becomes a prop, no filtering
 				const attrs_str = format_attributes(
-					node.attributes.map((a): [string, string | true] => [a.name, a.value]),
+					node.attributes.map((a): [string, string | true] => [a.name, a.value])
 				);
 				return `<${node.name}${attrs_str}>${render_nodes(node.children)}</${node.name}>`;
 			}
@@ -262,5 +263,5 @@ export const mdz_to_svelte = (
 	};
 
 	const markup = render_nodes(nodes);
-	return {markup, imports, has_unconfigured_tags};
+	return { markup, imports, has_unconfigured_tags };
 };

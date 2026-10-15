@@ -23,7 +23,7 @@
  *
  * @nodocs
  */
-export const mdz_debug_work: {enabled: boolean; total: number} = {enabled: false, total: 0};
+export const mdz_debug_work: { enabled: boolean; total: number } = { enabled: false, total: 0 };
 
 /**
  * Reset the counter and set whether the hot paths accumulate into it. Tests call

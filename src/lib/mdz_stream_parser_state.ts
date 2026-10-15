@@ -8,10 +8,10 @@
  * @module
  */
 
-import type {MdzNodeTypeContainer, MdzNodeId, MdzOpcode} from './mdz_opcodes.ts';
-import type {MdzTableCellParser} from './mdz.ts';
-import {NEWLINE, has_non_whitespace, mdz_heading_id_from_text} from './mdz_helpers.ts';
-import {mdz_debug_work} from './mdz_debug_work.ts';
+import type { MdzNodeTypeContainer, MdzNodeId, MdzOpcode } from './mdz_opcodes.ts';
+import type { MdzTableCellParser } from './mdz.ts';
+import { NEWLINE, has_non_whitespace, mdz_heading_id_from_text } from './mdz_helpers.ts';
+import { mdz_debug_work } from './mdz_debug_work.ts';
 
 /**
  * Tri-state result for `try_*` parser handlers.
@@ -114,7 +114,7 @@ export interface MdzBlockquoteState {
 	 * offsets — one per quote line; the line's content and terminating
 	 * newline are contiguous in both coordinate spaces.
 	 */
-	segments: Array<{inner_start: number; source_start: number}>;
+	segments: Array<{ inner_start: number; source_start: number }>;
 	/** Total bytes fed to the inner document so far. */
 	inner_len: number;
 	/**
@@ -218,7 +218,7 @@ export interface MdzStreamParserState {
 	 * a dedent to that indent ends the table, returning control to the list).
 	 * `cell_parser` is the table's shared cell parser, rebound per row.
 	 */
-	table: {id: MdzNodeId; item_indent: number | null; cell_parser: MdzTableCellParser} | null;
+	table: { id: MdzNodeId; item_indent: number | null; cell_parser: MdzTableCellParser } | null;
 	/**
 	 * Whether the innermost open ListItem's first inline run is current.
 	 * Content then flows directly into the ListItem frame — the sync AST
@@ -343,7 +343,7 @@ export const create_state = (): MdzStreamParserState => ({
 	last_empty_item_end: 0,
 	base_offset: 0,
 	search_memo: null,
-	open_counts: {Bold: 0, Italic: 0, Strikethrough: 0, Link: 0},
+	open_counts: { Bold: 0, Italic: 0, Strikethrough: 0, Link: 0 },
 	open_link_tag_depth: 0,
 	open_tag_counts: null,
 	in_heading: false,
@@ -357,7 +357,7 @@ export const create_state = (): MdzStreamParserState => ({
 	paragraph_stack_idx: -1,
 	last_text_id: null,
 	last_text_ended_with_newline: false,
-	last_text_was_singleton_newline: false,
+	last_text_was_singleton_newline: false
 });
 
 /** @nodocs */
@@ -377,7 +377,7 @@ export const push_stack_entry = (
 	node_type: MdzNodeTypeContainer,
 	start: number,
 	delimiter: string = '',
-	tag_name?: string,
+	tag_name?: string
 ): void => {
 	state.stack.push({
 		id,
@@ -386,7 +386,7 @@ export const push_stack_entry = (
 		tag_name,
 		has_children: false,
 		has_non_whitespace_content: false,
-		start,
+		start
 	});
 	if (node_type === 'Paragraph') {
 		state.paragraph_stack_idx = state.stack.length - 1;
@@ -412,7 +412,7 @@ export const push_stack_entry = (
 const bump_open_count = (
 	state: MdzStreamParserState,
 	node_type: MdzNodeTypeContainer,
-	delta: number,
+	delta: number
 ): void => {
 	const counts = state.open_counts;
 	if (node_type === 'Bold') counts.Bold += delta;
@@ -502,7 +502,7 @@ const memo_index_of = (
 	state: MdzStreamParserState,
 	memo: BufferSearchMemo,
 	needle: string,
-	from: number,
+	from: number
 ): number => {
 	const global_from = state.base_offset + from;
 	const global_end = state.base_offset + state.buffer.length;
@@ -548,13 +548,13 @@ const memo_index_of = (
 export const buffer_index_of = (
 	state: MdzStreamParserState,
 	needle: string,
-	from: number,
+	from: number
 ): number => {
 	const map = (state.search_memo ??= new Map());
 	let memo = map.get(needle);
 	if (memo === undefined) {
 		// "scanned [0, 0), found nothing" — memo_index_of handles the full scan
-		memo = {from: 0, result: -1, searched_to: 0};
+		memo = { from: 0, result: -1, searched_to: 0 };
 		map.set(needle, memo);
 	}
 	return memo_index_of(state, memo, needle, from);
@@ -642,7 +642,7 @@ export const emit = (state: MdzStreamParserState, op: MdzOpcode): void => {
 export const accumulate_text = (
 	state: MdzStreamParserState,
 	text: string,
-	start_offset: number,
+	start_offset: number
 ): void => {
 	if (state.accumulated_text.length === 0) {
 		state.accumulated_text_start = start_offset;
@@ -678,7 +678,7 @@ export const flush_text = (state: MdzStreamParserState): void => {
 			type: 'append_text',
 			id: state.active_text_id,
 			content: state.accumulated_text,
-			end: state.accumulated_text_end,
+			end: state.accumulated_text_end
 		});
 	} else {
 		ensure_paragraph(state);
@@ -690,7 +690,7 @@ export const flush_text = (state: MdzStreamParserState): void => {
 			content: state.accumulated_text,
 			text_type: 'Text',
 			start,
-			end: state.accumulated_text_end,
+			end: state.accumulated_text_end
 		});
 		state.active_text_id = id;
 	}
@@ -709,7 +709,7 @@ export const ensure_paragraph = (state: MdzStreamParserState): void => {
 	if (state.in_heading || state.in_paragraph || state.in_list_item_run) return;
 	const id = alloc_id(state);
 	const start = offset(state);
-	emit(state, {type: 'open', id, node_type: 'Paragraph', start});
+	emit(state, { type: 'open', id, node_type: 'Paragraph', start });
 	push_stack_entry(state, id, 'Paragraph', start);
 	state.in_paragraph = true;
 };
@@ -769,7 +769,7 @@ export const revert_above = (state: MdzStreamParserState, target_idx: number): v
 			type: 'revert',
 			id: entry.id,
 			replacement_text: entry.delimiter,
-			start: entry.start,
+			start: entry.start
 		});
 	}
 	state.active_text_id = null;
@@ -820,7 +820,7 @@ export const revert_failed_close = (state: MdzStreamParserState, stack_idx: numb
 		type: 'revert',
 		id: entry.id,
 		replacement_text: entry.delimiter,
-		start: entry.start,
+		start: entry.start
 	});
 	// structural opcode seals the prior text run (mirrors `emit`)
 	seal_text_run(state);
@@ -852,7 +852,7 @@ export const trim_trailing_newline = (state: MdzStreamParserState): void => {
 	}
 	if (state.last_text_id === null || !state.last_text_ended_with_newline) return;
 	// emit trim opcode; consumer adjusts content and removes empty nodes
-	emit(state, {type: 'trim_text', id: state.last_text_id, count: 1});
+	emit(state, { type: 'trim_text', id: state.last_text_id, count: 1 });
 	// if this trim empties a singleton text node, clear active_text_id so
 	// subsequent content doesn't merge into a deleted node via append_text
 	if (state.last_text_was_singleton_newline) {
@@ -879,8 +879,8 @@ export const close_paragraph = (state: MdzStreamParserState): void => {
 			emit(
 				state,
 				discard
-					? {type: 'close', id: entry.id, end: offset(state), discard: true}
-					: {type: 'close', id: entry.id, end: offset(state)},
+					? { type: 'close', id: entry.id, end: offset(state), discard: true }
+					: { type: 'close', id: entry.id, end: offset(state) }
 			);
 			state.active_text_id = null;
 			state.in_paragraph = false;
@@ -913,7 +913,7 @@ export const close_heading = (state: MdzStreamParserState): void => {
 	const heading_id = mdz_heading_id_from_text(heading_text);
 	// the heading is now the top of the stack
 	const entry = pop_stack_entry(state);
-	emit(state, {type: 'close', id: entry.id, end: offset(state), heading_id});
+	emit(state, { type: 'close', id: entry.id, end: offset(state), heading_id });
 	state.active_text_id = null;
 };
 
@@ -933,7 +933,7 @@ export const close_codeblock_at_eof = (state: MdzStreamParserState): void => {
 	if (state.codeblock.fence_indent === 0) {
 		trim_trailing_newline(state);
 	}
-	emit(state, {type: 'close', id: state.codeblock.id, end: offset(state)});
+	emit(state, { type: 'close', id: state.codeblock.id, end: offset(state) });
 	state.codeblock = null;
 };
 
@@ -987,7 +987,7 @@ export const close_list_item = (state: MdzStreamParserState): void => {
 	emit(state, {
 		type: 'close',
 		id: entry.id,
-		end: entry.has_children ? offset(state) : state.last_empty_item_end,
+		end: entry.has_children ? offset(state) : state.last_empty_item_end
 	});
 	state.active_text_id = null;
 };
@@ -1000,7 +1000,7 @@ export const close_list_item = (state: MdzStreamParserState): void => {
 export const close_list_level = (state: MdzStreamParserState): void => {
 	close_list_item(state);
 	const entry = pop_stack_entry(state);
-	emit(state, {type: 'close', id: entry.id, end: offset(state)});
+	emit(state, { type: 'close', id: entry.id, end: offset(state) });
 	state.list_levels.pop();
 };
 

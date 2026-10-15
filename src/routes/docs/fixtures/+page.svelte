@@ -1,18 +1,18 @@
 <script lang="ts">
-	import {page} from '$app/state';
+	import { page } from '$app/state';
 	import Code from '@fuzdev/fuz_code/Code.svelte';
 	import DocsLink from '@fuzdev/fuz_ui/DocsLink.svelte';
-	import {DOCS_PATH} from '@fuzdev/fuz_ui/docs_helpers.svelte.ts';
-	import {tome_get_by_slug} from '@fuzdev/fuz_ui/tome.ts';
+	import { DOCS_PATH } from '@fuzdev/fuz_ui/docs_helpers.svelte.ts';
+	import { tome_get_by_slug } from '@fuzdev/fuz_ui/tome.ts';
 	import TomeContent from '@fuzdev/fuz_ui/TomeContent.svelte';
 	import TomeLink from '@fuzdev/fuz_ui/TomeLink.svelte';
 	import TomeSection from '@fuzdev/fuz_ui/TomeSection.svelte';
 	import TomeSectionHeader from '@fuzdev/fuz_ui/TomeSectionHeader.svelte';
 	import Details from '@fuzdev/fuz_ui/Details.svelte';
 
-	import Mdz from '$lib/Mdz.svelte';
-	import MdzRoot from '$lib/MdzRoot.svelte';
-	import {load_mdz_fixtures} from './fixtures.ts';
+	import Mdz from '#lib/Mdz.svelte';
+	import MdzRoot from '#lib/MdzRoot.svelte';
+	import { load_mdz_fixtures } from './fixtures.ts';
 
 	const TOME_SLUG = 'fixtures';
 	const tome = tome_get_by_slug(TOME_SLUG);

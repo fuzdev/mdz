@@ -1,0 +1,4 @@
+# Generated parser/preprocessor fixture snapshots, regenerated via
+# `gro src/test/fixtures/<feature>/update` — machine-written test data, not
+# hand-authored source.
+src/test/fixtures/**/expected.json

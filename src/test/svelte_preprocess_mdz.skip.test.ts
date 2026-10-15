@@ -1,8 +1,8 @@
-import {test, assert, describe, vi} from 'vitest';
+import { test, assert, describe, vi } from 'vitest';
 
 import {
 	run_preprocess,
-	DEFAULT_TEST_OPTIONS,
+	DEFAULT_TEST_OPTIONS
 } from './fixtures/svelte_preprocess_mdz/svelte_preprocess_mdz_test_helpers.ts';
 
 describe('dynamic content preservation', () => {
@@ -160,7 +160,7 @@ describe('unconfigured tags', () => {
 		assert.ok(result.includes('<strong>bold</strong>'), 'should transform configured content');
 		assert.ok(
 			result.includes('content="<Unknown>text</Unknown>"'),
-			'should keep unconfigured content',
+			'should keep unconfigured content'
 		);
 	});
 
@@ -260,7 +260,7 @@ describe('dynamic base prop', () => {
 <Mdz content="see ./bar" base="/docs/foo/" />`;
 
 		const result = await run_preprocess(input);
-		assert.ok(result.includes("resolve('/docs/foo/bar')"), 'should resolve relative path');
+		assert.ok(result.includes("resolve('docs/foo/bar')"), 'should resolve relative path');
 		assert.ok(result.includes('<MdzPrecompiled>'), 'should use MdzPrecompiled');
 		assert.ok(!result.includes('base='), 'should exclude base from output');
 	});
@@ -274,8 +274,8 @@ describe('dynamic base prop', () => {
 
 		const result = await run_preprocess(input);
 		assert.ok(
-			result.includes("resolve('/docs/foo/bar')"),
-			'should resolve with normalized trailing slash',
+			result.includes("resolve('docs/foo/bar')"),
+			'should resolve with normalized trailing slash'
 		);
 	});
 });
@@ -290,8 +290,8 @@ describe('excluded files', () => {
 
 		const result = await run_preprocess(
 			input,
-			{...DEFAULT_TEST_OPTIONS, exclude: [/Test\.svelte$/]},
-			'Test.svelte',
+			{ ...DEFAULT_TEST_OPTIONS, exclude: [/Test\.svelte$/] },
+			'Test.svelte'
 		);
 		assert.equal(result, input, 'should be unchanged');
 	});
@@ -305,8 +305,8 @@ describe('excluded files', () => {
 
 		const result = await run_preprocess(
 			input,
-			{...DEFAULT_TEST_OPTIONS, exclude: ['fixtures/']},
-			'src/test/fixtures/Test.svelte',
+			{ ...DEFAULT_TEST_OPTIONS, exclude: ['fixtures/'] },
+			'src/test/fixtures/Test.svelte'
 		);
 		assert.equal(result, input, 'should be unchanged for excluded file');
 	});
@@ -363,7 +363,7 @@ describe('empty children', () => {
 
 describe('on_error', () => {
 	test('throw mode throws on parse failure', async () => {
-		const mdz_module = await import('$lib/mdz.ts');
+		const mdz_module = await import('#lib/mdz.ts');
 		const spy = vi.spyOn(mdz_module, 'mdz_parse').mockImplementation(() => {
 			throw new Error('mock parse failure');
 		});
@@ -377,7 +377,7 @@ describe('on_error', () => {
 		try {
 			let threw = false;
 			try {
-				await run_preprocess(input, {...DEFAULT_TEST_OPTIONS, on_error: 'throw'});
+				await run_preprocess(input, { ...DEFAULT_TEST_OPTIONS, on_error: 'throw' });
 			} catch (error) {
 				threw = true;
 				assert.ok(error instanceof Error);
@@ -391,7 +391,7 @@ describe('on_error', () => {
 	});
 
 	test('log mode skips failed transformation and logs error', async () => {
-		const mdz_module = await import('$lib/mdz.ts');
+		const mdz_module = await import('#lib/mdz.ts');
 		const parse_spy = vi.spyOn(mdz_module, 'mdz_parse').mockImplementation(() => {
 			throw new Error('mock parse failure');
 		});
@@ -405,16 +405,16 @@ describe('on_error', () => {
 <Mdz content="**bold**" />`;
 
 		try {
-			const result = await run_preprocess(input, {...DEFAULT_TEST_OPTIONS, on_error: 'log'});
+			const result = await run_preprocess(input, { ...DEFAULT_TEST_OPTIONS, on_error: 'log' });
 			assert.equal(result, input, 'should be unchanged when parse fails in log mode');
 			assert.equal(error_spy.mock.calls.length, 1, 'should log exactly one error');
 			assert.ok(
 				(error_spy.mock.calls[0]![0] as string).includes('[fuz-mdz]'),
-				'error message should include preprocessor prefix',
+				'error message should include preprocessor prefix'
 			);
 			assert.ok(
 				(error_spy.mock.calls[0]![0] as string).includes('mock parse failure'),
-				'error message should include original error',
+				'error message should include original error'
 			);
 		} finally {
 			parse_spy.mockRestore();
@@ -577,7 +577,7 @@ describe('ternary/conditional expressions', () => {
 		const result = await run_preprocess(input);
 		assert.ok(
 			result.includes('{#if items.length > 0}'),
-			'should preserve full condition expression',
+			'should preserve full condition expression'
 		);
 		assert.ok(result.includes('<strong>has items</strong>'), 'should render consequent');
 		assert.ok(result.includes('<strong>empty</strong>'), 'should render alternate');
@@ -644,7 +644,7 @@ describe('ternary/conditional expressions', () => {
 	});
 
 	test('on_error throw mode throws on ternary branch parse failure', async () => {
-		const mdz_module = await import('$lib/mdz.ts');
+		const mdz_module = await import('#lib/mdz.ts');
 		const spy = vi.spyOn(mdz_module, 'mdz_parse').mockImplementation(() => {
 			throw new Error('mock ternary parse failure');
 		});
@@ -659,7 +659,7 @@ describe('ternary/conditional expressions', () => {
 		try {
 			let threw = false;
 			try {
-				await run_preprocess(input, {...DEFAULT_TEST_OPTIONS, on_error: 'throw'});
+				await run_preprocess(input, { ...DEFAULT_TEST_OPTIONS, on_error: 'throw' });
 			} catch (error) {
 				threw = true;
 				assert.ok(error instanceof Error);
@@ -673,7 +673,7 @@ describe('ternary/conditional expressions', () => {
 	});
 
 	test('on_error log mode skips ternary on branch parse failure', async () => {
-		const mdz_module = await import('$lib/mdz.ts');
+		const mdz_module = await import('#lib/mdz.ts');
 		const parse_spy = vi.spyOn(mdz_module, 'mdz_parse').mockImplementation(() => {
 			throw new Error('mock ternary parse failure');
 		});
@@ -688,12 +688,12 @@ describe('ternary/conditional expressions', () => {
 <Mdz content={show ? '**a**' : '**b**'} />`;
 
 		try {
-			const result = await run_preprocess(input, {...DEFAULT_TEST_OPTIONS, on_error: 'log'});
+			const result = await run_preprocess(input, { ...DEFAULT_TEST_OPTIONS, on_error: 'log' });
 			assert.equal(result, input, 'should be unchanged when ternary parse fails in log mode');
 			assert.equal(error_spy.mock.calls.length, 1, 'should log exactly one error');
 			assert.ok(
 				(error_spy.mock.calls[0]![0] as string).includes('[fuz-mdz]'),
-				'error message should include preprocessor prefix',
+				'error message should include preprocessor prefix'
 			);
 		} finally {
 			parse_spy.mockRestore();
@@ -773,7 +773,7 @@ describe('dead const removal', () => {
 		assert.ok(result.includes('<strong>literal</strong>'), 'should render literal branch');
 		assert.ok(
 			!result.includes("const x = '**from const**'"),
-			'should remove dead const from ternary',
+			'should remove dead const from ternary'
 		);
 	});
 

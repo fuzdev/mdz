@@ -1,4 +1,4 @@
-import {getContext, setContext} from 'svelte';
+import { getContext, setContext } from 'svelte';
 
 // This uses a function instead of a class because of the overloaded type signatures.
 // It could be implemented internally with a class like `SvelteContext`
@@ -47,6 +47,6 @@ export function create_context<T>(fallback?: () => T): {
 		},
 		get_maybe,
 		// this is typesafe, so no runtime check:
-		set: (value: T | undefined = fallback?.()) => setContext(key, value)!,
+		set: (value: T | undefined = fallback?.()) => setContext(key, value)!
 	};
 }

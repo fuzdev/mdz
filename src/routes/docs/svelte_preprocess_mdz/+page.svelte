@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Code from '@fuzdev/fuz_code/Code.svelte';
 
-	import {tome_get_by_slug} from '@fuzdev/fuz_ui/tome.ts';
+	import { tome_get_by_slug } from '@fuzdev/fuz_ui/tome.ts';
 	import TomeContent from '@fuzdev/fuz_ui/TomeContent.svelte';
 	import TomeSection from '@fuzdev/fuz_ui/TomeSection.svelte';
 	import TomeSectionHeader from '@fuzdev/fuz_ui/TomeSectionHeader.svelte';
@@ -16,39 +16,45 @@
 <TomeContent {tome}>
 	<section>
 		<p>
-			<DeclarationLink name="svelte_preprocess_mdz" /> is a Svelte preprocessor that compiles static <TomeLink
-				slug="usage">mdz</TomeLink
-			> content to Svelte markup at build time. Instead of parsing mdz at runtime and rendering dynamically,
-			the preprocessor replaces the <DeclarationLink name="Mdz" /> component with
-			<DeclarationLink name="MdzPrecompiled" /> containing pre-rendered children.
+			<DeclarationLink name="svelte_preprocess_mdz" /> is a Svelte preprocessor that compiles static
+			<TomeLink slug="usage">mdz</TomeLink> content to Svelte markup at build time. Instead of
+			parsing mdz at runtime and rendering dynamically, the preprocessor replaces the
+			<DeclarationLink name="Mdz" /> component with <DeclarationLink name="MdzPrecompiled" />
+			containing pre-rendered children.
 		</p>
 	</section>
 
 	<TomeSection>
 		<TomeSectionHeader text="Setup" />
 		<p>
-			Add the preprocessor, <ModuleLink module_path="svelte_preprocess_mdz.ts" />, to
-			<code>svelte.config.js</code>:
+			Add the preprocessor, <ModuleLink module_path="svelte_preprocess_mdz.ts" />, to the
+			<code>sveltekit()</code> plugin options in <code>vite.config.ts</code>:
 		</p>
 		<Code
-			lang="js"
-			content={`import {svelte_preprocess_mdz} from '@fuzdev/mdz/svelte_preprocess_mdz.js';
+			lang="ts"
+			content={`import {defineConfig} from 'vite';
+import {sveltekit} from '@sveltejs/kit/vite';
+import {svelte_preprocess_mdz} from '@fuzdev/mdz/svelte_preprocess_mdz.js';
 
-export default {
-  preprocess: [
-    svelte_preprocess_mdz({
-      components: {Alert: '$lib/Alert.svelte'},
-      elements: {aside: true, details: true},
+export default defineConfig({
+  plugins: [
+    sveltekit({
+      preprocess: [
+        svelte_preprocess_mdz({
+          components: {Alert: '#lib/Alert.svelte'},
+          elements: {aside: true, details: true},
+        }),
+        // ...other preprocessors
+      ],
     }),
-    // ...other preprocessors
   ],
-};`}
+});`}
 		/>
 		<p>
-			The preprocessor should run before other preprocessors like
-			<code>vitePreprocess()</code> so it can parse the original Svelte source. The input to <DeclarationLink
-				name="svelte_preprocess_mdz"
-			/> is <DeclarationLink name="SveltePreprocessMdzOptions" />.
+			The preprocessor should run before other preprocessors like <code>vitePreprocess()</code> so
+			it can parse the original Svelte source. The input to
+			<DeclarationLink name="svelte_preprocess_mdz" /> is
+			<DeclarationLink name="SveltePreprocessMdzOptions" />.
 		</p>
 	</TomeSection>
 
@@ -133,14 +139,13 @@ export default {
 		<p>
 			The preprocessor reads <code>base</code>, resolves relative paths to absolute via
 			<code>mdz_resolve_relative_path()</code>, and emits the resolved <code>href</code> values.
-			<code>base</code> must be a static string literal — dynamic expressions cause the call to fall back
-			to runtime rendering.
+			<code>base</code> must be a static string literal — dynamic expressions cause the call to fall
+			back to runtime rendering.
 		</p>
 		<p>
 			Without <code>base</code>, relative paths are kept as raw hrefs and the browser resolves them
-			against the current URL at click time. This is a preprocessor-only attribute; at runtime <DeclarationLink
-				name="Mdz"
-			/> accepts a <code>base</code> prop with the same meaning.
+			against the current URL at click time. This is a preprocessor-only attribute; at runtime
+			<DeclarationLink name="Mdz" /> accepts a <code>base</code> prop with the same meaning.
 		</p>
 	</TomeSection>
 

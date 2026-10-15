@@ -1,13 +1,13 @@
 <script lang="ts">
-	import type {SvelteHTMLElements} from 'svelte/elements';
+	import type { SvelteHTMLElements } from 'svelte/elements';
 
 	import MdzStreamNodeView from './MdzStreamNodeView.svelte';
 	import {
 		mdz_base_context,
 		mdz_set_context_with_fallback,
-		type MdzWhitespace,
+		type MdzWhitespace
 	} from './mdz_contexts.ts';
-	import type {MdzStreamState} from './mdz_stream_state.svelte.ts';
+	import type { MdzStreamState } from './mdz_stream_state.svelte.ts';
 
 	const {
 		stream,

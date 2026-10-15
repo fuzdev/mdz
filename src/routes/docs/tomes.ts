@@ -1,4 +1,4 @@
-import type {Tome} from '@fuzdev/fuz_ui/tome.ts';
+import type { Tome } from '@fuzdev/fuz_ui/tome.ts';
 import ApiPage from './api/+page.svelte';
 import LibraryPage from './library/+page.svelte';
 import introduction from './introduction/+page.svelte';
@@ -14,7 +14,7 @@ export const tomes: Array<Tome> = [
 		Component: introduction,
 		related_tomes: ['usage', 'streaming', 'svelte_preprocess_mdz'],
 		related_modules: [],
-		related_declarations: [],
+		related_declarations: []
 	},
 	{
 		slug: 'usage',
@@ -22,7 +22,7 @@ export const tomes: Array<Tome> = [
 		Component: usage,
 		related_tomes: ['streaming', 'svelte_preprocess_mdz', 'fixtures'],
 		related_modules: ['mdz.ts'],
-		related_declarations: ['Mdz', 'MdzRoot', 'MdzNodeView', 'mdz_parse'],
+		related_declarations: ['Mdz', 'MdzRoot', 'MdzNodeView', 'mdz_parse']
 	},
 	{
 		slug: 'streaming',
@@ -33,7 +33,7 @@ export const tomes: Array<Tome> = [
 			'mdz_stream_parser.ts',
 			'mdz_stream_state.svelte.ts',
 			'mdz_opcodes.ts',
-			'mdz_opcodes_to_nodes.ts',
+			'mdz_opcodes_to_nodes.ts'
 		],
 		related_declarations: [
 			'MdzStream',
@@ -41,8 +41,8 @@ export const tomes: Array<Tome> = [
 			'MdzStreamParser',
 			'MdzStreamState',
 			'MdzOpcode',
-			'mdz_opcodes_to_nodes',
-		],
+			'mdz_opcodes_to_nodes'
+		]
 	},
 	{
 		slug: 'svelte_preprocess_mdz',
@@ -50,7 +50,7 @@ export const tomes: Array<Tome> = [
 		Component: svelte_preprocess_mdz,
 		related_tomes: ['usage'],
 		related_modules: ['svelte_preprocess_mdz.ts', 'mdz_to_svelte.ts'],
-		related_declarations: ['svelte_preprocess_mdz', 'mdz_to_svelte', 'MdzPrecompiled'],
+		related_declarations: ['svelte_preprocess_mdz', 'mdz_to_svelte', 'MdzPrecompiled']
 	},
 	{
 		slug: 'api',
@@ -58,7 +58,7 @@ export const tomes: Array<Tome> = [
 		Component: ApiPage,
 		related_tomes: [],
 		related_modules: [],
-		related_declarations: [],
+		related_declarations: []
 	},
 	{
 		slug: 'library',
@@ -66,7 +66,7 @@ export const tomes: Array<Tome> = [
 		Component: LibraryPage,
 		related_tomes: [],
 		related_modules: [],
-		related_declarations: [],
+		related_declarations: []
 	},
 	{
 		slug: 'fixtures',
@@ -74,6 +74,6 @@ export const tomes: Array<Tome> = [
 		Component: fixtures,
 		related_tomes: ['usage'],
 		related_modules: ['mdz.ts'],
-		related_declarations: ['mdz_parse', 'MdzNode'],
-	},
+		related_declarations: ['mdz_parse', 'MdzNode']
+	}
 ];

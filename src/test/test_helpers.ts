@@ -3,8 +3,8 @@
  * update task patterns.
  */
 
-import {readdir, readFile, writeFile} from 'node:fs/promises';
-import {join} from 'node:path';
+import { readdir, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
 //
 // Generic Fixture Loading and Update Task Patterns
@@ -50,10 +50,10 @@ export interface FixtureLoaderConfig<T> {
  * ```
  */
 export const load_fixtures_generic = async <T>(
-	config: FixtureLoaderConfig<T>,
+	config: FixtureLoaderConfig<T>
 ): Promise<Array<GenericFixture<T>>> => {
-	const {fixtures_dir, input_extension, transform_expected} = config;
-	const entries = await readdir(fixtures_dir, {withFileTypes: true});
+	const { fixtures_dir, input_extension, transform_expected } = config;
+	const entries = await readdir(fixtures_dir, { withFileTypes: true });
 	const fixture_names = entries
 		.filter((dirent) => dirent.isDirectory())
 		.map((dirent) => dirent.name)
@@ -66,8 +66,8 @@ export const load_fixtures_generic = async <T>(
 			const expected_text = await readFile(join(fixture_dir, 'expected.json'), 'utf-8');
 			const expected_json = JSON.parse(expected_text);
 			const expected = transform_expected ? transform_expected(expected_json) : expected_json;
-			return {name, input, expected};
-		}),
+			return { name, input, expected };
+		})
 	);
 };
 
@@ -115,11 +115,11 @@ export interface UpdateTaskConfig<TInput, TOutput> {
  */
 export const run_update_task = async <TInput = string, TOutput = any>(
 	config: UpdateTaskConfig<TInput, TOutput>,
-	log: {info: (msg: string) => void},
-): Promise<{generated_count: number; skipped_count: number}> => {
-	const {fixtures_dir, input_extension, process, json_replacer} = config;
+	log: { info: (msg: string) => void }
+): Promise<{ generated_count: number; skipped_count: number }> => {
+	const { fixtures_dir, input_extension, process, json_replacer } = config;
 
-	const fixture_names = (await readdir(fixtures_dir, {withFileTypes: true}))
+	const fixture_names = (await readdir(fixtures_dir, { withFileTypes: true }))
 		.filter((dirent) => dirent.isDirectory())
 		.map((dirent) => dirent.name)
 		.sort();
@@ -154,9 +154,9 @@ export const run_update_task = async <TInput = string, TOutput = any>(
 				await writeFile(expected_path, output);
 				log.info(`generated ${name}/expected.json`);
 			}
-		}),
+		})
 	);
 
 	log.info(`done! generated: ${generated_count}, skipped: ${skipped_count}`);
-	return {generated_count, skipped_count};
+	return { generated_count, skipped_count };
 };

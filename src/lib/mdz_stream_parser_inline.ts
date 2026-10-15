@@ -13,7 +13,7 @@ import {
 	is_line_whitespace,
 	is_word_char,
 	mdz_blockquote_line_has_content,
-	mdz_match_blockquote_prefix,
+	mdz_match_blockquote_prefix
 } from './mdz_helpers.ts';
 import {
 	type MdzStreamParserState,
@@ -27,10 +27,10 @@ import {
 	offset,
 	pop_stack_entry,
 	push_stack_entry,
-	revert_above,
+	revert_above
 } from './mdz_stream_parser_state.ts';
-import {match_fence_opener, match_list_marker} from './mdz_stream_parser_list.ts';
-import {consume_delimiter_as_text} from './mdz_stream_parser_text.ts';
+import { match_fence_opener, match_list_marker } from './mdz_stream_parser_list.ts';
+import { consume_delimiter_as_text } from './mdz_stream_parser_text.ts';
 
 /**
  * Whether `buffer` contains a paragraph break — a newline followed (across
@@ -78,9 +78,9 @@ const has_run_boundary_between = (
 	state: MdzStreamParserState,
 	from: number,
 	to: number,
-	forced: boolean,
+	forced: boolean
 ): boolean => {
-	const {buffer} = state;
+	const { buffer } = state;
 	if (state.list_levels.length === 0) {
 		return has_paragraph_break_between(buffer, from, to);
 	}
@@ -149,7 +149,7 @@ export const try_double_delimiter = (
 	state: MdzStreamParserState,
 	delimiter: '**' | '~~',
 	node_type: 'Bold' | 'Strikethrough',
-	forced = false,
+	forced = false
 ): boolean => {
 	// we know we're at the doubled delimiter (the caller checked both chars)
 	// and there's no matching open container
@@ -170,7 +170,7 @@ export const try_double_delimiter = (
 
 	const id = alloc_id(state);
 	const start = offset(state);
-	emit(state, {type: 'open', id, node_type, start});
+	emit(state, { type: 'open', id, node_type, start });
 	push_stack_entry(state, id, node_type, start, delimiter);
 	state.active_text_id = null;
 	state.pos += 2;
@@ -221,7 +221,7 @@ export const try_italic = (state: MdzStreamParserState, forced = false): boolean
 
 	const id = alloc_id(state);
 	const start = offset(state);
-	emit(state, {type: 'open', id, node_type: 'Italic', start});
+	emit(state, { type: 'open', id, node_type: 'Italic', start });
 	push_stack_entry(state, id, 'Italic', start, '_');
 	state.active_text_id = null;
 	state.pos++;
@@ -267,18 +267,18 @@ export const close_delimiter = (state: MdzStreamParserState, stack_idx: number):
 	// revert anything between the container and the top of the stack
 	revert_above(state, stack_idx);
 	const entry = pop_stack_entry(state);
-	const {delimiter} = entry;
+	const { delimiter } = entry;
 	// check for empty container — revert to literal text instead of closing
 	if (!entry.has_children) {
 		emit(state, {
 			type: 'revert',
 			id: entry.id,
 			replacement_text: delimiter,
-			start: entry.start,
+			start: entry.start
 		});
 		accumulate_text(state, delimiter, offset(state));
 	} else {
-		emit(state, {type: 'close', id: entry.id, end: offset(state) + delimiter.length});
+		emit(state, { type: 'close', id: entry.id, end: offset(state) + delimiter.length });
 	}
 	state.active_text_id = null;
 	state.pos += delimiter.length;
@@ -312,7 +312,7 @@ export const close_delimiter = (state: MdzStreamParserState, stack_idx: number):
  */
 export const scan_closer_boundary = (
 	state: MdzStreamParserState,
-	forced = false,
+	forced = false
 ): 'confirmed' | 'rejected' | 'pending' => {
 	const search_start = state.pos + 1;
 	const buffer = state.buffer;
@@ -371,7 +371,7 @@ export const try_code = (state: MdzStreamParserState, forced = false): boolean =
 				content,
 				text_type: 'Code',
 				start: offset(state, start),
-				end: offset(state, terminator + 1),
+				end: offset(state, terminator + 1)
 			});
 			state.active_text_id = null;
 			state.pos = terminator + 1;
@@ -417,7 +417,7 @@ export const try_code = (state: MdzStreamParserState, forced = false): boolean =
 	ensure_paragraph(state);
 	const id = alloc_id(state);
 	const code_start = offset(state, start);
-	emit(state, {type: 'open', id, node_type: 'Code', start: code_start});
+	emit(state, { type: 'open', id, node_type: 'Code', start: code_start });
 	push_stack_entry(state, id, 'Code', code_start, '`');
 	state.in_code = true;
 	state.active_text_id = null;
@@ -493,10 +493,10 @@ export const process_code_content = (state: MdzStreamParserState): void => {
 		const entry = pop_stack_entry(state);
 		if (!entry.has_children) {
 			// empty code `` — revert opener, accumulate closer as text
-			emit(state, {type: 'revert', id: entry.id, replacement_text: '`', start: entry.start});
+			emit(state, { type: 'revert', id: entry.id, replacement_text: '`', start: entry.start });
 			accumulate_text(state, '`', offset(state));
 		} else {
-			emit(state, {type: 'close', id: entry.id, end: offset(state) + 1});
+			emit(state, { type: 'close', id: entry.id, end: offset(state) + 1 });
 		}
 		state.in_code = false;
 		state.active_text_id = null;
@@ -510,7 +510,7 @@ export const process_code_content = (state: MdzStreamParserState): void => {
 		// code spans can't cross lines — revert
 		flush_text(state);
 		const entry = pop_stack_entry(state);
-		emit(state, {type: 'revert', id: entry.id, replacement_text: '`', start: entry.start});
+		emit(state, { type: 'revert', id: entry.id, replacement_text: '`', start: entry.start });
 		state.in_code = false;
 		state.active_text_id = null;
 		// don't consume newline — outer loop handles it

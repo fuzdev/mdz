@@ -15,15 +15,15 @@ import {
 	TEXT_CLASS_URL,
 	TEXT_SCAN_CLASS,
 	is_word_char,
-	match_url_prefix_case_insensitive,
+	match_url_prefix_case_insensitive
 } from './mdz_helpers.ts';
 import {
 	type MdzStreamParserState,
 	accumulate_text,
 	ensure_paragraph,
-	offset,
+	offset
 } from './mdz_stream_parser_state.ts';
-import {mdz_debug_work} from './mdz_debug_work.ts';
+import { mdz_debug_work } from './mdz_debug_work.ts';
 
 /**
  * Consume a delimiter at the current position as literal text — the shared

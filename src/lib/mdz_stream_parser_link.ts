@@ -5,8 +5,8 @@
  * @module
  */
 
-import type {MdzNodeTypeContainer} from './mdz_opcodes.ts';
-import type {MdzAttribute} from './mdz.ts';
+import type { MdzNodeTypeContainer } from './mdz_opcodes.ts';
+import type { MdzAttribute } from './mdz.ts';
 import {
 	A_UPPER,
 	APOSTROPHE,
@@ -25,7 +25,7 @@ import {
 	is_tag_name_char,
 	is_valid_path_char,
 	mdz_is_safe_reference,
-	mdz_is_url,
+	mdz_is_url
 } from './mdz_helpers.ts';
 import {
 	type MdzStreamParserState,
@@ -40,10 +40,10 @@ import {
 	offset,
 	pop_stack_entry,
 	push_stack_entry,
-	revert_above,
+	revert_above
 } from './mdz_stream_parser_state.ts';
-import {consume_delimiter_as_text} from './mdz_stream_parser_text.ts';
-import {mdz_debug_work} from './mdz_debug_work.ts';
+import { consume_delimiter_as_text } from './mdz_stream_parser_text.ts';
+import { mdz_debug_work } from './mdz_debug_work.ts';
 
 // -- Links --
 
@@ -61,7 +61,7 @@ export const try_link_open = (state: MdzStreamParserState): boolean => {
 
 	const id = alloc_id(state);
 	const link_start = offset(state);
-	emit(state, {type: 'open', id, node_type: 'Link', start: link_start});
+	emit(state, { type: 'open', id, node_type: 'Link', start: link_start });
 	push_stack_entry(state, id, 'Link', link_start, '[');
 	state.active_text_id = null;
 	state.pos++;
@@ -80,12 +80,12 @@ export const try_link_open = (state: MdzStreamParserState): boolean => {
 export const abort_link_to_text = (
 	state: MdzStreamParserState,
 	link_stack_idx: number,
-	bracket_pos: number,
+	bracket_pos: number
 ): void => {
 	flush_text(state);
 	revert_above(state, link_stack_idx);
 	const entry = pop_stack_entry(state);
-	emit(state, {type: 'revert', id: entry.id, replacement_text: '[', start: entry.start});
+	emit(state, { type: 'revert', id: entry.id, replacement_text: '[', start: entry.start });
 	state.active_text_id = null;
 	accumulate_text(state, ']', offset(state, bracket_pos));
 	state.pos = bracket_pos + 1;
@@ -168,7 +168,7 @@ export const try_complete_link = (state: MdzStreamParserState, link_stack_idx: n
 		id: entry.id,
 		end: offset(state, i + 1),
 		reference,
-		link_type,
+		link_type
 	});
 	state.active_text_id = null;
 	state.pos = i + 1;
@@ -283,7 +283,7 @@ export const try_tag_open = (state: MdzStreamParserState): TryResult => {
 			name: attr_name,
 			value,
 			start: offset(state, attr_start),
-			end: offset(state, i),
+			end: offset(state, i)
 		});
 	}
 
@@ -300,8 +300,8 @@ export const try_tag_open = (state: MdzStreamParserState): TryResult => {
 		ensure_paragraph(state);
 		const id = alloc_id(state);
 		const tag_start = offset(state, start);
-		emit(state, {type: 'open', id, node_type, start: tag_start, name, attributes});
-		emit(state, {type: 'close', id, end: offset(state, i + 2)});
+		emit(state, { type: 'open', id, node_type, start: tag_start, name, attributes });
+		emit(state, { type: 'close', id, end: offset(state, i + 2) });
 		state.active_text_id = null;
 		state.pos = i + 2;
 		state.column += i + 2 - start;
@@ -324,7 +324,7 @@ export const try_tag_open = (state: MdzStreamParserState): TryResult => {
 	const id = alloc_id(state);
 	const tag_start = offset(state, start);
 	const delimiter = state.buffer.slice(start, i); // e.g., "<Alert>" or "<Alert x="1">"
-	emit(state, {type: 'open', id, node_type, start: tag_start, name, attributes});
+	emit(state, { type: 'open', id, node_type, start: tag_start, name, attributes });
 	push_stack_entry(state, id, node_type, tag_start, delimiter, name);
 	state.active_text_id = null;
 	state.pos = i;
@@ -377,7 +377,7 @@ export const try_close_tag = (state: MdzStreamParserState): TryResult => {
 	flush_text(state);
 	revert_above(state, found_idx);
 	const entry = pop_stack_entry(state);
-	emit(state, {type: 'close', id: entry.id, end: offset(state, i)});
+	emit(state, { type: 'close', id: entry.id, end: offset(state, i) });
 	state.active_text_id = null;
 	state.column += i - state.pos;
 	state.pos = i;

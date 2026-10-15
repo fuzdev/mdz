@@ -50,8 +50,8 @@
  * @module
  */
 
-import {MdzLexer} from './mdz_lexer.ts';
-import {MdzTokenParser} from './mdz_token_parser.ts';
+import { MdzLexer } from './mdz_lexer.ts';
+import { MdzTokenParser } from './mdz_token_parser.ts';
 
 // TODO design incremental parsing or some system that preserves Svelte components across re-renders when possible
 

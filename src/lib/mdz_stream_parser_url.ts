@@ -23,7 +23,7 @@ import {
 	is_valid_path_char,
 	is_word_char,
 	match_url_prefix_case_insensitive,
-	mdz_trim_url_punctuation,
+	mdz_trim_url_punctuation
 } from './mdz_helpers.ts';
 import {
 	type MdzStreamParserState,
@@ -33,7 +33,7 @@ import {
 	emit,
 	ensure_paragraph,
 	flush_text,
-	offset,
+	offset
 } from './mdz_stream_parser_state.ts';
 
 const HTTPS_PREFIX = 'https://';
@@ -136,7 +136,7 @@ export const try_auto_path_relative = (state: MdzStreamParserState, forced = fal
  */
 export const start_pending_url = (
 	state: MdzStreamParserState,
-	link_type: 'external' | 'internal',
+	link_type: 'external' | 'internal'
 ): void => {
 	flush_text(state);
 	ensure_paragraph(state);
@@ -147,7 +147,7 @@ export const start_pending_url = (
 		link_type,
 		confirmed: true,
 		viable_https: false,
-		viable_http: false,
+		viable_http: false
 	};
 	// don't advance pos — URL chars start at current position, handled by process_url_content
 };
@@ -169,7 +169,7 @@ export const start_speculative_url = (state: MdzStreamParserState): void => {
 		link_type: 'external',
 		confirmed: false,
 		viable_https: true,
-		viable_http: true,
+		viable_http: true
 	};
 };
 
@@ -313,7 +313,7 @@ export const complete_pending_url = (state: MdzStreamParserState): void => {
 			start: pu.start,
 			end: url_end,
 			trim_end,
-			trim_id,
+			trim_id
 		});
 		state.active_text_id = trim_id;
 	} else {
@@ -325,7 +325,7 @@ export const complete_pending_url = (state: MdzStreamParserState): void => {
 			reference,
 			link_type: pu.link_type,
 			start: pu.start,
-			end: url_end,
+			end: url_end
 		});
 		state.active_text_id = null;
 	}
@@ -339,7 +339,7 @@ export const complete_pending_url = (state: MdzStreamParserState): void => {
  */
 export const scan_auto_link_forced = (
 	state: MdzStreamParserState,
-	link_type: 'external' | 'internal',
+	link_type: 'external' | 'internal'
 ): TryResult => {
 	let i = state.pos;
 	while (i < state.buffer.length) {
@@ -366,7 +366,7 @@ export const scan_auto_link_forced = (
 	ensure_paragraph(state);
 
 	const link_id = alloc_id(state);
-	emit(state, {type: 'open', id: link_id, node_type: 'Link', start: link_start});
+	emit(state, { type: 'open', id: link_id, node_type: 'Link', start: link_start });
 	const text_id = alloc_id(state);
 	emit(state, {
 		type: 'text',
@@ -374,9 +374,9 @@ export const scan_auto_link_forced = (
 		content: reference,
 		text_type: 'Text',
 		start: link_start,
-		end: link_end,
+		end: link_end
 	});
-	emit(state, {type: 'close', id: link_id, end: link_end, reference, link_type});
+	emit(state, { type: 'close', id: link_id, end: link_end, reference, link_type });
 
 	state.active_text_id = null;
 	state.column += end_pos - state.pos;

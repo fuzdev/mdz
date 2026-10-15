@@ -1,35 +1,41 @@
 <script lang="ts">
-	import {resolve} from '$app/paths';
+	import { resolve } from '$app/paths';
 
-	import type {MdzAttribute, MdzNode, MdzNodeTableRow, MdzTableAlign} from './mdz.ts';
+	import type { MdzAttribute, MdzNode, MdzNodeTableRow, MdzTableAlign } from './mdz.ts';
 	import {
 		mdz_classify_link,
 		mdz_is_void_element,
 		mdz_filter_element_attributes,
 		mdz_attributes_to_props,
 		mdz_format_unregistered_attributes,
-		ALLOWED_ELEMENT_ATTRIBUTES,
+		ALLOWED_ELEMENT_ATTRIBUTES
 	} from './mdz_helpers.ts';
 	import {
 		mdz_components_context,
 		mdz_elements_context,
 		mdz_base_context,
 		mdz_code_context,
-		mdz_codeblock_context,
+		mdz_codeblock_context
 	} from './mdz_contexts.ts';
 
 	const {
 		node,
-		nodes,
-	}: // exactly one of `node`/`nodes` — the array form renders a whole tree
+		nodes
+	}:
+		// exactly one of `node`/`nodes` — the array form renders a whole tree
 		// through this single component instance (used by `Mdz`)
-		{node: MdzNode; nodes?: undefined} | {node?: undefined; nodes: Array<MdzNode>} = $props();
+		{ node: MdzNode; nodes?: undefined } | { node?: undefined; nodes: Array<MdzNode> } = $props();
 
 	const get_components = mdz_components_context.get_maybe();
 	const get_elements = mdz_elements_context.get_maybe();
 	const get_mdz_base = mdz_base_context.get_maybe();
 	const get_code = mdz_code_context.get_maybe();
 	const get_codeblock = mdz_codeblock_context.get_maybe();
+
+	// `resolve()`'s pathname branch, widened to runtime strings: the app's `Path` union
+	// only types known routes, and mdz references are authored content. Sound because
+	// `mdz_classify_link` strips the leading slash, so the call never takes the route-id branch.
+	const resolve_pathname = resolve as (pathname: string) => string;
 </script>
 
 <!-- The tree renders through recursive snippets rather than recursive
@@ -48,7 +54,7 @@ tree instead of per node. -->
 			{@const attrs = mdz_filter_element_attributes(
 				node.name,
 				node.attributes,
-				ALLOWED_ELEMENT_ATTRIBUTES,
+				ALLOWED_ELEMENT_ATTRIBUTES
 			)}
 			{#if mdz_is_void_element(node.name)}
 				<!-- void elements cannot have content — any parsed children are dropped -->
@@ -95,13 +101,14 @@ tree instead of per node. -->
 		{#if link.kind === 'unsafe'}
 			{@render render_children(node.children)}
 		{:else if link.kind === 'resolve'}
-			<a href={resolve(link.href as any)}>{@render render_children(node.children)}</a>
+			<a href={resolve_pathname(link.path)}>{@render render_children(node.children)}</a>
 		{:else if link.kind === 'external'}
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-			<a href={link.href} target="_blank" rel="noopener">{@render render_children(node.children)}</a
-			>
+			<a href={link.href} target="_blank" rel="noopener">
+				{@render render_children(node.children)}
+			</a>
 		{:else}
-			<!-- fragment/query/relative/bare references skip resolve() (it accepts only absolute paths) -->
+			<!-- fragment/query/relative/bare references aren't under the base, so they skip resolve() -->
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 			<a href={link.href}>{@render render_children(node.children)}</a>
 		{/if}
@@ -128,14 +135,18 @@ tree instead of per node. -->
 		<table>
 			{#if header_row}
 				<thead>
-					<tr>{@render render_cells(header_row, 'th', node.align)}</tr>
+					<tr>
+						{@render render_cells(header_row, 'th', node.align)}
+					</tr>
 				</thead>
 			{/if}
 			{#if node.children.length > (header_row ? 1 : 0)}
 				<tbody>
 					{#each node.children as row, i (i)}
 						{#if !row.header}
-							<tr>{@render render_cells(row, 'td', node.align)}</tr>
+							<tr>
+								{@render render_cells(row, 'td', node.align)}
+							</tr>
 						{/if}
 					{/each}
 				</tbody>
@@ -180,12 +191,12 @@ tree instead of per node. -->
 {#snippet render_unregistered_tag(
 	name: string,
 	attributes: Array<MdzAttribute>,
-	children: Array<MdzNode>,
+	children: Array<MdzNode>
 )}
 	{@const formatted = mdz_format_unregistered_attributes(attributes)}
 	{#if children.length > 0}
 		<code class="color_c_50">&lt;{name}{formatted}&gt;</code>{@render render_children(
-			children,
+			children
 		)}<code class="color_c_50">&lt;/{name}&gt;</code>
 	{:else}
 		<code class="color_c_50">&lt;{name}{formatted} /&gt;</code>

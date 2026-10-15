@@ -58,11 +58,11 @@ import {
 	TEXT_CLASS_NEWLINE,
 	TEXT_CLASS_STOP,
 	TEXT_CLASS_URL,
-	TEXT_SCAN_CLASS,
+	TEXT_SCAN_CLASS
 } from './mdz_helpers.ts';
 
-import type {MdzAttribute, MdzTableAlign} from './mdz.ts';
-import {mdz_debug_work} from './mdz_debug_work.ts';
+import type { MdzAttribute, MdzTableAlign } from './mdz.ts';
+import { mdz_debug_work } from './mdz_debug_work.ts';
 
 //
 // Token types
@@ -300,8 +300,8 @@ export class MdzLexer {
 	#index: number = 0;
 	#tokens: Array<MdzToken> = [];
 	#max_search_index: number = Number.MAX_SAFE_INTEGER;
-	#search_memo: Map<string, {from: number; result: number}> = new Map();
-	#break_memo: {from: number; result: number} | null = null;
+	#search_memo: Map<string, { from: number; result: number }> = new Map();
+	#break_memo: { from: number; result: number } | null = null;
 	/**
 	 * Whether `#tokenize_text` is inside a list-item inline run: single
 	 * newlines are soft breaks whose following structural indent strips from
@@ -399,7 +399,7 @@ export class MdzLexer {
 			mdz_debug_work.total += (result === -1 ? this.#text.length : result) - from;
 		}
 		if (memo === undefined) {
-			this.#search_memo.set(needle, {from, result});
+			this.#search_memo.set(needle, { from, result });
 		} else {
 			memo.from = from;
 			memo.result = result;
@@ -426,7 +426,7 @@ export class MdzLexer {
 			if (this.#is_at_paragraph_break()) {
 				const start = this.#index;
 				this.#skip_blank_lines();
-				this.#tokens.push({type: 'paragraph_break', start, end: this.#index});
+				this.#tokens.push({ type: 'paragraph_break', start, end: this.#index });
 				continue;
 			}
 
@@ -545,7 +545,7 @@ export class MdzLexer {
 			type: 'heading_start',
 			level: hash_count as 1 | 2 | 3 | 4 | 5 | 6,
 			start,
-			end: this.#index, // end of "## " prefix
+			end: this.#index // end of "## " prefix
 		});
 
 		// Find end-of-line to bound nested tokenizers (prevents tag scanner from scanning past heading)
@@ -585,7 +585,7 @@ export class MdzLexer {
 		this.#max_search_index = saved_max;
 
 		// Emit heading_end marker so the token parser knows where heading content stops
-		this.#tokens.push({type: 'heading_end', start: this.#index, end: this.#index});
+		this.#tokens.push({ type: 'heading_end', start: this.#index, end: this.#index });
 
 		// Skip newlines after heading
 		this.#skip_blank_lines();
@@ -618,7 +618,7 @@ export class MdzLexer {
 		const start = this.#index;
 		this.#index = i; // consume up to but not including newline
 
-		this.#tokens.push({type: 'hr', start, end: this.#index});
+		this.#tokens.push({ type: 'hr', start, end: this.#index });
 
 		// Skip newlines after HR
 		this.#skip_blank_lines();
@@ -646,7 +646,7 @@ export class MdzLexer {
 	 * Match a quote prefix in the complete sync text — never `'pending'`.
 	 * See `mdz_match_blockquote_prefix`.
 	 */
-	#match_blockquote_prefix(i: number): {depth: number; content_start: number} | null {
+	#match_blockquote_prefix(i: number): { depth: number; content_start: number } | null {
 		const prefix = mdz_match_blockquote_prefix(this.#text, i, true);
 		return prefix === 'pending' ? null : prefix;
 	}
@@ -699,7 +699,7 @@ export class MdzLexer {
 		// quote's content parses exactly like a standalone document (a complete
 		// fence opener line on the last quote line opens an empty fence, not text)
 		const parts: Array<string> = [];
-		const segments: Array<{inner_start: number; source_start: number}> = [];
+		const segments: Array<{ inner_start: number; source_start: number }> = [];
 		let inner_len = 0;
 		let line_first = first;
 		let last_line_end = first;
@@ -707,7 +707,7 @@ export class MdzLexer {
 			const strip = line_first + mdz_blockquote_strip_width(this.#text, line_first);
 			let nl = this.#text.indexOf('\n', line_first);
 			if (nl === -1) nl = this.#text.length;
-			segments.push({inner_start: inner_len, source_start: strip});
+			segments.push({ inner_start: inner_len, source_start: strip });
 			const content = this.#text.slice(Math.min(strip, nl), nl < this.#text.length ? nl + 1 : nl);
 			parts.push(content);
 			inner_len += content.length;
@@ -732,14 +732,14 @@ export class MdzLexer {
 			line_first = next_first;
 		}
 
-		this.#tokens.push({type: 'blockquote_open', start: first, end: first});
+		this.#tokens.push({ type: 'blockquote_open', start: first, end: first });
 		const inner_tokens = new MdzLexer(parts.join('')).tokenize();
 		for (const token of inner_tokens) {
 			token.start = mdz_remap_segments(segments, token.start);
 			token.end = mdz_remap_segments(segments, token.end);
 			this.#tokens.push(token);
 		}
-		this.#tokens.push({type: 'blockquote_close', start: last_line_end, end: last_line_end});
+		this.#tokens.push({ type: 'blockquote_close', start: last_line_end, end: last_line_end });
 		this.#index = last_line_end;
 	}
 
@@ -768,7 +768,7 @@ export class MdzLexer {
 		if (align === null || align.length !== header_cells.length) return false;
 
 		// committed — emit the table; the delimiter row is structural (not emitted)
-		this.#tokens.push({type: 'table_open', align, start: table_start, end: header_end});
+		this.#tokens.push({ type: 'table_open', align, start: table_start, end: header_end });
 		this.#emit_table_row(header_cells, true, table_start, header_end);
 
 		this.#index = delim_end;
@@ -786,23 +786,23 @@ export class MdzLexer {
 			table_end = row_end;
 		}
 
-		this.#tokens.push({type: 'table_close', start: table_end, end: table_end});
+		this.#tokens.push({ type: 'table_close', start: table_end, end: table_end });
 		this.#skip_blank_lines();
 		return true;
 	}
 
 	/** Emit one table row's open / cell / close tokens. */
 	#emit_table_row(
-		cells: Array<{start: number; end: number}>,
+		cells: Array<{ start: number; end: number }>,
 		header: boolean,
 		row_start: number,
-		row_end: number,
+		row_end: number
 	): void {
-		this.#tokens.push({type: 'table_row_open', header, start: row_start, end: row_start});
+		this.#tokens.push({ type: 'table_row_open', header, start: row_start, end: row_start });
 		for (const cell of cells) {
 			this.#emit_table_cell(cell.start, cell.end);
 		}
-		this.#tokens.push({type: 'table_row_close', start: row_end, end: row_end});
+		this.#tokens.push({ type: 'table_row_close', start: row_end, end: row_end });
 	}
 
 	/**
@@ -812,9 +812,9 @@ export class MdzLexer {
 	 * stops at that bound and unescapes `\|`.
 	 */
 	#emit_table_cell(cell_start: number, cell_end: number): void {
-		this.#tokens.push({type: 'table_cell_open', start: cell_start, end: cell_start});
+		this.#tokens.push({ type: 'table_cell_open', start: cell_start, end: cell_start });
 		this.#tokenize_cell_inline(cell_start, cell_end);
-		this.#tokens.push({type: 'table_cell_close', start: cell_end, end: cell_end});
+		this.#tokens.push({ type: 'table_cell_close', start: cell_end, end: cell_end });
 	}
 
 	/**
@@ -843,9 +843,9 @@ export class MdzLexer {
 	 */
 	#match_item_table_head(
 		first: number,
-		marker_indent: number,
+		marker_indent: number
 	): {
-		header_cells: Array<{start: number; end: number}>;
+		header_cells: Array<{ start: number; end: number }>;
 		header_end: number;
 		align: Array<MdzTableAlign>;
 		delim_end: number;
@@ -862,7 +862,7 @@ export class MdzLexer {
 		if (delim_end === -1) delim_end = this.#text.length;
 		const align = mdz_parse_table_delimiter(this.#text, dj, delim_end);
 		if (align === null || align.length !== header_cells.length) return null;
-		return {header_cells, header_end, align, delim_end};
+		return { header_cells, header_end, align, delim_end };
 	}
 
 	/** Whether a table opens at `first` as a block child of an item at `marker_indent`. */
@@ -879,7 +879,12 @@ export class MdzLexer {
 	 */
 	#tokenize_item_table(first: number, marker_indent: number): void {
 		const head = this.#match_item_table_head(first, marker_indent)!;
-		this.#tokens.push({type: 'table_open', align: head.align, start: first, end: head.header_end});
+		this.#tokens.push({
+			type: 'table_open',
+			align: head.align,
+			start: first,
+			end: head.header_end
+		});
 		this.#emit_table_row(head.header_cells, true, first, head.header_end);
 		this.#index = head.delim_end;
 		let table_end = head.delim_end;
@@ -897,7 +902,7 @@ export class MdzLexer {
 			this.#index = row_end;
 			table_end = row_end;
 		}
-		this.#tokens.push({type: 'table_close', start: table_end, end: table_end});
+		this.#tokens.push({ type: 'table_close', start: table_end, end: table_end });
 	}
 
 	// -- List tokenizers --
@@ -969,7 +974,7 @@ export class MdzLexer {
 					}
 					if (levels[levels.length - 1]!.ordered === marker.ordered) {
 						// sibling item
-						this.#tokens.push({type: 'list_item_close', start: first, end: first});
+						this.#tokens.push({ type: 'list_item_close', start: first, end: first });
 						this.#list_item_open(marker);
 					} else {
 						// marker-type switch: close the list, open a new one at this indent
@@ -985,13 +990,13 @@ export class MdzLexer {
 				// empty item: only at an indent exactly matching an open level of
 				// the same marker type — anything else degrades below
 				const level_idx = levels.findIndex(
-					(l) => l.indent === indent && l.ordered === marker.ordered,
+					(l) => l.indent === indent && l.ordered === marker.ordered
 				);
 				if (level_idx !== -1) {
 					while (levels.length - 1 > level_idx) {
 						this.#list_close(levels);
 					}
-					this.#tokens.push({type: 'list_item_close', start: first, end: first});
+					this.#tokens.push({ type: 'list_item_close', start: first, end: first });
 					this.#list_item_open(marker);
 					// consume the marker and any trailing whitespace, leaving #index
 					// at the line's newline (or EOF)
@@ -1061,7 +1066,7 @@ export class MdzLexer {
 					while (levels.length - 1 > target_idx) {
 						this.#list_close(levels);
 					}
-					this.#tokens.push({type: 'paragraph_break', start: line_start, end: line_start});
+					this.#tokens.push({ type: 'paragraph_break', start: line_start, end: line_start });
 					this.#list_run(levels, first);
 					continue;
 				}
@@ -1096,13 +1101,13 @@ export class MdzLexer {
 					start: i,
 					marker_end: after,
 					content_start: after,
-					empty: true,
+					empty: true
 				};
 			}
 			if (this.#text.charCodeAt(after) !== SPACE) return null;
 			const content_start = after + 1;
 			const empty = this.#rest_is_blank(content_start);
-			return {ordered: false, number: 0, start: i, marker_end: after, content_start, empty};
+			return { ordered: false, number: 0, start: i, marker_end: after, content_start, empty };
 		}
 		if (c >= ZERO && c <= NINE) {
 			let j = i + 1;
@@ -1124,13 +1129,13 @@ export class MdzLexer {
 					start: i,
 					marker_end: after,
 					content_start: after,
-					empty: true,
+					empty: true
 				};
 			}
 			if (this.#text.charCodeAt(after) !== SPACE) return null;
 			const content_start = after + 1;
 			const empty = this.#rest_is_blank(content_start);
-			return {ordered: true, number, start: i, marker_end: after, content_start, empty};
+			return { ordered: true, number, start: i, marker_end: after, content_start, empty };
 		}
 		return null;
 	}
@@ -1167,26 +1172,31 @@ export class MdzLexer {
 			type: 'list_open',
 			ordered: marker.ordered,
 			start: marker.start,
-			end: marker.start,
+			end: marker.start
 		});
 		this.#list_item_open(marker);
-		levels.push({indent, ordered: marker.ordered});
+		levels.push({ indent, ordered: marker.ordered });
 	}
 
 	/** Emit a `list_item_open` token for `marker`. */
 	#list_item_open(marker: MdzListMarker): void {
 		const end = marker.empty ? marker.marker_end : marker.content_start;
 		if (marker.ordered) {
-			this.#tokens.push({type: 'list_item_open', number: marker.number, start: marker.start, end});
+			this.#tokens.push({
+				type: 'list_item_open',
+				number: marker.number,
+				start: marker.start,
+				end
+			});
 		} else {
-			this.#tokens.push({type: 'list_item_open', start: marker.start, end});
+			this.#tokens.push({ type: 'list_item_open', start: marker.start, end });
 		}
 	}
 
 	/** Close the deepest open level: its current item, then its list. */
 	#list_close(levels: Array<MdzListLevel>): void {
-		this.#tokens.push({type: 'list_item_close', start: this.#index, end: this.#index});
-		this.#tokens.push({type: 'list_close', start: this.#index, end: this.#index});
+		this.#tokens.push({ type: 'list_item_close', start: this.#index, end: this.#index });
+		this.#tokens.push({ type: 'list_close', start: this.#index, end: this.#index });
 		levels.pop();
 	}
 
@@ -1283,8 +1293,8 @@ export class MdzLexer {
 	 */
 	#match_fence(
 		first: number,
-		fence_indent: number,
-	): {token: MdzTokenCodeblock; end: number} | null {
+		fence_indent: number
+	): { token: MdzTokenCodeblock; end: number } | null {
 		let i = first;
 		let backtick_count = 0;
 		while (i < this.#text.length && this.#text.charCodeAt(i) === BACKTICK) {
@@ -1341,8 +1351,8 @@ export class MdzLexer {
 								? this.#text.slice(content_start, Math.max(content_start, line_start - 1))
 								: content_lines.join('\n');
 						return {
-							token: {type: 'codeblock', lang, content, start: first, end: m},
-							end: m,
+							token: { type: 'codeblock', lang, content, start: first, end: m },
+							end: m
 						};
 					}
 				}
@@ -1352,7 +1362,7 @@ export class MdzLexer {
 			if (fence_indent > 0) {
 				const line_end = nl === -1 ? this.#text.length : nl;
 				content_lines.push(
-					this.#text.slice(line_start + Math.min(fence_indent, line_indent), line_end),
+					this.#text.slice(line_start + Math.min(fence_indent, line_indent), line_end)
 				);
 			}
 			if (nl === -1) break;
@@ -1363,8 +1373,8 @@ export class MdzLexer {
 		let content = fence_indent === 0 ? this.#text.slice(content_start) : content_lines.join('\n');
 		if (content.endsWith('\n')) content = content.slice(0, -1);
 		return {
-			token: {type: 'codeblock', lang, content, start: first, end: this.#text.length},
-			end: this.#text.length,
+			token: { type: 'codeblock', lang, content, start: first, end: this.#text.length },
+			end: this.#text.length
 		};
 	}
 
@@ -1458,7 +1468,7 @@ export class MdzLexer {
 		}
 
 		this.#index = content_end + 1;
-		this.#tokens.push({type: 'code', content, start, end: this.#index});
+		this.#tokens.push({ type: 'code', content, start, end: this.#index });
 	}
 
 	#tokenize_double_delimiter(delimiter: '**' | '~~', kind: 'bold' | 'strikethrough'): void {
@@ -1497,7 +1507,7 @@ export class MdzLexer {
 		const open_type = kind === 'bold' ? 'bold_open' : 'strikethrough_open';
 		const close_type = kind === 'bold' ? 'bold_close' : 'strikethrough_close';
 		const open_token_index = this.#tokens.length;
-		this.#tokens.push({type: open_type, start, end: this.#index});
+		this.#tokens.push({ type: open_type, start, end: this.#index });
 
 		// Set search boundary for nested parsers
 		const saved_max = this.#max_search_index;
@@ -1524,11 +1534,11 @@ export class MdzLexer {
 				return;
 			}
 
-			this.#tokens.push({type: close_type, start: close_index, end: close_index + 2});
+			this.#tokens.push({ type: close_type, start: close_index, end: close_index + 2 });
 			this.#index = close_index + 2;
 		} else {
 			// Didn't reach closing - convert opening to text
-			this.#tokens[open_token_index] = {type: 'text', content: delimiter, start, end: start + 2};
+			this.#tokens[open_token_index] = { type: 'text', content: delimiter, start, end: start + 2 };
 		}
 	}
 
@@ -1571,7 +1581,7 @@ export class MdzLexer {
 		// Emit open token
 		this.#index++;
 		const open_token_index = this.#tokens.length;
-		this.#tokens.push({type: 'italic_open', start, end: this.#index});
+		this.#tokens.push({ type: 'italic_open', start, end: this.#index });
 
 		// Set search boundary for nested parsers
 		const saved_max = this.#max_search_index;
@@ -1601,7 +1611,7 @@ export class MdzLexer {
 			this.#tokens.push({
 				type: 'italic_close',
 				start: close_index,
-				end: close_index + 1,
+				end: close_index + 1
 			});
 			this.#index = close_index + 1;
 		} else {
@@ -1610,7 +1620,7 @@ export class MdzLexer {
 				type: 'text',
 				content: '_',
 				start,
-				end: start + 1,
+				end: start + 1
 			};
 		}
 	}
@@ -1637,7 +1647,7 @@ export class MdzLexer {
 		this.#index++; // consume [ (dispatch guarantees it)
 
 		// Emit link_text_open
-		this.#tokens.push({type: 'link_text_open', start, end: this.#index});
+		this.#tokens.push({ type: 'link_text_open', start, end: this.#index });
 
 		// Tokenize children until ] — only `]` delimits link text; a bare `)`
 		// is ordinary content (matching the streaming parser, which has no `)`
@@ -1662,7 +1672,7 @@ export class MdzLexer {
 		this.#tokens.push({
 			type: 'link_text_close',
 			start: bracket_close_start,
-			end: this.#index,
+			end: this.#index
 		});
 
 		// Check for (
@@ -1712,7 +1722,7 @@ export class MdzLexer {
 			reference,
 			link_type,
 			start: bracket_close_start + 1, // after ]
-			end: this.#index,
+			end: this.#index
 		});
 	}
 
@@ -1868,7 +1878,7 @@ export class MdzLexer {
 				value = this.#text.slice(value_start, this.#index);
 				this.#index++; // consume closing quote
 			}
-			attributes.push({name, value, start: attr_start, end: this.#index});
+			attributes.push({ name, value, start: attr_start, end: this.#index });
 		}
 
 		// Check for self-closing />
@@ -1884,7 +1894,7 @@ export class MdzLexer {
 				is_component,
 				attributes,
 				start,
-				end: this.#index,
+				end: this.#index
 			});
 			return;
 		}
@@ -1930,7 +1940,7 @@ export class MdzLexer {
 			is_component,
 			attributes,
 			start,
-			end: this.#index,
+			end: this.#index
 		});
 
 		// Tokenize children until the closing tag. Each iteration narrows
@@ -1950,7 +1960,7 @@ export class MdzLexer {
 					type: 'tag_close',
 					name: tag_name,
 					start: close_start,
-					end: this.#index,
+					end: this.#index
 				});
 				return;
 			}
@@ -2106,7 +2116,7 @@ export class MdzLexer {
 			parts === null
 				? this.#text.slice(start, this.#index)
 				: parts.join('') + this.#text.slice(part_start, this.#index);
-		this.#tokens.push({type: 'text', content, start, end: this.#index});
+		this.#tokens.push({ type: 'text', content, start, end: this.#index });
 	}
 
 	// -- Auto-link tokenizers --
@@ -2135,7 +2145,7 @@ export class MdzLexer {
 			reference,
 			link_type: 'external',
 			start,
-			end: this.#index,
+			end: this.#index
 		});
 	}
 
@@ -2160,14 +2170,14 @@ export class MdzLexer {
 			reference,
 			link_type: 'internal',
 			start,
-			end: this.#index,
+			end: this.#index
 		});
 	}
 
 	// -- Helper methods --
 
 	#emit_text(content: string, start: number): void {
-		this.#tokens.push({type: 'text', content, start, end: start + content.length});
+		this.#tokens.push({ type: 'text', content, start, end: start + content.length });
 	}
 
 	#has_paragraph_break_between(from: number, to: number): boolean {
@@ -2206,7 +2216,7 @@ export class MdzLexer {
 			i = this.#text.indexOf('\n', j);
 		}
 		if (memo === null) {
-			this.#break_memo = {from, result};
+			this.#break_memo = { from, result };
 		} else {
 			memo.from = from;
 			memo.result = result;

@@ -14,10 +14,7 @@ to plain Svelte markup.
 
 For coding conventions, see Skill(fuz-stack).
 
-## Committing
-
-`git add` and `git commit` are denied by `.claude/settings.local.json` in this
-repo — make the edits and stop, the user commits.
+## Releases
 
 IMPORTANT: never bump the package version or publish — that's the user's
 responsibility.
@@ -32,9 +29,6 @@ gro build     # build for production (library + static docs site)
 gro deploy    # build, commit, and push to deploy branch
 gro sync      # regenerate files and run svelte-kit sync
 ```
-
-IMPORTANT for AI agents: Do NOT run `gro dev` — the developer manages the dev
-server.
 
 ## Benchmarks
 
@@ -211,6 +205,7 @@ marker line (`- | a |` is inline text, like `- ```ts`).
 - `MdzRoot.svelte` — context provider for `base`, `components`, `elements`,
   `code`, and `codeblock`
 - `MdzPrecompiled.svelte` — wrapper for preprocessor output
+- `mdz_contexts.ts` — the rendering contexts and their registry types
 
 ### Build-time
 
@@ -251,19 +246,22 @@ mdz renders untrusted content, and the escaping story is deliberately
 Svelte-shaped: the runtime views emit text through Svelte expressions
 (auto-escaped) and the preprocessor emits Svelte markup escaped by fuz_util's
 `escape_svelte_text` — there is **no raw-HTML output path and no `{@html}`
-anywhere**. Unregistered components/elements render nothing, and link
-references pass the `mdz_is_safe_reference` protocol gate before becoming an
-`href`. Element attributes filter to a closed, hand-vetted allowlist of inert
-names (nothing URL-, script-, or DOM-clobbering-bearing), so element safety is
-independent of which element names a consumer registers; component attributes
-pass through as props, since registering a component is itself the trust
-decision. Any future raw-HTML emission (e.g. collapsing static subtrees to
+anywhere**. Unregistered components/elements never become live markup — the
+runtime views render a visible inert placeholder (the escaped tag name and its
+attributes as `<code>`, children still rendered as mdz content) and
+`mdz_to_svelte` sets `has_unconfigured_tags` so the preprocessor skips
+precompiling such trees. Element attributes filter to a closed, hand-vetted
+allowlist of inert names (nothing URL-, script-, or DOM-clobbering-bearing), so
+element safety is independent of which element names a consumer registers;
+component attributes pass through as props, since registering a component is
+itself the trust decision. Link references pass the `mdz_is_safe_reference`
+protocol gate before becoming an `href`. Any future raw-HTML emission (e.g. collapsing static subtrees to
 pre-rendered HTML strings rendered via `{@html}`) would move XSS-escaping out
 of Svelte and into mdz's own emitter — a trust-boundary change to design
 deliberately, not an incremental optimization.
 
 The three renderers (`MdzNodeView`, `MdzStreamNodeView`, `mdz_to_svelte`)
-share one grammar and stay in sync by construction: rendering *decisions*
+share one grammar and stay in sync by construction: rendering _decisions_
 (link safety + resolve-vs-raw classification via `mdz_classify_link`, void
 elements, element attribute filtering, heading ids, table header/body
 normalization) live in `mdz_helpers.ts`, and the parity tests bind their
@@ -342,10 +340,10 @@ covers the unconfigured plain defaults.
 
 - TypeScript strict mode
 - Svelte 5 with runes API
-- Prettier with tabs, 100 char width
+- tsv (`gro format`) with tabs, 100 char width
 - Tests in `src/test/` (not co-located)
 - snake_case for functions/variables, PascalCase for types/components
-- explicit `.js` extensions in imports
+- real source extensions in imports (`.ts`, `.svelte`); `src/lib` imports relatively, everything else via `#lib/*` / `#routes/*`
 
 ## Related projects
 

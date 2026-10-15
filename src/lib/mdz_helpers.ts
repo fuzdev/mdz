@@ -7,7 +7,7 @@
  * @module
  */
 
-import {DEV} from 'esm-env';
+import { DEV } from 'esm-env';
 
 import type {
 	MdzAttribute,
@@ -15,7 +15,7 @@ import type {
 	MdzNodeText,
 	MdzNodeComponent,
 	MdzNodeElement,
-	MdzTableAlign,
+	MdzTableAlign
 } from './mdz.ts';
 
 // Character codes for performance
@@ -208,7 +208,7 @@ export interface MdzBlockquotePrefix {
 export const mdz_match_blockquote_prefix = (
 	text: string,
 	i: number,
-	forced: boolean,
+	forced: boolean
 ): MdzBlockquotePrefix | 'pending' | null => {
 	let depth = 0;
 	let pos = i;
@@ -218,23 +218,23 @@ export const mdz_match_blockquote_prefix = (
 		depth++;
 		pos++;
 		if (pos >= text.length) {
-			return forced ? {depth, content_start: pos} : 'pending';
+			return forced ? { depth, content_start: pos } : 'pending';
 		}
 		const c = text.charCodeAt(pos);
 		if (c === RIGHT_ANGLE) continue; // tight run
 		if (c === SPACE) {
 			if (pos + 1 >= text.length) {
 				// could be a separator (next chunk starts with `>`) or the terminator
-				return forced ? {depth, content_start: pos + 1} : 'pending';
+				return forced ? { depth, content_start: pos + 1 } : 'pending';
 			}
 			if (text.charCodeAt(pos + 1) === RIGHT_ANGLE) {
 				pos++; // separator — continue the run at the next `>`
 				continue;
 			}
-			return {depth, content_start: pos + 1}; // terminating space
+			return { depth, content_start: pos + 1 }; // terminating space
 		}
 		if (c === NEWLINE) {
-			return {depth, content_start: pos}; // bare prefix line
+			return { depth, content_start: pos }; // bare prefix line
 		}
 		if (is_line_whitespace(c)) {
 			// tab/CR is not the marker space — valid only as tolerated trailing
@@ -244,17 +244,17 @@ export const mdz_match_blockquote_prefix = (
 				j++;
 			}
 			if (j >= text.length) {
-				return forced ? {depth, content_start: pos} : 'pending';
+				return forced ? { depth, content_start: pos } : 'pending';
 			}
 			if (text.charCodeAt(j) === NEWLINE) {
-				return {depth, content_start: pos};
+				return { depth, content_start: pos };
 			}
 			// trailing content after non-space whitespace — fall through to backtrack
 		}
 		// invalid char directly after a `>`: this `>` is content; the separator
 		// space before it (if any) re-serves as the terminator
 		if (depth >= 2 && text.charCodeAt(pos - 2) === SPACE) {
-			return {depth: depth - 1, content_start: pos - 1};
+			return { depth: depth - 1, content_start: pos - 1 };
 		}
 		return null;
 	}
@@ -271,7 +271,7 @@ export const mdz_match_blockquote_prefix = (
 export const mdz_blockquote_line_has_content = (
 	text: string,
 	content_start: number,
-	forced: boolean,
+	forced: boolean
 ): boolean | 'pending' => {
 	let i = content_start;
 	while (i < text.length && is_line_whitespace(text.charCodeAt(i))) {
@@ -302,8 +302,8 @@ export const mdz_blockquote_strip_width = (text: string, i: number): number =>
  * @nodocs
  */
 export const mdz_remap_segments = (
-	segments: Array<{inner_start: number; source_start: number}>,
-	p: number,
+	segments: Array<{ inner_start: number; source_start: number }>,
+	p: number
 ): number => {
 	let lo = 0;
 	let hi = segments.length - 1;
@@ -325,13 +325,13 @@ export const mdz_remap_segments = (
 const trim_table_cell = (
 	text: string,
 	start: number,
-	end: number,
-): {start: number; end: number} => {
+	end: number
+): { start: number; end: number } => {
 	let s = start;
 	let e = end;
 	while (s < e && is_line_whitespace(text.charCodeAt(s))) s++;
 	while (e > s && is_line_whitespace(text.charCodeAt(e - 1))) e--;
-	return {start: s, end: e};
+	return { start: s, end: e };
 };
 
 /**
@@ -354,10 +354,10 @@ const trim_table_cell = (
 export const mdz_split_table_row = (
 	text: string,
 	line_start: number,
-	line_end: number,
-): Array<{start: number; end: number}> | null => {
+	line_end: number
+): Array<{ start: number; end: number }> | null => {
 	if (line_start >= line_end || text.charCodeAt(line_start) !== PIPE) return null;
-	const cells: Array<{start: number; end: number}> = [];
+	const cells: Array<{ start: number; end: number }> = [];
 	let i = line_start + 1; // past the leading pipe
 	let cell_start = i;
 	while (i < line_end) {
@@ -426,7 +426,7 @@ const table_delimiter_align = (text: string, start: number, end: number): MdzTab
 export const mdz_parse_table_delimiter = (
 	text: string,
 	line_start: number,
-	line_end: number,
+	line_end: number
 ): Array<MdzTableAlign> | null => {
 	const cells = mdz_split_table_row(text, line_start, line_end);
 	if (cells === null) return null;
@@ -780,7 +780,7 @@ const VOID_ELEMENTS = new Set([
 	'meta',
 	'source',
 	'track',
-	'wbr',
+	'wbr'
 ]);
 
 /**
@@ -808,7 +808,7 @@ export const ALLOWED_ELEMENT_ATTRIBUTES: ReadonlySet<string> = new Set([
 	'aria-label',
 	'aria-hidden',
 	'aria-describedby',
-	'aria-labelledby',
+	'aria-labelledby'
 ]);
 
 // filters an element's parsed attributes against the allowlist, returning a
@@ -818,7 +818,7 @@ export const ALLOWED_ELEMENT_ATTRIBUTES: ReadonlySet<string> = new Set([
 export const mdz_filter_element_attributes = (
 	element_name: string,
 	attributes: Array<MdzAttribute>,
-	allowlist: ReadonlySet<string>,
+	allowlist: ReadonlySet<string>
 ): Record<string, string | true> => {
 	const filtered: Record<string, string | true> = {};
 	for (const attr of attributes) {
@@ -826,7 +826,7 @@ export const mdz_filter_element_attributes = (
 			filtered[attr.name] = attr.value;
 		} else if (DEV) {
 			console.warn(
-				`mdz: dropped disallowed attribute \`${attr.name}\` on <${element_name}> — not in the element attribute allowlist`,
+				`mdz: dropped disallowed attribute \`${attr.name}\` on <${element_name}> — not in the element attribute allowlist`
 			);
 		}
 	}
@@ -838,7 +838,7 @@ export const mdz_filter_element_attributes = (
 // trust decision, so every attribute passes through as a prop. Used identically
 // by MdzNodeView and MdzStreamNodeView.
 export const mdz_attributes_to_props = (
-	attributes: Array<MdzAttribute>,
+	attributes: Array<MdzAttribute>
 ): Record<string, string | true> => Object.fromEntries(attributes.map((a) => [a.name, a.value]));
 
 // reconstructs authored attribute text (` name="value"` / ` name`) for the
@@ -889,6 +889,20 @@ export const mdz_resolve_relative_path = (reference: string, base: string): stri
 	return segments.join('/');
 };
 
+// `/a` → `a`, `//a` → `a` — the pathname form `resolve()` takes; `\` counts as a
+// slash too, and tab/LF/CR are dropped, since browsers read `/\host` and
+// `/<tab>/host` as protocol-relative
+const strip_leading_slashes = (path: string): string => {
+	let i = 0;
+	for (;;) {
+		const c = path.charCodeAt(i);
+		if (c !== SLASH && c !== BACKSLASH && c !== TAB && c !== NEWLINE && c !== CARRIAGE_RETURN)
+			break;
+		i++;
+	}
+	return path.slice(i);
+};
+
 /**
  * How a `Link` node's `reference` should render, shared by all three renderers
  * (`MdzNodeView`, `MdzStreamNodeView`, `mdz_to_svelte`) so the safety gate and
@@ -897,42 +911,49 @@ export const mdz_resolve_relative_path = (reference: string, base: string): stri
  */
 export type MdzLinkRender =
 	/** Unsafe protocol — render children only, no `<a>`. */
-	| {kind: 'unsafe'}
-	/** Route/relative path — wrap in `resolve()` (needs `$app/paths`). */
-	| {kind: 'resolve'; href: string}
+	| { kind: 'unsafe' }
+	/**
+	 * Absolute path — render `resolve(path)` (needs `$app/paths`). `path` is the
+	 * reference minus its leading slash, SvelteKit's pathname form, which only
+	 * prepends the base path (or `#` under hash routing; a relative `./`/`../`
+	 * prefix under `paths.relative` SSR) and keeps the rest verbatim.
+	 */
+	| { kind: 'resolve'; path: string }
 	/** Internal fragment/query/relative/bare ref — raw `href`, no `resolve()`. */
-	| {kind: 'internal'; href: string}
+	| { kind: 'internal'; href: string }
 	/** External link — raw `href` plus `target="_blank" rel="noopener"`. */
-	| {kind: 'external'; href: string};
+	| { kind: 'external'; href: string };
 
 /**
  * Classify a `Link` reference into how it should render. Pure — no rendering,
  * no context; `base` is the resolved base path (or `undefined`).
+ *
+ * Absolute references are authored URLs, not SvelteKit route ids: they classify
+ * as `resolve` with the base-relative pathname, never a leading-slash route id,
+ * whose resolution would drop `(group)` and empty segments, decode `[x+nn]`
+ * escapes, and throw on `[param]` segments. A leading `/` followed by any `/`
+ * or `\` run collapses to one `/`, so `//host` and `/\host` stay under the base
+ * rather than becoming protocol-relative.
  * @nodocs
  */
 export const mdz_classify_link = (
 	reference: string,
 	link_type: 'internal' | 'external' | undefined,
-	base: string | undefined,
+	base: string | undefined
 ): MdzLinkRender => {
-	if (!mdz_is_safe_reference(reference)) return {kind: 'unsafe'};
+	if (!mdz_is_safe_reference(reference)) return { kind: 'unsafe' };
 	if (link_type === 'internal') {
 		if (reference.startsWith('.') && base) {
-			return {kind: 'resolve', href: mdz_resolve_relative_path(reference, base)};
+			return {
+				kind: 'resolve',
+				path: strip_leading_slashes(mdz_resolve_relative_path(reference, base))
+			};
 		}
-		// fragment/query/relative/bare — `resolve()` only accepts absolute paths or
-		// route ids and throws on anything else
-		if (
-			reference.startsWith('#') ||
-			reference.startsWith('?') ||
-			reference.startsWith('.') ||
-			!reference.startsWith('/')
-		) {
-			return {kind: 'internal', href: reference};
-		}
-		return {kind: 'resolve', href: reference};
+		// fragment/query/relative/bare — not under the base, so a raw `href`
+		if (!reference.startsWith('/')) return { kind: 'internal', href: reference };
+		return { kind: 'resolve', path: strip_leading_slashes(reference) };
 	}
-	return {kind: 'external', href: reference};
+	return { kind: 'external', href: reference };
 };
 
 /**
@@ -979,10 +1000,10 @@ export const mdz_merge_adjacent_text = (nodes: Array<MdzNode>): Array<MdzNode> =
 					type: 'Text',
 					content: pending.content + node.content,
 					start: pending.start,
-					end: node.end,
+					end: node.end
 				};
 			} else {
-				pending = {...node};
+				pending = { ...node };
 			}
 		} else {
 			if (pending) {
@@ -1005,7 +1026,7 @@ export const mdz_merge_adjacent_text = (nodes: Array<MdzNode>): Array<MdzNode> =
  *   or `null` if the content should be wrapped in a paragraph
  */
 export const mdz_extract_single_tag = (
-	nodes: Array<MdzNode>,
+	nodes: Array<MdzNode>
 ): MdzNodeComponent | MdzNodeElement | null => {
 	let tag: MdzNodeComponent | MdzNodeElement | null = null;
 
