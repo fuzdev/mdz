@@ -1,5 +1,12 @@
 # @fuzdev/mdz
 
+## 0.5.0
+
+### Minor Changes
+
+- **breaking** feat: tag attributes — quoted string (`"`/`'`) and bare boolean attributes on components and elements (`<Alert status="error">`, `<aside class="box">`); element attributes filter to a closed inert allowlist (`class`, `title`, `lang`, `dir`, `role`, `aria-label`/`-hidden`/`-describedby`/`-labelledby`, others dropped with a DEV warning), components receive only the attributes named at registration (`MdzComponents` entries are a bare component, which gets none, or `{component, props}` with a name list or `'all'`; the preprocessor's `components` option mirrors it as `{path, props}`), and a rendered component that throws falls back to its literal placeholder via a per-component `<svelte:boundary>`; malformed forms stay literal text; `MdzNodeElement`/`MdzNodeComponent` gain a required `attributes: Array<MdzAttribute>` and the `open` opcode an optional `attributes`; an element registered as `false` now renders as an unregistered placeholder ([#7](https://github.com/fuzdev/mdz/pull/7))
+- **breaking** fix: internal links render verbatim under the base path via `resolve()`'s pathname form instead of as route ids, so `(group)` segments, interior `//`, `[...]` segments, and `?query`/`#fragment` contents are no longer rewritten (and `[param]` segments no longer throw); a leading `/` followed by any `/` or `\` run collapses to one `/`; precompiled output emits `resolve('docs/foo')` without the leading slash; `MdzLinkRender`'s `resolve` variant carries `path` (no leading slash) instead of `href` ([1561458](https://github.com/fuzdev/mdz/commit/1561458))
+
 ## 0.4.0
 
 ### Minor Changes
