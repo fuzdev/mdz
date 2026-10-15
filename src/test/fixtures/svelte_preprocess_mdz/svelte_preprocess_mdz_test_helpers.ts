@@ -13,7 +13,10 @@ import { load_fixtures_generic } from '../../test_helpers.ts';
  * covers the unconfigured plain `<code>` / `<pre><code>` defaults.
  */
 export const DEFAULT_TEST_OPTIONS = {
-	components: { Alert: '#lib/Alert.svelte', Card: '#lib/Card.svelte' },
+	components: {
+		Alert: { path: '#lib/Alert.svelte', props: ['status', 'dismissible'] },
+		Card: '#lib/Card.svelte'
+	},
 	elements: { aside: true, details: true, summary: true, br: true },
 	compiled_component_import: '#lib/MdzPrecompiled.svelte',
 	code_component_import: '@fuzdev/fuz_ui/DocsLink.svelte',

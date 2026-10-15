@@ -20,7 +20,7 @@
 	const TOME_SLUG = 'usage';
 	const tome = tome_get_by_slug(TOME_SLUG);
 
-	const mdz_components = new Map([['Alert', Alert]]);
+	const mdz_components = new Map([['Alert', { component: Alert, props: ['status'] }]]);
 
 	const mdz_elements = new Map<string, boolean>([
 		['code', true],
@@ -358,21 +358,31 @@ const y = 1336;
 			</p>
 			<Code content={component_example} />
 			<Mdz content={component_example} class="mb_xl5" />
-			<p>
-				Component attributes pass through as props without filtering — registering a component is
-				the trust decision. With untrusted content, register only components that are safe to
-				receive any string props, since a component that spreads rest props onto an element forwards
-				attributes like <code>style</code> and <code>href</code>:
-			</p>
 			<Code content={component_props_example} />
 			<Mdz content={component_props_example} class="mb_xl5" />
-			<p>Components must be registered:</p>
+			<p>
+				Components must be registered. A bare entry renders the component with no props; to pass
+				attributes through, name them in <code>props</code>, and anything else is dropped:
+			</p>
 			<Code
 				lang="svelte"
-				content={`<MdzRoot components={new Map([['Alert', Alert]])}>
-	<Mdz content="<Alert>warning</Alert>" />
+				content={`<MdzRoot
+	components={new Map([
+		['Alert', {component: Alert, props: ['status']}],
+		['Note', Note], // no props
+	])}
+>
+	<Mdz content="<Alert status='error'>warning</Alert>" />
 </MdzRoot>`}
 			/>
+			<p>
+				Attribute values are whatever the content's author wrote, so with untrusted content, list
+				only props the component handles safely. <code>props: 'all'</code> passes everything through
+				— for trusted content, since a component that spreads rest props onto an element then
+				forwards attributes like <code>style</code> and <code>href</code>. A component that throws
+				while rendering, say on an unexpected prop value, falls back to its literal placeholder
+				instead of breaking the rest of the content.
+			</p>
 			<p>
 				Unregistered components render as <Mdz content="<ComponentName />" inline /> placeholders.
 			</p>

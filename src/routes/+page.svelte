@@ -57,7 +57,7 @@ For more see the /docs.`;
 	const DEMO_INTERVAL_MS = 15;
 
 	const demo_elements = new Map([['br', true]]);
-	const demo_components = new Map([['Mdz', Mdz]]);
+	const demo_components = new Map([['Mdz', { component: Mdz, props: ['content', 'inline'] }]]);
 
 	let demo_parser = $state(new MdzStreamParser());
 	let demo_state = $state(new MdzStreamState());

@@ -7,7 +7,8 @@ import { mdz_parse, type MdzNode } from '#lib/mdz.ts';
 import {
 	mdz_to_svelte,
 	type MdzToSvelteOptions,
-	type MdzToSvelteResult
+	type MdzToSvelteResult,
+	type MdzComponentImport
 } from '#lib/mdz_to_svelte.ts';
 
 /** Renderer imports matching the docs site: inline code → DocsLink, codeblocks → fuz_code's Code. */
@@ -22,7 +23,7 @@ const DOCS_RENDERER_IMPORTS: Pick<
 /** Parses mdz content and converts to Svelte markup in one step. */
 const convert = (
 	content: string,
-	components: Record<string, string> = {},
+	components: Record<string, MdzComponentImport> = {},
 	elements: Record<string, boolean> = {},
 	renderer_imports: Pick<
 		MdzToSvelteOptions,
@@ -749,19 +750,34 @@ describe('mdz_to_svelte', () => {
 			assert.equal(result.markup, `<aside aria-hidden={true}>hi</aside>`);
 		});
 
-		test('passes component attributes through as props (string + bare boolean)', () => {
+		test('passes registered props through (string + bare boolean)', () => {
 			const result = convert('<Alert status="error" dismissible>hi</Alert>', {
-				Alert: '#lib/Alert.svelte'
+				Alert: { path: '#lib/Alert.svelte', props: ['status', 'dismissible'] }
 			});
 			assert.equal(result.markup, `<Alert status={'error'} dismissible={true}>hi</Alert>`);
 			assert_import(result, 'Alert', '#lib/Alert.svelte', 'default');
+		});
+
+		test('a bare import path receives no attributes', () => {
+			const result = convert('<Alert status="error">hi</Alert>', { Alert: '#lib/Alert.svelte' });
+			assert.equal(result.markup, '<Alert>hi</Alert>');
+			assert_import(result, 'Alert', '#lib/Alert.svelte', 'default');
+		});
+
+		test('drops attributes outside the registered props', () => {
+			const result = convert('<Alert status="error" style="x">hi</Alert>', {
+				Alert: { path: '#lib/Alert.svelte', props: ['status'] }
+			});
+			assert.equal(result.markup, `<Alert status={'error'}>hi</Alert>`);
 		});
 
 		test('escapes a string value through escape_js_string', () => {
 			// a value with a single-quote and a backslash must be escaped for the
 			// single-quoted JS-expression attribute (not emitted verbatim)
 			const value = "a'b\\c";
-			const result = convert(`<Alert label="${value}">hi</Alert>`, { Alert: '#lib/Alert.svelte' });
+			const result = convert(`<Alert label="${value}">hi</Alert>`, {
+				Alert: { path: '#lib/Alert.svelte', props: 'all' }
+			});
 			assert.equal(result.markup, `<Alert label={'${escape_js_string(value)}'}>hi</Alert>`);
 			// the raw quote/backslash never appear unescaped in the output
 			assert.include(result.markup, escape_js_string(value));

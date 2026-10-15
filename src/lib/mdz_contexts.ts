@@ -3,15 +3,42 @@ import type { Component } from 'svelte';
 import { create_context } from './context_helpers.ts';
 
 /**
+ * The attributes a registered component receives as props: a list of allowed
+ * names, or `'all'` to pass every attribute through. Attributes outside the
+ * list are dropped (DEV-warned).
+ */
+export type MdzComponentProps = ReadonlyArray<string> | 'all';
+
+/**
+ * A component registry entry that allows attributes through as props.
+ */
+export interface MdzComponentConfig {
+	component: Component<any, any>;
+	/** Attribute names passed as props, or `'all'`; omitted passes none. */
+	props?: MdzComponentProps;
+}
+
+/**
  * Component registry for custom Svelte components that can be used in mdz content.
  *
- * For example, registering 'Alert' allows using `<Alert status="error">...</Alert>`
- * in mdz content; parsed attributes pass through as props.
+ * A bare component entry renders the tag with no props — its attributes are
+ * dropped. A `MdzComponentConfig` entry names the attributes that pass through
+ * as props, so a component only receives what it's prepared for:
  *
- * The Map values are Svelte components.
+ * ```ts
+ * new Map([
+ * 	['Alert', {component: Alert, props: ['status']}], // `<Alert status="error">`
+ * 	['Note', Note], // `<Note>`, attributes dropped
+ * ]);
+ * ```
+ *
+ * Attribute values are author-controlled strings (or `true` for bare names),
+ * so with untrusted content, allow only props the component treats safely.
+ * `props: 'all'` passes everything — a component that spreads rest props onto
+ * an element then forwards `style`, `href`, and the like.
  */
 // props pass through untyped (`string | true`); a typed registry is a separate concern
-export type MdzComponents = Map<string, Component<any, any>>;
+export type MdzComponents = Map<string, Component<any, any> | MdzComponentConfig>;
 
 /**
  * Element registry for HTML elements that can be used in mdz content.

@@ -8,6 +8,7 @@
  */
 
 import { DEV } from 'esm-env';
+import type { Component } from 'svelte';
 
 import type {
 	MdzAttribute,
@@ -17,6 +18,7 @@ import type {
 	MdzNodeElement,
 	MdzTableAlign
 } from './mdz.ts';
+import type { MdzComponentConfig, MdzComponentProps } from './mdz_contexts.ts';
 
 // Character codes for performance
 /** @nodocs */
@@ -833,13 +835,33 @@ export const mdz_filter_element_attributes = (
 	return filtered;
 };
 
-// converts a component's parsed attributes to a name→value props object, spread
-// onto `<Component {...props}>`. No filtering — registering a component is the
-// trust decision, so every attribute passes through as a prop. Used identically
-// by MdzNodeView and MdzStreamNodeView.
-export const mdz_attributes_to_props = (
-	attributes: Array<MdzAttribute>
-): Record<string, string | true> => Object.fromEntries(attributes.map((a) => [a.name, a.value]));
+// filters a component's parsed attributes against its registered `props`,
+// returning a name→value props object spread onto `<Component {...props}>`.
+// Omitted `props` passes nothing, `'all'` passes everything; dropped names are
+// DEV-warned. Used identically by MdzNodeView, MdzStreamNodeView, and
+// mdz_to_svelte, so precompiled and runtime output match.
+export const mdz_filter_component_attributes = (
+	component_name: string,
+	attributes: Array<MdzAttribute>,
+	props: MdzComponentProps | undefined
+): Record<string, string | true> => {
+	const filtered: Record<string, string | true> = {};
+	for (const attr of attributes) {
+		if (props === 'all' || props?.includes(attr.name)) {
+			filtered[attr.name] = attr.value;
+		} else if (DEV) {
+			console.warn(
+				`mdz: dropped attribute \`${attr.name}\` on <${component_name}> — not in its registered props`
+			);
+		}
+	}
+	return filtered;
+};
+
+// normalizes a component registry entry to its config form
+export const mdz_component_config = (
+	entry: Component<any, any> | MdzComponentConfig
+): MdzComponentConfig => (typeof entry === 'function' ? { component: entry } : entry);
 
 // reconstructs authored attribute text (` name="value"` / ` name`) for the
 // unregistered-tag literal placeholder. The quote char is chosen so a value

@@ -130,7 +130,7 @@ mdz is a **markdown dialect and renderer**:
 | Code blocks            | fenced with optional language hints; an unclosed fence consumes to EOF (or to the end of its enclosing blockquote)                                                                                                                                                                                        |
 | Horizontal rule        | `---` on its own line                                                                                                                                                                                                                                                                                     |
 | Tables                 | `\| a \| b \|` rows + a `\| --- \| :-: \|` delimiter row (colons set per-column alignment); leading **and** trailing `\|` required; inline-only cells (`` `code` `` protects pipes, `\|` is a literal pipe); a header/delimiter column-count mismatch stays a paragraph; body rows pad/truncate at render |
-| Components / elements  | `<Alert status="error">…</Alert>` / `<aside class="box">…</aside>` (must be registered); attributes are quoted strings (`"` or `'`) or bare booleans (`<input disabled />`); **elements** filter to a closed inert allowlist (`class`, `title`, `lang`, `dir`, `role`, `aria-label`/`-hidden`/`-describedby`/`-labelledby`), **components** pass all attributes through as props; malformed forms (unquoted, spaced `=`, `={…}`, duplicate name, newline in the open tag) stay literal text |
+| Components / elements  | `<Alert status="error">…</Alert>` / `<aside class="box">…</aside>` (must be registered); attributes are quoted strings (`"` or `'`) or bare booleans (`<input disabled />`); **elements** filter to a closed inert allowlist (`class`, `title`, `lang`, `dir`, `role`, `aria-label`/`-hidden`/`-describedby`/`-labelledby`), **components** receive only the attributes named in their registered `props` (a bare entry gets none, `props: 'all'` passes everything); malformed forms (unquoted, spaced `=`, `={…}`, duplicate name, newline in the open tag) stay literal text |
 | Paragraphs / breaks    | blank line between paragraphs; single newlines are soft breaks; `<br />` (registered) for hard breaks                                                                                                                                                                                                     |
 
 Whitespace follows standard markdown semantics: the parser preserves
@@ -223,7 +223,8 @@ matching surfaces:
 
 **Runtime** — via contexts (set through `MdzRoot` props or directly):
 
-- `mdz_components_context` — custom components usable in content (`<Alert>`)
+- `mdz_components_context` — custom components usable in content (`<Alert>`),
+  bare or as `{component, props}` naming the attributes passed as props
 - `mdz_elements_context` — allowed HTML elements (`<aside>`)
 - `mdz_base_context` — base path for resolving relative links
 - `mdz_code_context` — component for inline `` `code` `` (receives `reference`)
@@ -253,8 +254,10 @@ attributes as `<code>`, children still rendered as mdz content) and
 precompiling such trees. Element attributes filter to a closed, hand-vetted
 allowlist of inert names (nothing URL-, script-, or DOM-clobbering-bearing), so
 element safety is independent of which element names a consumer registers;
-component attributes pass through as props, since registering a component is
-itself the trust decision. Link references pass the `mdz_is_safe_reference`
+component attributes pass only the props named at registration (`{component,
+props: [...]}`; a bare entry passes none, `props: 'all'` everything), and each
+rendered component sits in its own `<svelte:boundary>` so one that throws on an
+unexpected value degrades to the placeholder instead of breaking the tree. Link references pass the `mdz_is_safe_reference`
 protocol gate before becoming an `href`. Any future raw-HTML emission (e.g. collapsing static subtrees to
 pre-rendered HTML strings rendered via `{@html}`) would move XSS-escaping out
 of Svelte and into mdz's own emitter — a trust-boundary change to design

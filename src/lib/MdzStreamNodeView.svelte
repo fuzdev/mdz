@@ -1,11 +1,13 @@
 <script lang="ts">
+	import { DEV } from 'esm-env';
 	import { resolve } from '$app/paths';
 
 	import {
 		mdz_classify_link,
 		mdz_is_void_element,
 		mdz_filter_element_attributes,
-		mdz_attributes_to_props,
+		mdz_filter_component_attributes,
+		mdz_component_config,
 		mdz_format_unregistered_attributes,
 		ALLOWED_ELEMENT_ATTRIBUTES
 	} from './mdz_helpers.ts';
@@ -46,6 +48,11 @@
 	// it's identical, the children are just retained in the render tree).
 	const streaming_content = (n: MdzStreamNode): string =>
 		n.content || n.children.map((c) => c.content).join('');
+
+	// the boundary renders the placeholder silently, so surface the cause in DEV
+	const on_component_error = DEV
+		? (error: unknown) => console.error('mdz: component failed to render', error)
+		: undefined;
 </script>
 
 <!-- The tree renders through recursive snippets rather than recursive
@@ -80,14 +87,26 @@ tree instead of per node. -->
 			{@render render_unregistered_tag(node.name ?? '', node.attributes ?? [], node.children)}
 		{/if}
 	{:else if node.type === 'Component'}
-		{@const Component = get_components?.()?.get(node.name ?? '')}
-		{#if Component}
-			{@const props = mdz_attributes_to_props(node.attributes ?? [])}
-			<Component {...props}>
-				{#if node.children.length > 0}
-					{@render render_children(node.children)}
-				{/if}
-			</Component>
+		{@const entry = get_components?.()?.get(node.name ?? '')}
+		{#if entry}
+			{@const config = mdz_component_config(entry)}
+			{@const props = mdz_filter_component_attributes(
+				node.name ?? '',
+				node.attributes ?? [],
+				config.props
+			)}
+			<!-- a per-node boundary: a component that throws (say on an unexpected prop
+			value) degrades to its literal placeholder instead of taking down the tree -->
+			<svelte:boundary onerror={on_component_error}>
+				<config.component {...props}>
+					{#if node.children.length > 0}
+						{@render render_children(node.children)}
+					{/if}
+				</config.component>
+				{#snippet failed()}
+					{@render render_unregistered_tag(node.name ?? '', node.attributes ?? [], node.children)}
+				{/snippet}
+			</svelte:boundary>
 		{:else}
 			{@render render_unregistered_tag(node.name ?? '', node.attributes ?? [], node.children)}
 		{/if}

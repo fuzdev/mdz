@@ -13,10 +13,12 @@ import { escape_svelte_text } from '@fuzdev/fuz_util/svelte_preprocess_helpers.t
 import { escape_js_string } from '@fuzdev/fuz_util/string.ts';
 
 import type { MdzNode, MdzNodeTableRow } from './mdz.ts';
+import type { MdzComponentProps } from './mdz_contexts.ts';
 import {
 	mdz_is_void_element,
 	mdz_classify_link,
 	mdz_filter_element_attributes,
+	mdz_filter_component_attributes,
 	ALLOWED_ELEMENT_ATTRIBUTES
 } from './mdz_helpers.ts';
 
@@ -26,6 +28,12 @@ import {
 // Svelte renders per attribute (`aria-hidden="true"`); the expression form
 // keeps precompiled and runtime output identical. Each entry gets a leading
 // space, so the result splices straight after the tag name.
+/**
+ * A build-time component registry entry: an import path, or an import path
+ * plus the attribute names passed as props (see `MdzComponentProps`).
+ */
+export type MdzComponentImport = string | { path: string; props?: MdzComponentProps };
+
 const format_attributes = (entries: Array<[string, string | true]>): string => {
 	let out = '';
 	for (const [name, value] of entries) {
@@ -57,10 +65,13 @@ const component_local_name = (import_path: string): string =>
  */
 export interface MdzToSvelteOptions {
 	/**
-	 * Component name to import path mapping (e.g., `{Alert: '#lib/Alert.svelte'}`).
+	 * Component name to import mapping, mirroring the runtime `MdzComponents`
+	 * registry: a bare import path receives no attributes
+	 * (`{Note: '#lib/Note.svelte'}`), and the config form names the attributes
+	 * passed as props (`{Alert: {path: '#lib/Alert.svelte', props: ['status']}}`).
 	 * If content references a component not in this map, `has_unconfigured_tags` is set.
 	 */
-	components: Record<string, string>;
+	components: Record<string, MdzComponentImport>;
 
 	/**
 	 * Allowed HTML elements (e.g., `{aside: true, details: true}`).
@@ -247,15 +258,17 @@ export const mdz_to_svelte = (
 			}
 
 			case 'Component': {
-				const import_path = components[node.name];
-				if (!import_path) {
+				const entry = components[node.name];
+				if (!entry) {
 					has_unconfigured_tags = true;
 					return '';
 				}
-				imports.set(node.name, { path: import_path, kind: 'default' });
-				// pass-through — every attribute becomes a prop, no filtering
+				const { path, props } =
+					typeof entry === 'string' ? { path: entry, props: undefined } : entry;
+				imports.set(node.name, { path, kind: 'default' });
+				// filter via the SAME helper the node views use
 				const attrs_str = format_attributes(
-					node.attributes.map((a): [string, string | true] => [a.name, a.value])
+					Object.entries(mdz_filter_component_attributes(node.name, node.attributes, props))
 				);
 				return `<${node.name}${attrs_str}>${render_nodes(node.children)}</${node.name}>`;
 			}

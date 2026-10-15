@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { DEV } from 'esm-env';
 	import { resolve } from '$app/paths';
 
 	import type { MdzAttribute, MdzNode, MdzNodeTableRow, MdzTableAlign } from './mdz.ts';
@@ -6,7 +7,8 @@
 		mdz_classify_link,
 		mdz_is_void_element,
 		mdz_filter_element_attributes,
-		mdz_attributes_to_props,
+		mdz_filter_component_attributes,
+		mdz_component_config,
 		mdz_format_unregistered_attributes,
 		ALLOWED_ELEMENT_ATTRIBUTES
 	} from './mdz_helpers.ts';
@@ -36,6 +38,11 @@
 	// only types known routes, and mdz references are authored content. Sound because
 	// `mdz_classify_link` strips the leading slash, so the call never takes the route-id branch.
 	const resolve_pathname = resolve as (pathname: string) => string;
+
+	// the boundary renders the placeholder silently, so surface the cause in DEV
+	const on_component_error = DEV
+		? (error: unknown) => console.error('mdz: component failed to render', error)
+		: undefined;
 </script>
 
 <!-- The tree renders through recursive snippets rather than recursive
@@ -70,14 +77,22 @@ tree instead of per node. -->
 			{@render render_unregistered_tag(node.name, node.attributes, node.children)}
 		{/if}
 	{:else if node.type === 'Component'}
-		{@const Component = get_components?.()?.get(node.name)}
-		{#if Component}
-			{@const props = mdz_attributes_to_props(node.attributes)}
-			<Component {...props}>
-				{#if node.children.length > 0}
-					{@render render_children(node.children)}
-				{/if}
-			</Component>
+		{@const entry = get_components?.()?.get(node.name)}
+		{#if entry}
+			{@const config = mdz_component_config(entry)}
+			{@const props = mdz_filter_component_attributes(node.name, node.attributes, config.props)}
+			<!-- a per-node boundary: a component that throws (say on an unexpected prop
+			value) degrades to its literal placeholder instead of taking down the tree -->
+			<svelte:boundary onerror={on_component_error}>
+				<config.component {...props}>
+					{#if node.children.length > 0}
+						{@render render_children(node.children)}
+					{/if}
+				</config.component>
+				{#snippet failed()}
+					{@render render_unregistered_tag(node.name, node.attributes, node.children)}
+				{/snippet}
+			</svelte:boundary>
 		{:else}
 			{@render render_unregistered_tag(node.name, node.attributes, node.children)}
 		{/if}

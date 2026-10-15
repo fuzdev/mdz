@@ -187,7 +187,7 @@
 					only registered components/elements render; attributes are a strict subset — quoted
 					strings or bare booleans, and malformed forms (unquoted, <code>a={'{expr}'}</code>,
 					duplicate names, directives) stay literal text; elements filter to a closed inert
-					allowlist, components pass attributes through as props
+					allowlist, components receive only the props they're registered with
 				</td>
 			</tr>
 			<tr>
