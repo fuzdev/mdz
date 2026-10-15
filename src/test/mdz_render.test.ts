@@ -6,15 +6,20 @@
  * `svelte/server`'s `render` (no DOM environment needed).
  */
 
-import { describe, test, assert } from 'vitest';
+import { describe, test, assert, vi } from 'vitest';
 import { render } from 'svelte/server';
 import type { Component } from 'svelte';
+import { DEV } from 'esm-env';
 
 import MdzComponent from '#lib/Mdz.svelte';
 import MdzStreamComponent from '#lib/MdzStream.svelte';
 import type { MdzNode } from '#lib/mdz.ts';
+import type { MdzComponents, MdzElements } from '#lib/mdz_contexts.ts';
 import { MdzStreamParser } from '#lib/mdz_stream_parser.ts';
 import { MdzStreamState } from '#lib/mdz_stream_state.svelte.ts';
+import MdzRenderHarnessComponent from './MdzRenderHarness.svelte';
+import EchoProp from './EchoProp.svelte';
+import LookupProp from './LookupProp.svelte';
 import { load_fixtures } from './fixtures/mdz/mdz_test_helpers.ts';
 
 // narrowed component types — the wrapper's `SvelteHTMLElements` rest-prop
@@ -67,6 +72,13 @@ const stream_hrefs = (content: string, rewrite: (reference: string) => string): 
 	);
 	return hrefs(render(MdzStream, { props: { stream: state } }).body);
 };
+
+// harness that provides the `elements`/`components` contexts around `Mdz`
+const Harness = MdzRenderHarnessComponent as unknown as Component<{
+	content: string;
+	elements?: MdzElements;
+	components?: MdzComponents;
+}>;
 
 describe('Mdz SSR rendering', () => {
 	test('renders simple content', () => {
@@ -147,5 +159,164 @@ describe('internal link hrefs', () => {
 			stream_hrefs('see /a/x', () => '/a/[x]'),
 			['/a/[x]']
 		);
+	});
+});
+
+describe('tag attributes', () => {
+	test('renders an allowed element attribute', () => {
+		const result = render(Harness, {
+			props: { content: '<aside class="x">hi</aside>', elements: new Map([['aside', true]]) }
+		});
+		assert.include(result.body, 'class="x"');
+		assert.include(result.body, 'hi');
+	});
+
+	test('an element registered with `false` falls back to a literal placeholder', () => {
+		// only `true` enables an element — a `false` value is treated as
+		// unregistered, so the tag renders as source-faithful literal text
+		// (attributes included) rather than a real `<aside>`
+		const result = render(Harness, {
+			props: { content: '<aside class="x">hi</aside>', elements: new Map([['aside', false]]) }
+		});
+		assert.notInclude(result.body, '<aside');
+		assert.include(result.body, '&lt;aside class="x">');
+	});
+
+	test('drops a disallowed element attribute (DEV-warns)', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		const result = render(Harness, {
+			props: {
+				content: '<aside class="x" onclick="bad()">hi</aside>',
+				elements: new Map([['aside', true]])
+			}
+		});
+		// `render()` is lazy — force the body (which runs the filter + its warn)
+		// while the spy is active, then snapshot the calls before `mockRestore`
+		const body = result.body;
+		const warned = warn.mock.calls.map((c) => String(c[0]));
+		warn.mockRestore();
+		assert.include(body, 'class="x"');
+		assert.notInclude(body, 'onclick');
+		// the drop is a policy outcome surfaced as a DEV console.warn naming the
+		// element and the dropped attribute (silent in prod)
+		if (DEV) {
+			assert.ok(
+				warned.some((m) => m.includes('aside') && m.includes('onclick')),
+				'expected a DEV drop-warning naming the element and attribute'
+			);
+		}
+	});
+
+	test('renders a bare boolean allowed attribute', () => {
+		const result = render(Harness, {
+			props: { content: '<aside aria-hidden>x</aside>', elements: new Map([['aside', true]]) }
+		});
+		assert.include(result.body, 'aria-hidden');
+	});
+
+	test('passes registered props through to a component', () => {
+		const result = render(Harness, {
+			props: {
+				content: '<Echo msg="hi" />',
+				components: new Map([['Echo', { component: EchoProp, props: ['msg'] }]])
+			}
+		});
+		assert.include(result.body, 'data-echo');
+		assert.include(result.body, 'hi');
+	});
+
+	test('a bare component entry receives no attributes (DEV-warns)', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		const result = render(Harness, {
+			props: { content: '<Echo msg="hi" />', components: new Map([['Echo', EchoProp]]) }
+		});
+		const body = result.body;
+		const warned = warn.mock.calls.map((c) => String(c[0]));
+		warn.mockRestore();
+		assert.include(body, 'data-echo');
+		assert.notInclude(body, 'hi');
+		if (DEV) {
+			assert.ok(warned.some((m) => m.includes('Echo') && m.includes('msg')));
+		}
+	});
+
+	test('drops component attributes outside the registered props', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		const result = render(Harness, {
+			props: {
+				content: '<Echo msg="hi" style="color:red" />',
+				components: new Map([['Echo', { component: EchoProp, props: ['msg'] }]])
+			}
+		});
+		const body = result.body;
+		warn.mockRestore();
+		assert.include(body, 'hi');
+		assert.notInclude(body, 'color:red');
+	});
+
+	test("`props: 'all'` passes every attribute through", () => {
+		const result = render(Harness, {
+			props: {
+				content: '<Echo msg="hi" other="x" />',
+				components: new Map([['Echo', { component: EchoProp, props: 'all' as const }]])
+			}
+		});
+		assert.include(result.body, 'hi');
+	});
+
+	test('a component that throws renders its literal placeholder', () => {
+		// server boundaries only catch when the host passes `transformError`
+		// (SvelteKit does); browsers always catch
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const result = render(Harness, {
+			props: {
+				content: 'before <Lookup kind="nope">child **text**</Lookup> after',
+				components: new Map([['Lookup', { component: LookupProp, props: ['kind'] }]])
+			},
+			transformError: (e: unknown) => e
+		});
+		const body = result.body.replaceAll(/<!--.*?-->/gs, '');
+		error.mockRestore();
+		assert.notInclude(body, 'data-lookup');
+		assert.include(body, '&lt;Lookup kind="nope">');
+		assert.include(body, '<strong>text</strong>');
+		assert.include(body, 'before');
+		assert.include(body, 'after');
+	});
+
+	test('a component that renders fine is unaffected by its boundary', () => {
+		const result = render(Harness, {
+			props: {
+				content: '<Lookup kind="ok" />',
+				components: new Map([['Lookup', { component: LookupProp, props: ['kind'] }]])
+			},
+			transformError: (e: unknown) => e
+		});
+		assert.include(result.body, 'all good');
+	});
+
+	test('unregistered tag placeholder includes attribute text', () => {
+		// no registry entry → the source-faithful literal placeholder
+		const result = render(Harness, { props: { content: '<Foo bar="baz">x</Foo>' } });
+		assert.include(result.body, 'bar="baz"');
+	});
+
+	test('capstone: nested Mdz renders pass-through content and inline boolean', () => {
+		// mirrors the homepage demo — a `content` string prop and a bare `inline`
+		// boolean pass through to a recursively-rendered `Mdz`, which renders
+		// bold text inside an inline `<span>` (not a block `<div>`)
+		const result = render(Harness, {
+			props: {
+				content: '<Mdz content="**hi**" inline />',
+				components: new Map([['Mdz', { component: MdzComponent, props: ['content', 'inline'] }]])
+			}
+		});
+		// SSR interleaves `<!---->` markers, so assert structure not an exact
+		// `<strong>hi</strong>` slice: bold text is present, and a `<span>` (the
+		// inline wrapper, not a block `<div>`) encloses the recursively-rendered
+		// bold
+		assert.include(result.body, '<strong>');
+		assert.include(result.body, 'hi');
+		assert.match(result.body, /<span>[\s\S]*?<strong>[\s\S]*?hi/);
 	});
 });

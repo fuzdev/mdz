@@ -1,0 +1,3 @@
+{
+	"code": "<script lang=\"ts\">\n\timport MdzPrecompiled from '#lib/MdzPrecompiled.svelte';\n\timport Echo from '#lib/Echo.svelte';\n</script>\n\n<MdzPrecompiled><Echo msg={'hi'} style={'color:red'} flag={true}>body</Echo></MdzPrecompiled>\n"
+}

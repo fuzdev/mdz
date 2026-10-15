@@ -45,7 +45,7 @@
  * ## Status
  *
  * Pre-stable — breaking changes are expected as the dialect matures.
- * Next: attributes, editing.
+ * Next: editing.
  *
  * @module
  */
@@ -251,10 +251,20 @@ export interface MdzNodeTableCell extends MdzNodeBase {
 	children: Array<MdzNode>;
 }
 
+export interface MdzAttribute {
+	name: string;
+	/** `true` for bare boolean shorthand (`disabled` ≡ `disabled={true}`). */
+	value: string | true;
+	start: number;
+	end: number;
+}
+
 export interface MdzNodeElement extends MdzNodeBase {
 	type: 'Element';
 	/** HTML element name (e.g. `div`, `span`, `aside`). */
 	name: string;
+	/** Parsed tag attributes; always present, possibly empty. */
+	attributes: Array<MdzAttribute>;
 	children: Array<MdzNode>;
 }
 
@@ -262,5 +272,7 @@ export interface MdzNodeComponent extends MdzNodeBase {
 	type: 'Component';
 	/** Svelte component name (e.g. `Alert`, `Card`). */
 	name: string;
+	/** Parsed tag attributes; always present, possibly empty. */
+	attributes: Array<MdzAttribute>;
 	children: Array<MdzNode>;
 }

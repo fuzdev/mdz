@@ -1,0 +1,24 @@
+[
+	{
+		"type": "Component",
+		"name": "Alert",
+		"attributes": [
+			{
+				"name": "status",
+				"value": "error",
+				"start": 7,
+				"end": 21
+			}
+		],
+		"children": [
+			{
+				"type": "Text",
+				"content": "x",
+				"start": 22,
+				"end": 23
+			}
+		],
+		"start": 0,
+		"end": 31
+	}
+]

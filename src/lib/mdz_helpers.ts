@@ -7,13 +7,18 @@
  * @module
  */
 
+import { DEV } from 'esm-env';
+import type { Component } from 'svelte';
+
 import type {
+	MdzAttribute,
 	MdzNode,
 	MdzNodeText,
 	MdzNodeComponent,
 	MdzNodeElement,
 	MdzTableAlign
 } from './mdz.ts';
+import type { MdzComponentConfig, MdzComponentProps } from './mdz_contexts.ts';
 
 // Character codes for performance
 /** @nodocs */
@@ -75,6 +80,8 @@ export const PERCENT = 37; // %
 export const AMPERSAND = 38; // &
 /** @nodocs */
 export const APOSTROPHE = 39; // '
+/** @nodocs */
+export const DOUBLE_QUOTE = 34; // "
 /** @nodocs */
 export const PLUS = 43; // +
 /** @nodocs */
@@ -786,6 +793,93 @@ const VOID_ELEMENTS = new Set([
 // pair with children that renderers silently drop; consider treating void tags as
 // implicitly self-closing at parse time, or rejecting the open/close form
 export const mdz_is_void_element = (name: string): boolean => VOID_ELEMENTS.has(name);
+
+/**
+ * The closed, global set of attribute names allowed on rendered HTML elements.
+ * Every name is inert on any element (no URL, no script, no focus or DOM
+ * clobbering), so element safety is independent of which element names a
+ * consumer registers. Anything outside this set is dropped by
+ * `mdz_filter_element_attributes`.
+ */
+export const ALLOWED_ELEMENT_ATTRIBUTES: ReadonlySet<string> = new Set([
+	'class',
+	'title',
+	'lang',
+	'dir',
+	'role',
+	'aria-label',
+	'aria-hidden',
+	'aria-describedby',
+	'aria-labelledby'
+]);
+
+// filters an element's parsed attributes against the allowlist, returning a
+// name→value object ready to spread onto `<svelte:element {...}>`. Disallowed
+// names are dropped (DEV-warned). Used identically by MdzNodeView,
+// MdzStreamNodeView, and mdz_to_svelte, so precompiled and runtime output match.
+export const mdz_filter_element_attributes = (
+	element_name: string,
+	attributes: Array<MdzAttribute>,
+	allowlist: ReadonlySet<string>
+): Record<string, string | true> => {
+	const filtered: Record<string, string | true> = {};
+	for (const attr of attributes) {
+		if (allowlist.has(attr.name)) {
+			filtered[attr.name] = attr.value;
+		} else if (DEV) {
+			console.warn(
+				`mdz: dropped disallowed attribute \`${attr.name}\` on <${element_name}> — not in the element attribute allowlist`
+			);
+		}
+	}
+	return filtered;
+};
+
+// filters a component's parsed attributes against its registered `props`,
+// returning a name→value props object spread onto `<Component {...props}>`.
+// Omitted `props` passes nothing, `'all'` passes everything; dropped names are
+// DEV-warned. Used identically by MdzNodeView, MdzStreamNodeView, and
+// mdz_to_svelte, so precompiled and runtime output match.
+export const mdz_filter_component_attributes = (
+	component_name: string,
+	attributes: Array<MdzAttribute>,
+	props: MdzComponentProps | undefined
+): Record<string, string | true> => {
+	const filtered: Record<string, string | true> = {};
+	for (const attr of attributes) {
+		if (props === 'all' || props?.includes(attr.name)) {
+			filtered[attr.name] = attr.value;
+		} else if (DEV) {
+			console.warn(
+				`mdz: dropped attribute \`${attr.name}\` on <${component_name}> — not in its registered props`
+			);
+		}
+	}
+	return filtered;
+};
+
+// normalizes a component registry entry to its config form
+export const mdz_component_config = (
+	entry: Component<any, any> | MdzComponentConfig
+): MdzComponentConfig => (typeof entry === 'function' ? { component: entry } : entry);
+
+// reconstructs authored attribute text (` name="value"` / ` name`) for the
+// unregistered-tag literal placeholder. The quote char is chosen so a value
+// containing one quote type stays balanced — a parsed value holds at most one
+// (a `"`-delimited value can't contain `"`, a `'`-delimited one can't contain
+// `'`). The caller interpolates the result as Svelte text (auto-escaped).
+export const mdz_format_unregistered_attributes = (attributes: Array<MdzAttribute>): string => {
+	let text = '';
+	for (const attr of attributes) {
+		if (attr.value === true) {
+			text += ` ${attr.name}`;
+		} else {
+			const quote = attr.value.includes('"') ? "'" : '"';
+			text += ` ${attr.name}=${quote}${attr.value}${quote}`;
+		}
+	}
+	return text;
+};
 
 /**
  * Resolves a relative path (`./` or `../`) against a base path.

@@ -20,7 +20,7 @@
 	const TOME_SLUG = 'usage';
 	const tome = tome_get_by_slug(TOME_SLUG);
 
-	const mdz_components = new Map([['Alert', Alert]]);
+	const mdz_components = new Map([['Alert', { component: Alert, props: ['status'] }]]);
 
 	const mdz_elements = new Map<string, boolean>([
 		['code', true],
@@ -71,8 +71,12 @@ const y = 1336;
 	const element_aside_example =
 		'<aside>This is _italicized <code>code</code>_ inside an `aside`.</aside>';
 	const element_marquee_example = '<marquee>use it or lose it</marquee>';
+	const element_attributes_example =
+		'<aside class="box" title="a tooltip">An `aside` with allowed attributes.</aside>';
 	const component_example =
 		'<Alert>This is an `Alert` with _italicized <code>code</code>_ inside.</Alert>';
+	const component_props_example =
+		'<Alert status="error">This `Alert` gets a `status` prop.</Alert>';
 </script>
 
 <MdzRoot
@@ -331,6 +335,15 @@ const y = 1336;
 </MdzRoot>`}
 			/>
 			<p>
+				Element attributes are quoted strings (<code>"</code> or <code>'</code>) or bare booleans,
+				and filter to a closed allowlist of inert names: <code>class</code>, <code>title</code>,
+				<code>lang</code>, <code>dir</code>, <code>role</code>, <code>aria-label</code>,
+				<code>aria-hidden</code>, <code>aria-describedby</code>, and <code>aria-labelledby</code>.
+				Other attributes are dropped.
+			</p>
+			<Code content={element_attributes_example} />
+			<Mdz content={element_attributes_example} class="mb_xl5" />
+			<p>
 				Unregistered elements render as <Mdz content="<tag-name />" inline /> placeholders for
 				security.
 			</p>
@@ -339,18 +352,37 @@ const y = 1336;
 		<TomeSection>
 			<TomeSectionHeader text="Svelte components" />
 			<p>
-				mdz supports a minimal subset of Svelte component syntax — tags with children, no props yet.
-				Components are distinguished from HTML elements by their uppercase first letter:
+				mdz supports a minimal subset of Svelte component syntax — tags with children and string or
+				boolean props. Components are distinguished from HTML elements by their uppercase first
+				letter:
 			</p>
 			<Code content={component_example} />
 			<Mdz content={component_example} class="mb_xl5" />
-			<p>Components must be registered:</p>
+			<Code content={component_props_example} />
+			<Mdz content={component_props_example} class="mb_xl5" />
+			<p>
+				Components must be registered. A bare entry renders the component with no props; to pass
+				attributes through, name them in <code>props</code>, and anything else is dropped:
+			</p>
 			<Code
 				lang="svelte"
-				content={`<MdzRoot components={new Map([['Alert', Alert]])}>
-	<Mdz content="<Alert>warning</Alert>" />
+				content={`<MdzRoot
+	components={new Map([
+		['Alert', {component: Alert, props: ['status']}],
+		['Note', Note], // no props
+	])}
+>
+	<Mdz content="<Alert status='error'>warning</Alert>" />
 </MdzRoot>`}
 			/>
+			<p>
+				Attribute values are whatever the content's author wrote, so with untrusted content, list
+				only props the component handles safely. <code>props: 'all'</code> passes everything through
+				— for trusted content, since a component that spreads rest props onto an element then
+				forwards attributes like <code>style</code> and <code>href</code>. A component that throws
+				while rendering, say on an unexpected prop value, falls back to its literal placeholder
+				instead of breaking the rest of the content.
+			</p>
 			<p>
 				Unregistered components render as <Mdz content="<ComponentName />" inline /> placeholders.
 			</p>

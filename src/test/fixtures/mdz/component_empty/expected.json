@@ -2,6 +2,7 @@
 	{
 		"type": "Component",
 		"name": "Alert",
+		"attributes": [],
 		"children": [],
 		"start": 0,
 		"end": 15

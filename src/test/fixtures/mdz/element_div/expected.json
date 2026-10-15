@@ -2,6 +2,7 @@
 	{
 		"type": "Element",
 		"name": "div",
+		"attributes": [],
 		"children": [
 			{
 				"type": "Text",

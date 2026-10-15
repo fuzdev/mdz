@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "<Alert\ta=\"1\">x</Alert>",
+				"start": 0,
+				"end": 22
+			}
+		],
+		"start": 0,
+		"end": 22
+	}
+]

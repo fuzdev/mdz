@@ -181,6 +181,16 @@
 				</td>
 			</tr>
 			<tr>
+				<td>inline HTML tags and attributes</td>
+				<td>raw HTML passes through verbatim, attributes and all</td>
+				<td>
+					only registered components/elements render; attributes are a strict subset — quoted
+					strings or bare booleans, and malformed forms (unquoted, <code>a={'{expr}'}</code>,
+					duplicate names, directives) stay literal text; elements filter to a closed inert
+					allowlist, components receive only the props they're registered with
+				</td>
+			</tr>
+			<tr>
 				<td>reference links</td>
 				<td><code>[text][ref]</code></td>
 				<td>none — inline <code>[text](url)</code> only</td>
