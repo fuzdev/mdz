@@ -1,5 +1,11 @@
 # @fuzdev/mdz
 
+## 0.6.0
+
+### Minor Changes
+
+- chore: upgrade fuz_util 0.77.0 ([f658a44](https://github.com/fuzdev/mdz/commit/f658a44))
+
 ## 0.5.0
 
 ### Minor Changes
