@@ -1,5 +1,21 @@
 # @fuzdev/mdz
 
+## 0.7.0
+
+### Minor Changes
+
+- Update dependencies (BREAKING CHANGES) ([811fc98](https://github.com/fuzdev/mdz/commit/811fc98))
+
+  Breaking dependency changes:
+
+  - @fuzdev/fuz_util: 0.78.0 → 0.79.0 (minor)
+
+- chore: upgrade fuz_util 0.78.0 ([9e50a45](https://github.com/fuzdev/mdz/commit/9e50a45))
+
+### Patch Changes
+
+- new logo: a pen nib hovering over an inkwell ([3bb193a](https://github.com/fuzdev/mdz/commit/3bb193a))
+
 ## 0.6.0
 
 ### Minor Changes
