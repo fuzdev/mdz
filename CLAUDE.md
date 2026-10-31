@@ -335,8 +335,8 @@ Fixture-based tests drive both the parser and the preprocessor:
 **Never manually edit `expected.json`** — change the input and regenerate:
 
 ```bash
-gro src/test/fixtures/mdz/update                    # parser fixtures
-gro src/test/fixtures/svelte_preprocess_mdz/update  # preprocessor fixtures
+gro task src/test/fixtures/mdz/update.task.ts                    # parser fixtures
+gro task src/test/fixtures/svelte_preprocess_mdz/update.task.ts  # preprocessor fixtures
 ```
 
 The preprocessor fixtures are generated with `DEFAULT_TEST_OPTIONS` (in
