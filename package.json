@@ -1,7 +1,7 @@
 {
   "name": "@fuzdev/mdz",
   "version": "0.7.0",
-  "description": "a strict markdown dialect built for streaming, Svelte authoring, docs websites, and untrusted content",
+  "description": "a strict markdown dialect built for streaming, web authoring, docs, and untrusted content",
   "tagline": "markdown for fuz",
   "glyph": "📝",
   "logo": "logo.svg",

@@ -2,8 +2,8 @@
 
 [**mdz.fuz.dev**](https://mdz.fuz.dev/)
 
-mdz is a strict markdown dialect built for streaming, Svelte authoring,
-docs websites, and untrusted content. The same grammar serves multiple use cases:
+mdz is a strict markdown dialect built for streaming, web authoring,
+docs, and untrusted content. The same grammar serves multiple use cases:
 
 - streaming output from LLMs and other live sources
 - authoring with Svelte components, with an optional build-time preprocessor

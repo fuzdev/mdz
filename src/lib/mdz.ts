@@ -1,6 +1,6 @@
 /**
- * mdz — strict markdown dialect built for streaming, Svelte authoring, docs
- * sites, and untrusted content.
+ * mdz — strict markdown dialect built for streaming, web authoring, docs, and
+ * untrusted content.
  *
  * Created for two motivating use cases: rendering TSDoc/JSDoc comments on
  * docs websites (with domain-specific behavior like linkifying backticked

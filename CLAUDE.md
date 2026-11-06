@@ -1,6 +1,6 @@
 # mdz
 
-> a strict markdown dialect built for streaming, Svelte authoring, docs websites, and untrusted content
+> a strict markdown dialect built for streaming, web authoring, docs, and untrusted content
 
 mdz (`@fuzdev/mdz`) is a strict markdown dialect built to stream, aimed at
 devs and AI agents rather than nontechnical end-users. Its two primary

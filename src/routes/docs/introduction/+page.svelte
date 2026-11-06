@@ -15,8 +15,8 @@
 <TomeContent {tome}>
 	<section>
 		<p>
-			mdz is a strict markdown dialect built for streaming, Svelte authoring, docs websites, and
-			untrusted content. The same grammar serves multiple use cases:
+			mdz is a strict markdown dialect built for streaming, web authoring, docs, and untrusted
+			content. The same grammar serves multiple use cases:
 		</p>
 		<ul>
 			<li>streaming output from LLMs and other live sources</li>
