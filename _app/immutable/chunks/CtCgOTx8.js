@@ -19,8 +19,8 @@ import{I as e,P as t,X as n,d as r,et as i,mt as a,pt as o,rt as s,tt as c,vt as
 			opcode design.</p>`,1),w=e(`<!> <p>By default, inline <code>\`code\`</code> renders as plain <code>&lt;code&gt;</code> and fenced
 			code blocks render as plain <code>&lt;pre&gt;&lt;code&gt;</code>. Inject richer renderers via <!> — the prop contracts match fuz_ui's <a href="https://ui.fuz.dev/docs/api/DocsLink.svelte#DocsLink"><code>DocsLink</code></a> (auto-linked API identifiers) and fuz_code's <a href="https://code.fuz.dev/docs/api/Code.svelte#Code"><code>Code</code></a> (syntax
 			highlighting):</p> <!>`,1),T=e(`<!> <p><!> compiles static <code>&lt;Mdz content="…"&gt;</code> usages to pre-rendered markup at build time, eliminating
-			runtime parsing for known-static content — see the <!> docs for setup and options.</p>`,1),E=e(`<section><p>mdz is a strict markdown dialect built for streaming, Svelte authoring, docs websites, and
-			untrusted content. The same grammar serves multiple use cases:</p> <ul><li>streaming output from LLMs and other live sources</li> <li>authoring with Svelte components, with an optional build-time preprocessor that compiles
+			runtime parsing for known-static content — see the <!> docs for setup and options.</p>`,1),E=e(`<section><p>mdz is a strict markdown dialect built for streaming, web authoring, docs, and untrusted
+			content. The same grammar serves multiple use cases:</p> <ul><li>streaming output from LLMs and other live sources</li> <li>authoring with Svelte components, with an optional build-time preprocessor that compiles
 				static usage to plain Svelte markup</li> <li>rendering TSDoc/JSDoc comments on docs websites with domain-specific behavior like
 				backticked identifiers linkifying to API docs</li> <li>dynamic content from untrusted users, with granular control over enabled behaviors</li></ul> <p>mdz's predictable grammar means streaming never re-parses: LLM output renders incrementally,
 			and the infrequent corrections -- like an unclosed <code>**</code> or a link resolving late --
