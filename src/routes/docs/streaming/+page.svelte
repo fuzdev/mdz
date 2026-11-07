@@ -176,7 +176,7 @@ const y = 1336;
 				oninput={stream_reset}
 				aria-label="streaming mdz source"
 			/>
-			<div class="row gap_md mb_md flex-wrap:wrap">
+			<div class="row_wrap gap_md mb_md">
 				<button
 					style:width="85px"
 					type="button"
