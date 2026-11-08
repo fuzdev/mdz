@@ -3,11 +3,14 @@
 	import '@fuzdev/fuz_code/theme_highlight.css';
 
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import Code from '@fuzdev/fuz_code/Code.svelte';
 	import CodeTextarea from '@fuzdev/fuz_code/CodeTextarea.svelte';
 	import DocsLink from '@fuzdev/fuz_ui/DocsLink.svelte';
 	import DocsFooter from '@fuzdev/fuz_ui/DocsFooter.svelte';
 	import Card from '@fuzdev/fuz_ui/Card.svelte';
+	import Svg from '@fuzdev/fuz_ui/Svg.svelte';
+	import { logo_mdz } from '@fuzdev/fuz_ui/logos.ts';
 	import { site_context } from '@fuzdev/fuz_ui/site.svelte.ts';
 	import { FUZ_DEV_URL, MAIN_HEADER_MARGIN_TOP } from '@fuzdev/fuz_ui/constants.ts';
 	import { DOCS_PATH } from '@fuzdev/fuz_ui/docs_helpers.svelte.ts';
@@ -157,10 +160,13 @@ For more see the /docs.`;
 <main class="box width:100%">
 	<div class="box width_atmost_md mb_xl9">
 		<section class="box">
-			<h1 class="mb_0" style:margin-top={MAIN_HEADER_MARGIN_TOP}>mdz</h1>
+			<h1 class="row gap_sm mb_0" style:margin-top={MAIN_HEADER_MARGIN_TOP}>
+				mdz
+				<Svg data={logo_mdz} size="1lh" aria-hidden="true" />
+			</h1>
 		</section>
 		<section class="box width_atmost_md">
-			<div class="panel shade_05 p_md width:100%" style:min-height="514px">
+			<div class="panel shade_05 p_md width:100%" style:min-height="570px">
 				<MdzRoot
 					elements={demo_elements}
 					components={demo_components}
@@ -207,15 +213,19 @@ For more see the /docs.`;
 			<Card href={DOCS_PATH}>docs</Card>
 		</section>
 		<section>
-			<DocsFooter repo_url={site.repo_url} root_url={FUZ_DEV_URL} />
+			<DocsFooter repo_url={site.repo_url} root_url={FUZ_DEV_URL}>
+				{#snippet logo_header()}
+					<a href={resolve('/about')} class="mb_xs">about</a>
+				{/snippet}
+			</DocsFooter>
 		</section>
 	</div>
 </main>
 
 <style>
-	/* the editor mirrors the preview panel's height; fuz_css's default textarea is too short */
+	/* fits the sample source; fuz_css's default textarea is too short */
 	.demo-source :global(.code_textarea textarea) {
-		height: 500px;
+		height: 624px;
 		resize: vertical;
 	}
 </style>

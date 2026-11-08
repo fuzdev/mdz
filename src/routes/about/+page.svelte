@@ -4,8 +4,6 @@
 	import { FUZ_DEV_URL } from '@fuzdev/fuz_ui/constants.ts';
 	import EcosystemLinksPanel from '@fuzdev/fuz_ui/EcosystemLinksPanel.svelte';
 	import Breadcrumb from '@fuzdev/fuz_ui/Breadcrumb.svelte';
-	import Svg from '@fuzdev/fuz_ui/Svg.svelte';
-	import { logo_fuz } from '@fuzdev/fuz_ui/logos.ts';
 
 	const site = site_context.get();
 
@@ -15,7 +13,6 @@
 <main class="width_atmost_md pb_xl9">
 	<section class="box">
 		<header class="box pt_xl">
-			<Svg data={logo_fuz} size="var(--icon_size_xl)" />
 			<h1 class="mt_xl2">mdz</h1>
 		</header>
 		<div style:--font_size="var(--font_size_xl)">
@@ -24,7 +21,11 @@
 	</section>
 	<EcosystemLinksPanel />
 	<section class="box">
-		<DocsFooter repo_url={site.repo_url} root_url={FUZ_DEV_URL} />
+		<DocsFooter repo_url={site.repo_url} root_url={FUZ_DEV_URL}>
+			<div class="mb_xl5" style:--font_size="var(--font_size_xl)">
+				<Breadcrumb />
+			</div>
+		</DocsFooter>
 	</section>
 </main>
 
