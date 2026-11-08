@@ -17,7 +17,7 @@
 	import { Library, library_context } from '@fuzdev/fuz_ui/library.svelte.ts';
 
 	import { library_json } from './library.ts';
-	import Mdz from '#lib/Mdz.svelte';
+	import Rainbow from '#routes/Rainbow.svelte';
 	import MdzRoot from '#lib/MdzRoot.svelte';
 	import MdzStream from '#lib/MdzStream.svelte';
 	import { MdzStreamParser } from '#lib/mdz_stream_parser.ts';
@@ -32,7 +32,7 @@
 
 	const DEMO_CONTENT_DEFAULT = `**mdz** is a strict markdown dialect built for streaming, web authoring, docs, and untrusted content. This text is rendering through \`MdzStreamParser\` character by character.
 
-It supports markdown basics like **bold**, _italic_, ~~strikethrough~~, \`inline code\`, headings, and auto-detected links like https://www.fuz.dev. <Mdz content="**Svelte components**" inline /> too!
+It supports markdown basics like **bold**, _italic_, ~~strikethrough~~, \`inline code\`, headings, and auto-detected links like https://www.fuz.dev. <Rainbow>**Svelte components**</Rainbow> too!
 
 - lists stream as their structure arrives
   - nesting included
@@ -60,7 +60,7 @@ For more see the /docs.`;
 	const DEMO_INTERVAL_MS = 15;
 
 	const demo_elements = new Map([['br', true]]);
-	const demo_components = new Map([['Mdz', { component: Mdz, props: ['content', 'inline'] }]]);
+	const demo_components = new Map([['Rainbow', Rainbow]]);
 
 	let demo_parser = $state(new MdzStreamParser());
 	let demo_state = $state(new MdzStreamState());
@@ -166,7 +166,7 @@ For more see the /docs.`;
 			</h1>
 		</section>
 		<section class="box width_atmost_md">
-			<div class="panel shade_05 p_md width:100%" style:min-height="570px">
+			<div class="panel shade_05 p_md width:100%" style:min-height="520px">
 				<MdzRoot
 					elements={demo_elements}
 					components={demo_components}
@@ -198,9 +198,6 @@ For more see the /docs.`;
 				/>
 			</div>
 			<div class="demo-source width:100%">
-				<p class="mb_xs">
-					<small>Edit the source — the preview re-renders live; replay to stream it.</small>
-				</p>
 				<CodeTextarea
 					value={demo_content}
 					lang="md"

@@ -1,5 +1,7 @@
 # mdz
 
+[<img src="static/logo.svg" alt="a purple pen nib hovering over an inkwell with a glint of light" align="right" width="192" height="192">](https://mdz.fuz.dev/)
+
 [**mdz.fuz.dev**](https://mdz.fuz.dev/)
 
 mdz is a strict markdown dialect built for streaming, web authoring,

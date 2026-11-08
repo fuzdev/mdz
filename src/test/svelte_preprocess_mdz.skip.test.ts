@@ -280,6 +280,24 @@ describe('dynamic base prop', () => {
 	});
 });
 
+describe('dynamic inline prop', () => {
+	test.each([
+		['a state variable', '{inline}'],
+		['an expression', 'inline={inline && true}'],
+		['a quoted string', 'inline="{inline}"']
+	])('preserves %s', async (_label, attribute) => {
+		const input = `<script lang="ts">
+	import Mdz from '@fuzdev/mdz/Mdz.svelte';
+	let inline = $state(true);
+</script>
+
+<Mdz content="**bold**" ${attribute} />`;
+
+		const result = await run_preprocess(input);
+		assert.equal(result, input, 'should be unchanged for a dynamic inline prop');
+	});
+});
+
 describe('excluded files', () => {
 	test('skips excluded files with regex', async () => {
 		const input = `<script lang="ts">

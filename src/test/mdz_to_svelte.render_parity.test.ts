@@ -55,6 +55,10 @@ const svelte_markup_to_html = (markup: string): string =>
 		)
 		.replaceAll(/=\{'((?:[^'\\]|\\.)*)'\}/g, (_, s: string) => `="${attr_escape(js_unescape(s))}"`)
 		.replaceAll(/=\{(\d+)\}/g, '="$1"')
+		// whitespace runs emitted as expressions so the compiler keeps them
+		.replaceAll(/\{'((?:[ \t]|\\[nrt])+)'\}/g, (_, s: string) =>
+			s.replaceAll('\\n', '\n').replaceAll('\\r', '\r').replaceAll('\\t', '\t')
+		)
 		// Svelte SSR prints self-closing void elements without the space
 		.replaceAll('<hr />', '<hr/>')
 		.replaceAll('\u0001', '{')

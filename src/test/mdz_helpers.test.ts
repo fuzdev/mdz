@@ -28,6 +28,7 @@ import {
 	mdz_resolve_relative_path,
 	mdz_classify_link,
 	mdz_extract_single_tag,
+	mdz_unwrap_inline,
 	ASTERISK,
 	UNDERSCORE,
 	TILDE,
@@ -865,6 +866,27 @@ const attr = (name: string, value: string | true = true): MdzAttribute => ({
 	value,
 	start: 0,
 	end: 0
+});
+
+describe('mdz_unwrap_inline', () => {
+	test('returns the children of a lone paragraph', () => {
+		const nodes = mdz_parse('**a** b');
+		const paragraph = nodes[0];
+		assert(paragraph?.type === 'Paragraph');
+		assert.equal(mdz_unwrap_inline(nodes), paragraph.children);
+	});
+
+	test.each([
+		['multiple paragraphs', 'one\n\ntwo'],
+		['a lone heading', '# title'],
+		['a lone list', '- item'],
+		['a lone tag', '<Alert />'],
+		['a paragraph followed by a block', 'one\n\n- item'],
+		['empty content', '']
+	])('returns nodes unchanged for %s', (_label, content) => {
+		const nodes = mdz_parse(content);
+		assert.equal(mdz_unwrap_inline(nodes), nodes);
+	});
 });
 
 describe('mdz_filter_element_attributes', () => {

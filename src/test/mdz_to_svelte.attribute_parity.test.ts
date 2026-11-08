@@ -23,9 +23,12 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { mdz_parse } from '#lib/mdz.ts';
 import { mdz_to_svelte, type MdzToSvelteResult } from '#lib/mdz_to_svelte.ts';
+import { mdz_unwrap_inline } from '#lib/mdz_helpers.ts';
+import MdzComponent from '#lib/Mdz.svelte';
 import MdzRenderHarnessComponent from './MdzRenderHarness.svelte';
 import type { MdzComponents, MdzElements } from '#lib/mdz_contexts.ts';
 import EchoProp from './EchoProp.svelte';
+import { load_fixtures } from './fixtures/mdz/mdz_test_helpers.ts';
 
 const Harness = MdzRenderHarnessComponent as unknown as Component<{
 	content: string;
@@ -36,6 +39,8 @@ const ComponentHarness = MdzRenderHarnessComponent as unknown as Component<{
 	content: string;
 	components?: MdzComponents;
 }>;
+
+const MdzInline = MdzComponent as unknown as Component<{ content: string; inline: boolean }>;
 
 const ELEMENT_NAMES = ['aside', 'span', 'br'];
 
@@ -71,12 +76,13 @@ afterAll(async () => {
  */
 const load_markup_component = async (
 	markup: string,
-	imports: MdzToSvelteResult['imports'] = new Map()
+	imports: MdzToSvelteResult['imports'] = new Map(),
+	wrapper: 'div' | 'span' = 'div'
 ): Promise<Component> => {
 	const script = Array.from(imports, ([name, { path }]) => `import ${name} from '${path}';`).join(
 		'\n'
 	);
-	const { js } = compile(`<script>${script}</script><div>${markup}</div>`, {
+	const { js } = compile(`<script>${script}</script><${wrapper}>${markup}</${wrapper}>`, {
 		generate: 'server',
 		dev: false
 	});
@@ -93,9 +99,13 @@ const load_markup_component = async (
 };
 
 // strips hydration comments, and the `/` a static void element serializes with
-// (`<br/>`) that `<svelte:element>` omits — equivalent HTML
+// (`<br/>`) that `<svelte:element>` omits, and normalizes newlines as HTML parsers
+// do (compiled template literals turn CR into LF) — equivalent HTML
 const normalize = (body: string): string =>
-	body.replaceAll(/<!--.*?-->/gs, '').replaceAll(/<(br|hr)([^>]*?)\/>/g, '<$1$2>');
+	body
+		.replaceAll(/<!--.*?-->/gs, '')
+		.replaceAll(/<(br|hr)([^>]*?)\/>/g, '<$1$2>')
+		.replaceAll(/\r\n?/g, '\n');
 
 describe('mdz_to_svelte attributes match the runtime renderer', () => {
 	for (const input of INPUTS) {
@@ -116,6 +126,71 @@ describe('mdz_to_svelte attributes match the runtime renderer', () => {
 				}).body
 			);
 			assert.equal(expected, actual);
+		});
+	}
+});
+
+const INLINE_INPUTS = [
+	'',
+	'text',
+	' bar',
+	'bar ',
+	' **b** ',
+	'** b**',
+	'a\n**b**',
+	'` a `',
+	'**b** text',
+	'a _b_ ~~c~~',
+	'a\nb',
+	'one\n\ntwo',
+	'# title',
+	'- item'
+];
+
+describe('mdz_to_svelte inline output matches the runtime renderer', () => {
+	for (const input of INLINE_INPUTS) {
+		test(JSON.stringify(input), async () => {
+			const result = mdz_to_svelte(mdz_unwrap_inline(mdz_parse(input)), {
+				components: {},
+				elements: {}
+			});
+			assert.isFalse(result.has_unconfigured_tags);
+			const Precompiled = await load_markup_component(result.markup, result.imports, 'span');
+			assert.equal(
+				normalize(render(Precompiled).body),
+				normalize(render(MdzInline, { props: { content: input, inline: true } }).body)
+			);
+		});
+	}
+});
+
+describe('mdz_to_svelte compiled output matches the runtime renderer', () => {
+	for (const inline of [false, true]) {
+		test(`all fixtures (inline: ${inline})`, async () => {
+			const wrapper = inline ? 'span' : 'div';
+			const failures: Array<string> = [];
+			let compared = 0;
+			for (const fixture of await load_fixtures()) {
+				const nodes = mdz_parse(fixture.input);
+				const result = mdz_to_svelte(inline ? mdz_unwrap_inline(nodes) : nodes, {
+					components: {},
+					elements: {}
+				});
+				// tags diverge by design, and `$app/paths` can't resolve from the temp module
+				if (result.has_unconfigured_tags || result.imports.size > 0) continue;
+				const Precompiled = await load_markup_component(result.markup, result.imports, wrapper);
+				const expected = normalize(render(Precompiled).body);
+				const actual = normalize(
+					render(MdzInline, { props: { content: fixture.input, inline } }).body
+				);
+				if (expected !== actual) {
+					failures.push(`${fixture.name}:\n  compiled→ ${expected}\n  runtime→  ${actual}`);
+				}
+				compared++;
+			}
+			// a low count means the skip filter broke
+			assert.isAbove(compared, 300, 'compared fixture count');
+			assert.deepEqual(failures.slice(0, 5), [], `${failures.length} of ${compared} diverge`);
 		});
 	}
 });

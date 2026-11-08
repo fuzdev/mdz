@@ -17,6 +17,10 @@
 		...rest
 	}: (SvelteHTMLElements['div'] | SvelteHTMLElements['span']) & {
 		stream: MdzStreamState;
+		/**
+		 * Renders a `span` wrapper. Unlike `Mdz`, a lone paragraph keeps its `p`,
+		 * because a stream can't know a paragraph is the only block until it ends.
+		 */
 		inline?: boolean;
 		/**
 		 * Sets `white-space` on the wrapper. When omitted, whitespace collapses

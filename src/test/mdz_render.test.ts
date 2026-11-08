@@ -13,7 +13,8 @@ import { DEV } from 'esm-env';
 
 import MdzComponent from '#lib/Mdz.svelte';
 import MdzStreamComponent from '#lib/MdzStream.svelte';
-import type { MdzNode } from '#lib/mdz.ts';
+import MdzPrecompiledComponent from '#lib/MdzPrecompiled.svelte';
+import { mdz_parse, type MdzNode } from '#lib/mdz.ts';
 import type { MdzComponents, MdzElements } from '#lib/mdz_contexts.ts';
 import { MdzStreamParser } from '#lib/mdz_stream_parser.ts';
 import { MdzStreamState } from '#lib/mdz_stream_state.svelte.ts';
@@ -25,9 +26,19 @@ import { load_fixtures } from './fixtures/mdz/mdz_test_helpers.ts';
 // narrowed component types — the wrapper's `SvelteHTMLElements` rest-prop
 // union is too complex for `render()`'s generic inference
 const Mdz = MdzComponent as unknown as Component<{ content: string }>;
-const MdzNodes = MdzComponent as unknown as Component<{ nodes: Array<MdzNode>; base?: string }>;
+const MdzInline = MdzComponent as unknown as Component<{ content: string; inline: boolean }>;
+const MdzNodes = MdzComponent as unknown as Component<{
+	nodes: Array<MdzNode>;
+	base?: string;
+	inline?: boolean;
+}>;
 const MdzWithBase = MdzComponent as unknown as Component<{ content: string; base: string }>;
-const MdzStream = MdzStreamComponent as unknown as Component<{ stream: MdzStreamState }>;
+const MdzStream = MdzStreamComponent as unknown as Component<{
+	stream: MdzStreamState;
+	inline?: boolean;
+}>;
+
+const MdzPrecompiled = MdzPrecompiledComponent as unknown as Component<{ inline?: boolean }>;
 
 /** The `href` of every `<a>` in an SSR body, in document order. */
 const hrefs = (body: string): Array<string> =>
@@ -302,9 +313,9 @@ describe('tag attributes', () => {
 	});
 
 	test('capstone: nested Mdz renders pass-through content and inline boolean', () => {
-		// mirrors the homepage demo — a `content` string prop and a bare `inline`
-		// boolean pass through to a recursively-rendered `Mdz`, which renders
-		// bold text inside an inline `<span>` (not a block `<div>`)
+		// a `content` string prop and a bare `inline` boolean pass through to a
+		// recursively-rendered `Mdz`, which renders bold text inside an inline
+		// `<span>` (not a block `<div>`)
 		const result = render(Harness, {
 			props: {
 				content: '<Mdz content="**hi**" inline />',
@@ -318,5 +329,58 @@ describe('tag attributes', () => {
 		assert.include(result.body, '<strong>');
 		assert.include(result.body, 'hi');
 		assert.match(result.body, /<span>[\s\S]*?<strong>[\s\S]*?hi/);
+		assert.notInclude(result.body, '<p>');
+	});
+});
+
+describe('inline', () => {
+	test('unwraps a lone paragraph into a span', () => {
+		const { body } = render(MdzInline, { props: { content: '**hi** there', inline: true } });
+		assert.include(body, '<span>');
+		assert.include(body, '<strong>');
+		assert.notInclude(body, '<p>');
+	});
+
+	test('keeps multiple blocks as blocks', () => {
+		const { body } = render(MdzInline, { props: { content: 'one\n\ntwo', inline: true } });
+		assert.include(body, '<p>');
+	});
+
+	test('keeps the paragraph when not inline', () => {
+		const { body } = render(MdzInline, { props: { content: 'one', inline: false } });
+		assert.include(body, '<div>');
+		assert.include(body, '<p>');
+	});
+
+	test('unwraps a pre-parsed tree passed as nodes', () => {
+		const { body } = render(MdzNodes, { props: { nodes: mdz_parse('**hi**'), inline: true } });
+		assert.include(body, '<span>');
+		assert.include(body, '<strong>');
+		assert.notInclude(body, '<p>');
+	});
+
+	test('renders empty content as an empty span', () => {
+		const { body } = render(MdzInline, { props: { content: '', inline: true } });
+		assert.include(body, '<span>');
+		assert.notInclude(body, '<p>');
+	});
+
+	test.each([
+		['div', false],
+		['span', true]
+	])('MdzPrecompiled renders an empty %s without children', (tag, inline) => {
+		const { body } = render(MdzPrecompiled, { props: { inline } });
+		assert.include(body, `<${tag}>`);
+	});
+
+	test('MdzStream keeps its paragraph, unlike Mdz', () => {
+		const parser = new MdzStreamParser();
+		parser.feed('one');
+		parser.finish();
+		const stream = new MdzStreamState();
+		stream.apply_batch(parser.take_opcodes());
+		const { body } = render(MdzStream, { props: { stream, inline: true } });
+		assert.include(body, '<span>');
+		assert.include(body, '<p>');
 	});
 });

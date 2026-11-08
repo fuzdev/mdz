@@ -753,6 +753,19 @@ export const mdz_heading_id = (nodes: Array<MdzNode>): string => slugify(mdz_tex
 export const mdz_heading_id_from_text = (text: string): string => slugify(text);
 
 /**
+ * Prepares top-level nodes for inline rendering by unwrapping a lone paragraph
+ * into its children, so `inline` output has no block `<p>`.
+ * Multiple blocks or a non-paragraph block can't be inline and return unchanged.
+ *
+ * @param nodes - top-level nodes from `mdz_parse`
+ * @returns the lone paragraph's children, otherwise `nodes`
+ */
+export const mdz_unwrap_inline = (nodes: Array<MdzNode>): Array<MdzNode> => {
+	const first = nodes[0];
+	return nodes.length === 1 && first?.type === 'Paragraph' ? first.children : nodes;
+};
+
+/**
  * Check if a string is a URL (`https://` or `http://`).
  * Requires at least one valid character after the protocol.
  * Rejects whitespace and characters that can't start a valid hostname.

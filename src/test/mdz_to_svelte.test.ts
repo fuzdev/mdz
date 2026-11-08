@@ -129,6 +129,17 @@ describe('mdz_to_svelte', () => {
 			const result = convert('a & b');
 			assert.equal(result.markup, '<p>a &amp; b</p>');
 		});
+
+		test.each([
+			['a leading space', ' a', "<p>{' '}a</p>"],
+			['a space before an element keeps template text', 'a **b**', '<p>a <strong>b</strong></p>'],
+			['a space between elements', '**a** **b**', '<p><strong>a</strong> <strong>b</strong></p>'],
+			['a space at the start of an element', '** a**', "<p><strong>{' '}a</strong></p>"],
+			['a newline before an element', 'a\n**b**', "<p>a{'\\n'}<strong>b</strong></p>"],
+			['interior whitespace stays template text', 'a  b\nc', '<p>a  b\nc</p>']
+		])('emits %s', (_label, input, expected) => {
+			assert.equal(convert(input).markup, expected);
+		});
 	});
 
 	describe('code nodes', () => {

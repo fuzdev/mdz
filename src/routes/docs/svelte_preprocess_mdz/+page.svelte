@@ -161,6 +161,10 @@ export default defineConfig({
 				the <code>content</code> prop is dynamic (variable, function call, <code>$state</code>,
 				<code>$derived</code>)
 			</li>
+			<li>
+				the <code>inline</code> prop is dynamic, because it decides whether a lone paragraph is
+				unwrapped
+			</li>
 			<li>spread attributes are present (<code>{'{'}...props}</code>)</li>
 			<li>content references unconfigured components or elements</li>
 			<li>a ternary branch has dynamic content or unconfigured tags</li>

@@ -7,6 +7,8 @@
 	import TomeSectionHeader from '@fuzdev/fuz_ui/TomeSectionHeader.svelte';
 	import DeclarationLink from '@fuzdev/fuz_ui/DeclarationLink.svelte';
 	import TomeLink from '@fuzdev/fuz_ui/TomeLink.svelte';
+	import Svg from '@fuzdev/fuz_ui/Svg.svelte';
+	import { logo_mdz } from '@fuzdev/fuz_ui/logos.ts';
 
 	const TOME_SLUG = 'introduction';
 	const tome = tome_get_by_slug(TOME_SLUG);
@@ -14,6 +16,7 @@
 
 <TomeContent {tome}>
 	<section>
+		<Svg data={logo_mdz} size="var(--icon_size_xl2)" class="float:right ml_lg mb_lg" />
 		<p>
 			mdz is a strict markdown dialect built for streaming, web authoring, docs, and untrusted
 			content. The same grammar serves multiple use cases:

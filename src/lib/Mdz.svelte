@@ -4,6 +4,7 @@
 
 	import { mdz_parse, type MdzNode } from './mdz.ts';
 	import MdzNodeView from './MdzNodeView.svelte';
+	import { mdz_unwrap_inline } from './mdz_helpers.ts';
 	import {
 		mdz_base_context,
 		mdz_set_context_with_fallback,
@@ -18,6 +19,10 @@
 		base,
 		...rest
 	}: (SvelteHTMLElements['div'] | SvelteHTMLElements['span']) & {
+		/**
+		 * Renders a `span` wrapper and unwraps a lone paragraph so the content
+		 * can sit inside other text. Multiple blocks still render as blocks.
+		 */
 		inline?: boolean;
 		/**
 		 * Sets `white-space` on the wrapper. When omitted, whitespace collapses
@@ -39,7 +44,8 @@
 		if (DEV && (content === undefined) === (nodes_prop === undefined)) {
 			throw new Error('Mdz: pass exactly one of `content` or `nodes`');
 		}
-		return nodes_prop ?? mdz_parse(content ?? '');
+		const parsed = nodes_prop ?? mdz_parse(content ?? '');
+		return inline ? mdz_unwrap_inline(parsed) : parsed;
 	});
 </script>
 

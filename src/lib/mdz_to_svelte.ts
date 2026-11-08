@@ -56,6 +56,43 @@ export interface MdzToSvelteResult {
 	has_unconfigured_tags: boolean;
 }
 
+/** The whitespace the Svelte compiler trims and collapses in template text. */
+const is_template_whitespace = (char: string | undefined): boolean =>
+	char === ' ' || char === '\t' || char === '\r' || char === '\n';
+
+/**
+ * Emits a whitespace run, as an expression when the Svelte compiler would
+ * otherwise change it. Only a single space beside a sibling survives as
+ * template text: fragment edges are trimmed, longer runs collapse.
+ */
+const render_whitespace = (whitespace: string, has_sibling: boolean): string =>
+	whitespace === '' || (whitespace === ' ' && has_sibling)
+		? whitespace
+		: `{'${escape_js_string(whitespace)}'}`;
+
+/**
+ * Emits text so it survives the Svelte compiler's whitespace handling, matching
+ * the runtime views' `{text}` expressions. Interior whitespace needs no
+ * protection, only the runs at the text's edges.
+ *
+ * @param content - the raw text
+ * @param has_prev - whether a sibling node precedes the text
+ * @param has_next - whether a sibling node follows the text
+ * @returns Svelte markup
+ */
+const render_text = (content: string, has_prev: boolean, has_next: boolean): string => {
+	let start = 0;
+	while (start < content.length && is_template_whitespace(content[start])) start++;
+	if (start === content.length) return render_whitespace(content, has_prev && has_next);
+	let end = content.length;
+	while (is_template_whitespace(content[end - 1])) end--;
+	return (
+		render_whitespace(content.slice(0, start), has_prev) +
+		escape_svelte_text(content.slice(start, end)) +
+		render_whitespace(content.slice(end), has_next)
+	);
+};
+
 /** Derives an import's local identifier from a `.svelte` import path's basename. */
 const component_local_name = (import_path: string): string =>
 	import_path.slice(import_path.lastIndexOf('/') + 1).replace(/\.svelte$/, '');
@@ -123,17 +160,17 @@ export const mdz_to_svelte = (
 	let has_unconfigured_tags = false;
 
 	const render_nodes = (children: Array<MdzNode>): string => {
-		return children.map((child) => render_node(child)).join('');
+		return children.map((child, i) => render_node(child, i > 0, i < children.length - 1)).join('');
 	};
 
-	const render_node = (node: MdzNode): string => {
+	const render_node = (node: MdzNode, has_prev: boolean, has_next: boolean): string => {
 		switch (node.type) {
 			case 'Text':
-				return escape_svelte_text(node.content);
+				return render_text(node.content, has_prev, has_next);
 
 			case 'Code': {
 				if (!code_component_import) {
-					return `<code>${escape_svelte_text(node.content)}</code>`;
+					return `<code>${render_text(node.content, false, false)}</code>`;
 				}
 				const name = component_local_name(code_component_import);
 				imports.set(name, { path: code_component_import, kind: 'default' });

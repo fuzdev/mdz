@@ -37,6 +37,7 @@ import {
 } from '@fuzdev/fuz_util/svelte_preprocess_helpers.ts';
 
 import { mdz_parse } from './mdz.ts';
+import { mdz_unwrap_inline } from './mdz_helpers.ts';
 import { mdz_to_svelte, type MdzComponentImport, type MdzToSvelteResult } from './mdz_to_svelte.ts';
 
 /**
@@ -303,6 +304,21 @@ const collect_consumed_bindings = (
 };
 
 /**
+ * Reads a static boolean attribute value, from a bare attribute or a boolean
+ * literal expression.
+ *
+ * @returns the boolean, or `null` when the value isn't known at build time
+ */
+const extract_static_boolean = (value: AST.Attribute['value']): boolean | null => {
+	if (value === true) return true;
+	if (Array.isArray(value)) return null;
+	const { expression } = value;
+	return expression.type === 'Literal' && typeof expression.value === 'boolean'
+		? expression.value
+		: null;
+};
+
+/**
  * Parse a static mdz string and render it to Svelte markup. Returns `null` to
  * leave the usage for the runtime — either the content raised a parse error
  * (reported via `on_error`) or it contains unconfigured tags (which the
@@ -311,11 +327,13 @@ const collect_consumed_bindings = (
 const render_static_mdz = (
 	content: string,
 	base: string | undefined,
+	inline: boolean,
 	context: FindMdzUsagesContext
 ): MdzToSvelteResult | null => {
 	let result: MdzToSvelteResult;
 	try {
-		result = mdz_to_svelte(mdz_parse(content), {
+		const nodes = mdz_parse(content);
+		result = mdz_to_svelte(inline ? mdz_unwrap_inline(nodes) : nodes, {
 			components: context.components,
 			elements: context.elements,
 			base,
@@ -372,6 +390,13 @@ const find_mdz_usages = (
 				base = base_value;
 			}
 
+			// `inline` decides the markup, not just the wrapper — a lone paragraph is
+			// unwrapped — so a dynamic value can't be precompiled. The attribute stays
+			// in the output for `MdzPrecompiled`'s wrapper.
+			const inline_attr = find_attribute(node, 'inline');
+			const inline = inline_attr ? extract_static_boolean(inline_attr.value) : false;
+			if (inline === null) return; // dynamic inline — fall back to runtime
+
 			// Collect attributes to exclude from precompiled output
 			const exclude_attrs: Set<AST.Attribute> = new Set([content_attr]);
 			if (base_attr) exclude_attrs.add(base_attr);
@@ -379,7 +404,7 @@ const find_mdz_usages = (
 			// Extract static string value
 			const content_value = extract_static_string(content_attr.value, context.bindings);
 			if (content_value !== null) {
-				const result = render_static_mdz(content_value, base, context);
+				const result = render_static_mdz(content_value, base, inline, context);
 				if (result === null) return; // parse error or unconfigured tags — leave for runtime
 
 				const consumed = collect_consumed_bindings(content_attr.value, context.bindings);
@@ -408,7 +433,7 @@ const find_mdz_usages = (
 			const branch_results: Array<{ markup: string; imports: Map<string, PreprocessImportInfo> }> =
 				[];
 			for (const branch of chain) {
-				const result = render_static_mdz(branch.value, base, context);
+				const result = render_static_mdz(branch.value, base, inline, context);
 				if (result === null) return; // parse error or unconfigured tags — leave for runtime
 				branch_results.push({ markup: result.markup, imports: result.imports });
 			}

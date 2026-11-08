@@ -268,8 +268,9 @@ share one grammar and stay in sync by construction: rendering _decisions_
 (link safety + resolve-vs-raw classification via `mdz_classify_link`, void
 elements, element attribute filtering, heading ids, table header/body
 normalization) live in `mdz_helpers.ts`, and the parity tests bind their
-outputs. `mdz_to_svelte` emits **Svelte markup, not HTML** — `{`/`}` escape
-to Svelte expressions and attribute values are expressions — so its output
+outputs. `mdz_to_svelte` emits **Svelte markup, not HTML** — `{`/`}` and the whitespace
+the compiler would trim or collapse escape to Svelte expressions, and attribute
+values are expressions — so its output
 cannot be repurposed as raw HTML. A fourth render target (say an HTML-string
 emitter) should be added by parameterizing the emission over a target
 interface, not as another hand-synced switch.

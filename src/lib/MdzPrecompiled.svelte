@@ -17,6 +17,10 @@
 		children,
 		...rest
 	}: (SvelteHTMLElements['div'] | SvelteHTMLElements['span']) & {
+		/**
+		 * Renders a `span` wrapper. The preprocessor has already unwrapped a lone
+		 * paragraph in `children`, matching `Mdz`.
+		 */
 		inline?: boolean;
 		/**
 		 * Sets `white-space` on the wrapper. When omitted, whitespace collapses
@@ -24,10 +28,11 @@
 		 * Use `pre-line` to render every newline as a line break.
 		 */
 		whitespace?: MdzWhitespace;
-		children: Snippet;
+		/** Absent for empty content, which compiles to no children. */
+		children?: Snippet;
 	} = $props();
 </script>
 
 <svelte:element this={inline ? 'span' : 'div'} {...rest} style:white-space={whitespace}>
-	{@render children()}
+	{@render children?.()}
 </svelte:element>
