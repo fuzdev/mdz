@@ -1,5 +1,13 @@
 # @fuzdev/mdz
 
+## 0.8.1
+
+### Patch Changes
+
+- fix `Mdz` `inline` rendering a block `<p>` inside its `<span>` by unwrapping a lone paragraph, at runtime and in the preprocessor; a dynamic `inline` now falls back to runtime rendering ([98b3a73](https://github.com/fuzdev/mdz/commit/98b3a73))
+- fix precompiled text losing whitespace at element edges, matching the runtime renderer ([98b3a73](https://github.com/fuzdev/mdz/commit/98b3a73))
+- fix `MdzPrecompiled` throwing during render when static `Mdz` content is empty or only whitespace ([98b3a73](https://github.com/fuzdev/mdz/commit/98b3a73))
+
 ## 0.8.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "@fuzdev/mdz",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "a strict markdown dialect built for streaming, web authoring, docs, and untrusted content",
   "tagline": "markdown for fuz",
   "glyph": "📝",
