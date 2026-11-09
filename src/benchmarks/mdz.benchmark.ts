@@ -6,24 +6,21 @@
  *   gro run src/benchmarks/mdz.benchmark.ts --save   # run and save as new baseline
  */
 
-import { readFile, writeFile } from 'node:fs/promises';
 import { Benchmark } from '@fuzdev/fuz_util/benchmark.ts';
 import {
-	benchmark_baseline_save,
 	benchmark_baseline_compare,
 	benchmark_baseline_format
 } from '@fuzdev/fuz_util/benchmark_baseline.ts';
-import { format_file } from '@fuzdev/gro/format_file.ts';
 
 import { mdz_parse } from '../lib/mdz.ts';
 import { MdzStreamParser } from '../lib/mdz_stream_parser.ts';
 import { mdz_opcodes_to_nodes } from '../lib/mdz_opcodes_to_nodes.ts';
 import type { MdzOpcode } from '../lib/mdz_opcodes.ts';
 import { benchmark_inputs } from './benchmark_inputs.ts';
+import { baseline_load, baseline_save } from './baseline_io.ts';
 
 const save_baseline = process.argv.includes('--save');
-const BASELINE_PATH = 'src/benchmarks';
-const BASELINE_FILE = `${BASELINE_PATH}/baseline.json`;
+const BASELINE_FILE = 'src/benchmarks/baseline.json';
 
 // inputs live in `benchmark_inputs.ts`, shared with the render suite
 // (`render.benchmark.test.ts`)
@@ -148,8 +145,8 @@ console.log(bench.summary());
 
 // -- Baseline comparison --
 
-const comparison = await benchmark_baseline_compare(bench.results(), {
-	path: BASELINE_PATH,
+const comparison = benchmark_baseline_compare(bench.results(), await baseline_load(BASELINE_FILE), {
+	runtime_version: process.version,
 	// Informational only (nothing gates CI on it). Cross-run absolute compare
 	// can't resolve sub-~2× effects on this hardware — a zero-change re-run has
 	// flagged most tasks as "regressions" (thermal/scheduler drift, invisible to
@@ -164,10 +161,7 @@ console.log('\n Baseline Comparison\n');
 console.log(benchmark_baseline_format(comparison));
 
 if (save_baseline) {
-	await benchmark_baseline_save(bench.results(), { path: BASELINE_PATH });
-	const content = await readFile(BASELINE_FILE, 'utf-8');
-	const formatted = format_file(content, { filepath: BASELINE_FILE });
-	await writeFile(BASELINE_FILE, formatted);
+	await baseline_save(BASELINE_FILE, bench.results());
 	console.log(`\n✓ Baseline saved to ${BASELINE_FILE}`);
 } else if (comparison.baseline_found) {
 	if (comparison.regressions.length > 0) {

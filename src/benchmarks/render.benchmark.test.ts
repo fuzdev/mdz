@@ -20,7 +20,6 @@ import { render } from 'svelte/server';
 import type { Component } from 'svelte';
 import { Benchmark } from '@fuzdev/fuz_util/benchmark.ts';
 import {
-	benchmark_baseline_save,
 	benchmark_baseline_compare,
 	benchmark_baseline_format
 } from '@fuzdev/fuz_util/benchmark_baseline.ts';
@@ -31,6 +30,7 @@ import { MdzStreamParser } from '#lib/mdz_stream_parser.ts';
 import { MdzStreamState } from '#lib/mdz_stream_state.svelte.ts';
 import type { MdzOpcode } from '#lib/mdz_opcodes.ts';
 import { benchmark_inputs } from './benchmark_inputs.ts';
+import { baseline_load, baseline_save } from './baseline_io.ts';
 
 // vitest's reporter intercepts `console.log`; write to stdout directly so the
 // tables actually print under `gro test`
@@ -38,7 +38,7 @@ const print = (line: string): void => {
 	process.stdout.write(`${line}\n`);
 };
 
-const BASELINE_PATH = 'src/benchmarks/render';
+const BASELINE_FILE = 'src/benchmarks/render/baseline.json';
 
 const mode = process.env.BENCHMARK_RENDER; // undefined | '1' | 'save'
 
@@ -106,21 +106,25 @@ describe.skipIf(!mode)('render benchmarks', () => {
 		print(bench.summary());
 
 		if (mode === 'save') {
-			await benchmark_baseline_save(bench.results(), { path: BASELINE_PATH });
-			print(`\n✓ Baseline saved to ${BASELINE_PATH}/baseline.json`);
+			await baseline_save(BASELINE_FILE, bench.results());
+			print(`\n✓ Baseline saved to ${BASELINE_FILE}`);
 			return;
 		}
 
-		const comparison = await benchmark_baseline_compare(bench.results(), {
-			path: BASELINE_PATH,
-			// Informational only (nothing gates CI on it). Cross-run absolute
-			// compare can't resolve sub-~2× effects on this hardware — a zero-change
-			// re-run has flagged most tasks as "regressions". The real signal is
-			// within-run scaling / same-run ratios (see perf.md "Measurement
-			// robustness"); this threshold just filters the noisiest local rows.
-			regression_threshold: 1.1,
-			staleness_warning_days: 30
-		});
+		const comparison = benchmark_baseline_compare(
+			bench.results(),
+			await baseline_load(BASELINE_FILE),
+			{
+				runtime_version: process.version,
+				// Informational only (nothing gates CI on it). Cross-run absolute
+				// compare can't resolve sub-~2× effects on this hardware — a zero-change
+				// re-run has flagged most tasks as "regressions". The real signal is
+				// within-run scaling / same-run ratios (see perf.md "Measurement
+				// robustness"); this threshold just filters the noisiest local rows.
+				regression_threshold: 1.1,
+				staleness_warning_days: 30
+			}
+		);
 		print('\n Baseline Comparison\n');
 		print(benchmark_baseline_format(comparison));
 		if (comparison.baseline_found && comparison.regressions.length > 0) {
