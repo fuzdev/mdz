@@ -1,5 +1,14 @@
 # @fuzdev/mdz
 
+## 0.9.0
+
+### Minor Changes
+
+- Update dependencies (BREAKING CHANGES) ([c084223](https://github.com/fuzdev/mdz/commit/c084223))
+  
+  Breaking dependency changes:
+  - @fuzdev/fuz_util: 0.80.0 → 0.81.0 (minor)
+
 ## 0.8.1
 
 ### Patch Changes
