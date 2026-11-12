@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Call-shaped foo(./bar) and x(../baz) stay literal.",
+				"start": 0,
+				"end": 50
+			}
+		],
+		"start": 0,
+		"end": 50
+	}
+]

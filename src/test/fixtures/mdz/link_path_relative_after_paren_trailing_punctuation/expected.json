@@ -1,0 +1,78 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Read the spec (",
+				"start": 0,
+				"end": 15
+			},
+			{
+				"type": "Link",
+				"reference": "./grammar",
+				"children": [
+					{
+						"type": "Text",
+						"content": "./grammar",
+						"start": 15,
+						"end": 24
+					}
+				],
+				"link_type": "internal",
+				"start": 15,
+				"end": 24
+			},
+			{
+				"type": "Text",
+				"content": "). Then (",
+				"start": 24,
+				"end": 33
+			},
+			{
+				"type": "Link",
+				"reference": "../usage",
+				"children": [
+					{
+						"type": "Text",
+						"content": "../usage",
+						"start": 33,
+						"end": 41
+					}
+				],
+				"link_type": "internal",
+				"start": 33,
+				"end": 41
+			},
+			{
+				"type": "Text",
+				"content": ")! Or (",
+				"start": 41,
+				"end": 48
+			},
+			{
+				"type": "Link",
+				"reference": "./a.md",
+				"children": [
+					{
+						"type": "Text",
+						"content": "./a.md",
+						"start": 48,
+						"end": 54
+					}
+				],
+				"link_type": "internal",
+				"start": 48,
+				"end": 54
+			},
+			{
+				"type": "Text",
+				"content": "),",
+				"start": 54,
+				"end": 56
+			}
+		],
+		"start": 0,
+		"end": 56
+	}
+]

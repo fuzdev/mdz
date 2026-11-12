@@ -1,0 +1,57 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "((",
+				"start": 0,
+				"end": 2
+			},
+			{
+				"type": "Link",
+				"reference": "./grammar",
+				"children": [
+					{
+						"type": "Text",
+						"content": "./grammar",
+						"start": 2,
+						"end": 11
+					}
+				],
+				"link_type": "internal",
+				"start": 2,
+				"end": 11
+			},
+			{
+				"type": "Text",
+				"content": ")) and ( ",
+				"start": 11,
+				"end": 20
+			},
+			{
+				"type": "Link",
+				"reference": "./usage",
+				"children": [
+					{
+						"type": "Text",
+						"content": "./usage",
+						"start": 20,
+						"end": 27
+					}
+				],
+				"link_type": "internal",
+				"start": 20,
+				"end": 27
+			},
+			{
+				"type": "Text",
+				"content": " )",
+				"start": 27,
+				"end": 29
+			}
+		],
+		"start": 0,
+		"end": 29
+	}
+]

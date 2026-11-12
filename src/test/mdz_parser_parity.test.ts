@@ -7,8 +7,9 @@
  * inline-code candidate held across chunks decides text-vs-code bounded by a
  * wrongly-optimistic italic the one-shot parse greedy-rejects — locked by the
  * expected-divergence battery below), optimistic inline code left unclosed at
- * EOF (its tail was consumed as raw code text), link/tag opens skipped at
- * EOF, and block elements interrupting optimistic inlines at column 0 — see
+ * EOF (its tail was consumed as raw code text, so formatting and auto-links in
+ * it never form — also locked below), spans crossing a markdown link's `]`
+ * (also locked below), link/tag opens skipped at EOF, and block elements interrupting optimistic inlines at column 0 — see
  * the `MdzStreamParser` class TSDoc.
  */
 
@@ -894,6 +895,60 @@ describe('mdz parser parity', () => {
 		}
 	});
 
+	describe('optimistic inline code unclosed at EOF (documented, expected)', () => {
+		// an unclosed backtick consumes its tail as raw code text, so the EOF
+		// revert flattens it — formatting and auto-links inside never form,
+		// where the one-shot parse, seeing no closer, lexes the tail normally
+		const cases: Array<{ input: string; streamed: Array<MdzNode> }> = [
+			{
+				input: 'h `x **b** z',
+				streamed: [
+					{
+						type: 'Paragraph',
+						children: [{ type: 'Text', content: 'h `x **b** z', start: 0, end: 12 }],
+						start: 0,
+						end: 12
+					}
+				]
+			},
+			{
+				input: 'x `(./a.md) y',
+				streamed: [
+					{
+						type: 'Paragraph',
+						children: [{ type: 'Text', content: 'x `(./a.md) y', start: 0, end: 13 }],
+						start: 0,
+						end: 13
+					}
+				]
+			}
+		];
+		for (const { input, streamed } of cases) {
+			test(`streaming diverges as documented for ${JSON.stringify(input)}`, () => {
+				assert.deepEqual(stream_parse_text(input), streamed);
+				assert.notDeepEqual(streamed, mdz_parse(input));
+			});
+		}
+	});
+
+	describe('span crossing a markdown link bracket (documented, expected)', () => {
+		// the one-shot parse pairs a delimiter opener with the first occurrence
+		// of its delimiter even across a markdown link's `]` (links aren't bounded
+		// by an enclosing span); streaming must decide the span before it knows
+		// whether the link completes — see the `MdzStreamParser` class TSDoc
+		const inputs = ['**x [a b** c](/u) y**', '_x [a https://b_.c **d** e](/u) y_', '[_]_'];
+		for (const input of inputs) {
+			test(`streaming diverges as documented for ${JSON.stringify(input)}`, () => {
+				const streamed = stream_parse_text(input);
+				assert.notDeepEqual(streamed, mdz_parse(input));
+				// chunking doesn't change the streamed decision
+				for (const chunk_size of [1, 2, 3]) {
+					assert.deepEqual(stream_parse_chunked(input, chunk_size), streamed);
+				}
+			});
+		}
+	});
+
 	describe('buffer-end holds', () => {
 		// every streaming decision point that reads chars near the buffer end
 		// must hold (`need_more`/`'pending'`) rather than misclassify — the
@@ -1096,6 +1151,36 @@ describe('mdz parser parity', () => {
 			test(`tidied tree matches for ${JSON.stringify(input)}`, () => {
 				const path2 = mdz_parse(input).map(project_mdz_node) as Array<PlainNode>;
 				const path3 = stream_state_render(input) as Array<PlainNode>;
+				assert.deepEqual(tidy(path3), path2);
+			});
+		}
+
+		// Mid-stack reverts (a frame reverted with frames still open above it) of
+		// every revertable frame type — fed char by char, both consumers apply the
+		// same opcode stream and must build the same tree
+		const mid_stack_inputs = [
+			'_x <b>see /a_b</b> y', // Italic beneath an Element
+			'_x <Alert>see /a_b</Alert> y', // Italic beneath a Component
+			'_Draft: **read ./my_notes.md first**', // Italic beneath a Bold
+			'_x ~~y ./a_b z~~', // Italic beneath a Strikethrough
+			'_x <b>[see /a_ y](/u)</b> z', // Element and Italic beneath a Link
+			'**x <Alert>[see /a** y](/u)</Alert> z', // Component and Bold beneath a Link
+			'~~x _[see /a~~ y](/u)_ z' // Strikethrough beneath a Link
+		];
+		for (const input of mid_stack_inputs) {
+			test(`chunked mid-stack reverts match across consumers for ${JSON.stringify(input)}`, () => {
+				const parser = new MdzStreamParser();
+				for (let i = 0; i < input.length; i++) parser.feed(input.charAt(i));
+				parser.finish();
+				const ops = parser.take_opcodes();
+				assert.ok(
+					ops.some((op) => op.type === 'revert'),
+					'the input exercises a revert'
+				);
+				const state = new MdzStreamState();
+				state.apply_batch(ops);
+				const path2 = mdz_opcodes_to_nodes(ops).map(project_mdz_node) as Array<PlainNode>;
+				const path3 = state.root.map(to_plain) as Array<PlainNode>;
 				assert.deepEqual(tidy(path3), path2);
 			});
 		}

@@ -1,0 +1,120 @@
+[
+	{
+		"type": "List",
+		"ordered": false,
+		"children": [
+			{
+				"type": "ListItem",
+				"children": [
+					{
+						"type": "Text",
+						"content": "item (",
+						"start": 2,
+						"end": 8
+					},
+					{
+						"type": "Link",
+						"reference": "./grammar",
+						"children": [
+							{
+								"type": "Text",
+								"content": "./grammar",
+								"start": 8,
+								"end": 17
+							}
+						],
+						"link_type": "internal",
+						"start": 8,
+						"end": 17
+					},
+					{
+						"type": "Text",
+						"content": ")",
+						"start": 17,
+						"end": 18
+					}
+				],
+				"start": 0,
+				"end": 18
+			},
+			{
+				"type": "ListItem",
+				"children": [
+					{
+						"type": "Text",
+						"content": "(",
+						"start": 21,
+						"end": 22
+					},
+					{
+						"type": "Link",
+						"reference": "../usage",
+						"children": [
+							{
+								"type": "Text",
+								"content": "../usage",
+								"start": 22,
+								"end": 30
+							}
+						],
+						"link_type": "internal",
+						"start": 22,
+						"end": 30
+					},
+					{
+						"type": "Text",
+						"content": ") first",
+						"start": 30,
+						"end": 37
+					},
+					{
+						"type": "List",
+						"ordered": false,
+						"children": [
+							{
+								"type": "ListItem",
+								"children": [
+									{
+										"type": "Text",
+										"content": "nested (",
+										"start": 42,
+										"end": 50
+									},
+									{
+										"type": "Link",
+										"reference": "./a.md",
+										"children": [
+											{
+												"type": "Text",
+												"content": "./a.md",
+												"start": 50,
+												"end": 56
+											}
+										],
+										"link_type": "internal",
+										"start": 50,
+										"end": 56
+									},
+									{
+										"type": "Text",
+										"content": ")",
+										"start": 56,
+										"end": 57
+									}
+								],
+								"start": 40,
+								"end": 57
+							}
+						],
+						"start": 40,
+						"end": 57
+					}
+				],
+				"start": 19,
+				"end": 57
+			}
+		],
+		"start": 0,
+		"end": 57
+	}
+]

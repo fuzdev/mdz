@@ -1,0 +1,36 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "see (",
+				"start": 0,
+				"end": 5
+			},
+			{
+				"type": "Link",
+				"reference": "./grammar",
+				"children": [
+					{
+						"type": "Text",
+						"content": "./grammar",
+						"start": 5,
+						"end": 14
+					}
+				],
+				"link_type": "internal",
+				"start": 5,
+				"end": 14
+			},
+			{
+				"type": "Text",
+				"content": " for details",
+				"start": 14,
+				"end": 26
+			}
+		],
+		"start": 0,
+		"end": 26
+	}
+]

@@ -1,0 +1,49 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "x (",
+				"start": 0,
+				"end": 3
+			},
+			{
+				"type": "Link",
+				"reference": "./a",
+				"children": [
+					{
+						"type": "Text",
+						"content": "./a",
+						"start": 3,
+						"end": 6
+					}
+				],
+				"link_type": "internal",
+				"start": 3,
+				"end": 6
+			},
+			{
+				"type": "Text",
+				"content": ")",
+				"start": 6,
+				"end": 7
+			},
+			{
+				"type": "Strikethrough",
+				"children": [
+					{
+						"type": "Text",
+						"content": "b",
+						"start": 9,
+						"end": 10
+					}
+				],
+				"start": 7,
+				"end": 12
+			}
+		],
+		"start": 0,
+		"end": 12
+	}
+]

@@ -1,0 +1,45 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Link",
+				"reference": "/docs",
+				"children": [
+					{
+						"type": "Text",
+						"content": "see (",
+						"start": 1,
+						"end": 6
+					},
+					{
+						"type": "Link",
+						"reference": "./grammar",
+						"children": [
+							{
+								"type": "Text",
+								"content": "./grammar",
+								"start": 6,
+								"end": 15
+							}
+						],
+						"link_type": "internal",
+						"start": 6,
+						"end": 15
+					},
+					{
+						"type": "Text",
+						"content": ")",
+						"start": 15,
+						"end": 16
+					}
+				],
+				"link_type": "internal",
+				"start": 0,
+				"end": 24
+			}
+		],
+		"start": 0,
+		"end": 24
+	}
+]

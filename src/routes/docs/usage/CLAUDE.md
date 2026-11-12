@@ -42,10 +42,22 @@ mdz auto-links four path patterns:
 - `./path` - relative internal paths (same directory)
 - `../path` - relative internal paths (parent directory)
 
-URLs must be preceded by a non-word character or start of string
-(`xhttps://...` stays plain text); paths must be preceded by whitespace or
-start of string. Trailing punctuation (`.,;:!?`) and unbalanced `)` are
-trimmed from the end per GFM conventions.
+URLs must be preceded by a non-word character (anything but an ASCII letter
+or digit) or start of string (`xhttps://...` stays plain text). Paths must be
+preceded by whitespace, start of string, or a `(` that is itself preceded by
+neither an ASCII letter or digit nor `]` — `(./foo)` links, `foo(./bar)` and a
+failed link's `[a](./b c)` stay literal, as do paths after other openers (`[`,
+`{`, quotes). The rule lives in `is_path_boundary`, shared by both parsers.
+
+A path opened by `(` ends before the `)` matching that `(` (paren depth
+tracked, so `(./Foo_(bar))` keeps its inner parens); other URLs and paths scan
+to the first non-URI char. The scanned reference then trims, repeated to a
+fixpoint, trailing punctuation (`.,;:!?`) and an unbalanced trailing `)`. A
+reference left with nothing after its prefix (`/`, `./`, `../`, `https://`)
+doesn't link. A span whose first closer candidate falls inside an auto-link
+stays literal in both parsers, along with the spans inside it — unless the
+candidate is an intraword `_`, which rejects only that italic opener; the
+streaming parser resolves these when the link completes.
 
 `javascript:`, `data:`, and other non-`http(s)` URI schemes are stripped at
 render time by `mdz_is_safe_reference` — the link's display text renders as

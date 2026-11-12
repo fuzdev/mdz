@@ -191,7 +191,7 @@ describe('mdz_to_svelte compiled output matches the runtime renderer', () => {
 			// a low count means the skip filter broke
 			assert.isAbove(compared, 300, 'compared fixture count');
 			assert.deepEqual(failures.slice(0, 5), [], `${failures.length} of ${compared} diverge`);
-		});
+		}, 30_000); // compiles every fixture with Svelte — slow on a loaded machine
 	}
 });
 

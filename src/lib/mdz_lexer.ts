@@ -14,6 +14,9 @@ import {
 	is_tag_name_char,
 	is_word_char,
 	is_valid_path_char,
+	is_bare_path_prefix,
+	is_italic_boundary_blocker,
+	scan_uri_chars_end,
 	mdz_trim_url_punctuation,
 	BACKTICK,
 	ASTERISK,
@@ -2133,6 +2136,13 @@ export class MdzLexer {
 		reference = mdz_trim_url_punctuation(reference);
 		this.#index = start + reference.length;
 
+		// a bare scheme (`https://`) left after trimming isn't a URL — literal text,
+		// matching the streaming parser's completion check
+		if (reference.length <= match_url_prefix_case_insensitive(reference, 0)) {
+			this.#emit_text(reference, start);
+			return;
+		}
+
 		this.#tokens.push({
 			type: 'autolink',
 			reference,
@@ -2145,18 +2155,23 @@ export class MdzLexer {
 	#tokenize_auto_link_internal(): void {
 		const start = this.#index;
 
-		// Collect path characters
-		while (this.#index < this.#text.length) {
-			const char_code = this.#text.charCodeAt(this.#index);
-			if (char_code === SPACE || char_code === NEWLINE || !is_valid_path_char(char_code)) {
-				break;
-			}
-			this.#index++;
-		}
+		// collect path characters — a path opened by `(` ends at its matching `)`
+		// (the probes only admit a `(` before a path at a valid boundary)
+		this.#index = scan_uri_chars_end(
+			this.#text,
+			start,
+			start > 0 && this.#text.charCodeAt(start - 1) === LEFT_PAREN
+		);
 
 		let reference = this.#text.slice(start, this.#index);
 		reference = mdz_trim_url_punctuation(reference);
 		this.#index = start + reference.length;
+
+		// a bare prefix (`./`, `/`) left after trimming isn't a path — literal text
+		if (is_bare_path_prefix(reference)) {
+			this.#emit_text(reference, start);
+			return;
+		}
 
 		this.#tokens.push({
 			type: 'autolink',
@@ -2240,13 +2255,15 @@ export class MdzLexer {
 	 * transparent (so `_~~x~~_` nests).
 	 */
 	#is_at_word_boundary(index: number, check_before: boolean, check_after: boolean): boolean {
-		if (check_before && index > 0) {
-			const prev = this.#text.charCodeAt(index - 1);
-			if (is_word_char(prev) || prev === UNDERSCORE) return false;
+		if (check_before && index > 0 && is_italic_boundary_blocker(this.#text.charCodeAt(index - 1))) {
+			return false;
 		}
-		if (check_after && index < this.#text.length) {
-			const next = this.#text.charCodeAt(index);
-			if (is_word_char(next) || next === UNDERSCORE) return false;
+		if (
+			check_after &&
+			index < this.#text.length &&
+			is_italic_boundary_blocker(this.#text.charCodeAt(index))
+		) {
+			return false;
 		}
 		return true;
 	}

@@ -1,0 +1,57 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "See the API (",
+				"start": 0,
+				"end": 13
+			},
+			{
+				"type": "Link",
+				"reference": "/docs/api",
+				"children": [
+					{
+						"type": "Text",
+						"content": "/docs/api",
+						"start": 13,
+						"end": 22
+					}
+				],
+				"link_type": "internal",
+				"start": 13,
+				"end": 22
+			},
+			{
+				"type": "Text",
+				"content": ") and (see ",
+				"start": 22,
+				"end": 33
+			},
+			{
+				"type": "Link",
+				"reference": "/docs",
+				"children": [
+					{
+						"type": "Text",
+						"content": "/docs",
+						"start": 33,
+						"end": 38
+					}
+				],
+				"link_type": "internal",
+				"start": 33,
+				"end": 38
+			},
+			{
+				"type": "Text",
+				"content": ").",
+				"start": 38,
+				"end": 40
+			}
+		],
+		"start": 0,
+		"end": 40
+	}
+]

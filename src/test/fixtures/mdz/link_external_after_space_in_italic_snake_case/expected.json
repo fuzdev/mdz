@@ -1,0 +1,30 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "_(see ",
+				"start": 0,
+				"end": 6
+			},
+			{
+				"type": "Link",
+				"reference": "https://a.b/some_doc)_",
+				"children": [
+					{
+						"type": "Text",
+						"content": "https://a.b/some_doc)_",
+						"start": 6,
+						"end": 28
+					}
+				],
+				"link_type": "external",
+				"start": 6,
+				"end": 28
+			}
+		],
+		"start": 0,
+		"end": 28
+	}
+]

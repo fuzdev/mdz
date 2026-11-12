@@ -1,0 +1,57 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "(",
+				"start": 0,
+				"end": 1
+			},
+			{
+				"type": "Link",
+				"reference": "./rust-perf.md",
+				"children": [
+					{
+						"type": "Text",
+						"content": "./rust-perf.md",
+						"start": 1,
+						"end": 15
+					}
+				],
+				"link_type": "internal",
+				"start": 1,
+				"end": 15
+			},
+			{
+				"type": "Text",
+				"content": " §Arenas) and (",
+				"start": 15,
+				"end": 30
+			},
+			{
+				"type": "Link",
+				"reference": "../usage",
+				"children": [
+					{
+						"type": "Text",
+						"content": "../usage",
+						"start": 30,
+						"end": 38
+					}
+				],
+				"link_type": "internal",
+				"start": 30,
+				"end": 38
+			},
+			{
+				"type": "Text",
+				"content": ", again)",
+				"start": 38,
+				"end": 46
+			}
+		],
+		"start": 0,
+		"end": 46
+	}
+]

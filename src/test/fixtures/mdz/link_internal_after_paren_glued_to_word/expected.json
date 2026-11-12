@@ -1,0 +1,15 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Literal: a(/b) and (//c) and ( / )",
+				"start": 0,
+				"end": 34
+			}
+		],
+		"start": 0,
+		"end": 34
+	}
+]

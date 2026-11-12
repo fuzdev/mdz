@@ -10,8 +10,8 @@ import {
 	NEWLINE,
 	RIGHT_ANGLE,
 	UNDERSCORE,
+	is_italic_boundary_blocker,
 	is_line_whitespace,
-	is_word_char,
 	mdz_blockquote_line_has_content,
 	mdz_match_blockquote_prefix
 } from './mdz_helpers.ts';
@@ -190,7 +190,7 @@ export const try_double_delimiter = (
 export const try_italic = (state: MdzStreamParserState, forced = false): boolean => {
 	// opening boundary: reject after a word char, or after the delimiter
 	// itself — `_` is self-opaque, so runs like `__init__` stay literal
-	if (state.prev_char !== -1 && (is_word_char(state.prev_char) || state.prev_char === UNDERSCORE)) {
+	if (state.prev_char !== -1 && is_italic_boundary_blocker(state.prev_char)) {
 		consume_delimiter_as_text(state, '_');
 		return true;
 	}
@@ -248,7 +248,7 @@ export const check_close_word_boundary = (state: MdzStreamParserState): boolean 
 	const next_pos = state.pos + 1;
 	if (next_pos < state.buffer.length) {
 		const next = state.buffer.charCodeAt(next_pos);
-		return !(is_word_char(next) || next === UNDERSCORE);
+		return !is_italic_boundary_blocker(next);
 	}
 	return true;
 };
@@ -327,7 +327,7 @@ export const scan_closer_boundary = (
 	const after_pos = delim_pos + 1;
 	if (after_pos < state.buffer.length) {
 		const after = state.buffer.charCodeAt(after_pos);
-		return is_word_char(after) || after === UNDERSCORE ? 'rejected' : 'confirmed';
+		return is_italic_boundary_blocker(after) ? 'rejected' : 'confirmed';
 	}
 	// closer at end of buffer — treat as confirmed, consistent with
 	// check_close_word_boundary which also assumes boundary at buffer end

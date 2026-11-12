@@ -138,9 +138,22 @@ import { consume_delimiter_as_text, consume_text_run } from './mdz_stream_parser
  *   Italic is the only wedge (the only delimiter whose one-shot form rejects
  *   on a failed first closer); see `try_code`'s hold and `code_search_limit`.
  * - **Optimistic inline code unclosed at EOF** — a `` ` `` that opened
- *   optimistically consumes its tail as raw code text, so formatting inside it
- *   never forms (`` h `x **b** z `` stays flat where one-shot parses the bold);
- *   the parser never re-parses, so the EOF revert can only flatten it to text.
+ *   optimistically consumes its tail as raw code text, so formatting and
+ *   auto-links inside it never form (`` h `x **b** z `` and `` x `(./a.md) y ``
+ *   stay flat where one-shot parses the bold and the link); the parser never
+ *   re-parses, so the EOF revert can only flatten it to text.
+ * - **A span crossing a markdown link's `]`** — the one-shot parse pairs a
+ *   `**`/`_`/`~~` opener with the first occurrence of its delimiter even across
+ *   a `[text](url)`'s bracket, because markdown links aren't bounded by an
+ *   enclosing span. With the opener before the link and that occurrence in its
+ *   display text, the link forms and the opener stays literal
+ *   (`**x [a b** c](/u) y**`; also when the occurrence sits in an auto-link in
+ *   the display text, `_x [a https://b_.c **d** e](/u) y_`); with the opener in
+ *   the display text and the closer past `]`, a link that then fails re-lexes
+ *   from `[` and the span forms (`[_]_`). Streaming decides the span before it
+ *   knows whether the link completes, so it closes at the bracketed
+ *   occurrence, or reverts the span with the failed link; mirroring the
+ *   one-shot parse would need a hold to the link's `)` or a re-parse.
  * - **Link/tag opens at EOF** — `finish()` doesn't open links or tags, so a held
  *   tail containing complete `[text](url)` / `<Tag>…</Tag>` syntax parses flat.
  * - **Block elements interrupt optimistic inlines** — at column 0 a

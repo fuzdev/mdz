@@ -15,6 +15,9 @@ import {
 	mdz_trim_url_punctuation,
 	is_at_absolute_path,
 	is_at_relative_path,
+	is_path_boundary,
+	is_bare_path_prefix,
+	scan_uri_chars_end,
 	mdz_text_content,
 	mdz_heading_id,
 	mdz_is_url,
@@ -42,7 +45,9 @@ import {
 	SPACE,
 	LEFT_BRACKET,
 	RIGHT_BRACKET,
-	LEFT_PAREN
+	LEFT_PAREN,
+	NEWLINE,
+	TAB
 } from '#lib/mdz_helpers.ts';
 
 /* eslint-disable no-script-url */
@@ -199,6 +204,19 @@ describe('is_valid_path_char', () => {
 });
 
 describe('mdz_trim_url_punctuation', () => {
+	test('trims punctuation and unbalanced parens to a fixpoint', () => {
+		assert.equal(mdz_trim_url_punctuation('./grammar.md.)'), './grammar.md');
+		assert.equal(mdz_trim_url_punctuation('./,)'), './');
+		assert.equal(mdz_trim_url_punctuation('https://fuz.dev.).'), 'https://fuz.dev');
+		assert.equal(mdz_trim_url_punctuation('./a)).'), './a');
+	});
+
+	test('never trims a trailing delimiter run', () => {
+		assert.equal(mdz_trim_url_punctuation('./a**'), './a**');
+		assert.equal(mdz_trim_url_punctuation('./a)**'), './a)**');
+		assert.equal(mdz_trim_url_punctuation('./Foo_(bar)_'), './Foo_(bar)_');
+	});
+
 	test('trims simple trailing punctuation', () => {
 		assert.equal(mdz_trim_url_punctuation('https://fuz.dev.'), 'https://fuz.dev');
 		assert.equal(mdz_trim_url_punctuation('https://fuz.dev,'), 'https://fuz.dev');
@@ -260,6 +278,62 @@ describe('mdz_trim_url_punctuation', () => {
 	});
 });
 
+describe('scan_uri_chars_end', () => {
+	test('scans to the first non-URI char', () => {
+		assert.equal(scan_uri_chars_end('./a)b c', 0, false), 5);
+		assert.equal(scan_uri_chars_end('x ./a', 2, false), 5);
+	});
+
+	test('a paren-opened path ends at its matching `)`', () => {
+		assert.equal(scan_uri_chars_end('(./a)**', 1, true), 4);
+		assert.equal(scan_uri_chars_end('(./Foo_(bar)) x', 1, true), 12);
+		assert.equal(scan_uri_chars_end('(./a(b)c)d', 1, true), 8);
+		assert.equal(scan_uri_chars_end('(./a', 1, true), 4);
+	});
+});
+
+describe('is_bare_path_prefix', () => {
+	test('matches only a lone prefix', () => {
+		assert.equal(is_bare_path_prefix('/'), true);
+		assert.equal(is_bare_path_prefix('./'), true);
+		assert.equal(is_bare_path_prefix('../'), true);
+		assert.equal(is_bare_path_prefix('/a'), false);
+		assert.equal(is_bare_path_prefix('./a'), false);
+		assert.equal(is_bare_path_prefix('.././'), false);
+	});
+});
+
+describe('is_path_boundary', () => {
+	test('accepts start of input and whitespace', () => {
+		assert.equal(is_path_boundary(-1, -1), true);
+		assert.equal(is_path_boundary(SPACE, A_LOWER), true);
+		assert.equal(is_path_boundary(NEWLINE, A_LOWER), true);
+		assert.equal(is_path_boundary(TAB, A_LOWER), true);
+	});
+
+	test('accepts `(` not glued to a word', () => {
+		assert.equal(is_path_boundary(LEFT_PAREN, -1), true);
+		assert.equal(is_path_boundary(LEFT_PAREN, SPACE), true);
+		assert.equal(is_path_boundary(LEFT_PAREN, LEFT_PAREN), true);
+		assert.equal(is_path_boundary(LEFT_PAREN, '*'.charCodeAt(0)), true);
+	});
+
+	test('rejects `(` glued to a word char', () => {
+		assert.equal(is_path_boundary(LEFT_PAREN, A_LOWER), false);
+		assert.equal(is_path_boundary(LEFT_PAREN, '9'.charCodeAt(0)), false);
+	});
+
+	test('rejects the `(` of markdown link syntax', () => {
+		assert.equal(is_path_boundary(LEFT_PAREN, RIGHT_BRACKET), false);
+	});
+
+	test('rejects other preceding chars', () => {
+		for (const c of 'a9[{"\'*_~/.)') {
+			assert.equal(is_path_boundary(c.charCodeAt(0), SPACE), false, c);
+		}
+	});
+});
+
 describe('is_at_absolute_path', () => {
 	test('detects path at start of string', () => {
 		assert.equal(is_at_absolute_path('/foo/bar', 0), true);
@@ -301,6 +375,15 @@ describe('is_at_absolute_path', () => {
 		assert.equal(is_at_absolute_path('x/foo', 1), false);
 	});
 
+	test('detects path after `(`', () => {
+		assert.equal(is_at_absolute_path('(/foo)', 1), true);
+		assert.equal(is_at_absolute_path('see (/foo)', 5), true);
+	});
+
+	test('rejects path after `(` glued to a word', () => {
+		assert.equal(is_at_absolute_path('x(/foo)', 2), false);
+	});
+
 	test('rejects non-slash character', () => {
 		assert.equal(is_at_absolute_path('foo', 0), false);
 	});
@@ -325,6 +408,20 @@ describe('is_at_relative_path', () => {
 
 	test('detects ./ path after tab', () => {
 		assert.equal(is_at_relative_path('see\t./foo', 4), true);
+	});
+
+	test('detects ./ and ../ paths after `(`', () => {
+		assert.equal(is_at_relative_path('(./foo)', 1), true);
+		assert.equal(is_at_relative_path('see (../foo)', 5), true);
+	});
+
+	test('rejects path after `(` glued to a word', () => {
+		assert.equal(is_at_relative_path('foo(./bar)', 4), false);
+	});
+
+	test('rejects path after other openers', () => {
+		assert.equal(is_at_relative_path('[./foo]', 1), false);
+		assert.equal(is_at_relative_path('"./foo"', 1), false);
 	});
 
 	test('rejects ./ without following path char', () => {

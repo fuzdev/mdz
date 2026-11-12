@@ -1,0 +1,1 @@
+Other openers stay literal: [./a] {./b} "./c" './d' **./e** _./f_

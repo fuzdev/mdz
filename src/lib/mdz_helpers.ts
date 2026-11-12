@@ -529,6 +529,18 @@ export const is_word_char = (char_code: number): boolean =>
 	(char_code >= ZERO && char_code <= NINE);
 
 /**
+ * Whether a char next to an italic `_` blocks it from opening (the char
+ * before) or closing (the char after): a word char, or `_` itself — italic is
+ * self-opaque, so runs like `__init__` never pair. The one italic boundary
+ * predicate, shared by the lexer, the streaming parser, and the streaming
+ * auto-link span resolution.
+ *
+ * @nodocs
+ */
+export const is_italic_boundary_blocker = (char_code: number): boolean =>
+	is_word_char(char_code) || char_code === UNDERSCORE;
+
+/**
  * Lookup table for valid URI path characters per RFC 3986.
  * Replaces a 16-comparison chain with a single array access.
  *
@@ -587,7 +599,7 @@ export const TEXT_CLASS_STOP = 1;
 export const TEXT_CLASS_NEWLINE = 2;
 /** `h`/`H` — potential URL scheme start, needs the prefix probe. @nodocs */
 export const TEXT_CLASS_URL = 4;
-/** `/` and `.` — potential path start, needs the boundary probe. @nodocs */
+/** `/` and `.` — potential path start, needs the `is_path_boundary` probe. @nodocs */
 export const TEXT_CLASS_PATH = 8;
 /** `\` — a literal-pipe escape candidate inside table cells only. @nodocs */
 export const TEXT_CLASS_BACKSLASH = 16;
@@ -611,10 +623,23 @@ export const TEXT_SCAN_CLASS: Uint8Array = (() => {
 	return t;
 })();
 
+// trailing chars that never end a URL/path reference
+const is_trailing_punctuation = (char_code: number): boolean =>
+	char_code === PERIOD ||
+	char_code === COMMA ||
+	char_code === SEMICOLON ||
+	char_code === COLON ||
+	char_code === EXCLAMATION ||
+	char_code === QUESTION ||
+	char_code === RIGHT_BRACKET;
+
 /**
- * Trim trailing punctuation from URL/path per RFC 3986 and GFM rules.
- * - Trims simple trailing: .,;:!?]
- * - Balanced logic for () only (valid in path components)
+ * Trim the trailing characters a URL/path scan consumed that read as
+ * surrounding prose rather than the reference, per GFM's autolink
+ * conventions, repeated until nothing more trims:
+ * - trailing punctuation `.,;:!?]`
+ * - an unbalanced trailing `)` (parens are valid in path components, so a
+ *   balanced `(…)` stays)
  *
  * Note on `]`: the mdz parsers (`mdz.ts`, `mdz_stream_parser_url.ts`,
  * `mdz_lexer.ts`) scan URL/path chars through `is_valid_path_char`, which
@@ -622,68 +647,111 @@ export const TEXT_SCAN_CLASS: Uint8Array = (() => {
  * The `]` branch here is for external callers using this helper directly on
  * arbitrary URL-ish input as part of the published `@fuzdev/mdz` surface.
  *
- * Optimized to avoid O(n²) string slicing - tracks end index and slices once at the end.
+ * Tracks the end index and slices once, avoiding O(n²) string slicing.
  */
 export const mdz_trim_url_punctuation = (url: string): string => {
 	let end = url.length;
+	// paren counts over the untrimmed prefix — counted once, on the first
+	// trailing `)`; the chars trimmed after that hold no parens except the
+	// trimmed `)` themselves, which decrement `close_count`
+	let open_count = -1;
+	let close_count = 0;
 
-	while (end > 0) {
-		const last_char = url.charCodeAt(end - 1);
-		if (
-			last_char === PERIOD ||
-			last_char === COMMA ||
-			last_char === SEMICOLON ||
-			last_char === COLON ||
-			last_char === EXCLAMATION ||
-			last_char === QUESTION ||
-			last_char === RIGHT_BRACKET
-		) {
-			end--;
-		} else {
-			break;
-		}
-	}
-
-	// Handle balanced parentheses ONLY (parens are valid in URI path components)
-	// Only count parens when the trimmed URL ends with ')' — otherwise the
-	// trailing-paren loop below can't trim anything.
-	if (end > 0 && url.charCodeAt(end - 1) === RIGHT_PAREN) {
-		let open_count = 0;
-		let close_count = 0;
-		for (let i = 0; i < end; i++) {
-			const char = url.charCodeAt(i);
-			if (char === LEFT_PAREN) open_count++;
-			if (char === RIGHT_PAREN) close_count++;
-		}
-
-		// Trim unmatched trailing closing parens
-		while (end > 0 && close_count > open_count) {
-			const last_char = url.charCodeAt(end - 1);
-			if (last_char === RIGHT_PAREN) {
-				end--;
-				close_count--;
-			} else {
-				break;
+	for (;;) {
+		while (end > 0 && is_trailing_punctuation(url.charCodeAt(end - 1))) end--;
+		if (end === 0 || url.charCodeAt(end - 1) !== RIGHT_PAREN) break;
+		if (open_count === -1) {
+			open_count = 0;
+			for (let i = 0; i < end; i++) {
+				const char = url.charCodeAt(i);
+				if (char === LEFT_PAREN) open_count++;
+				else if (char === RIGHT_PAREN) close_count++;
 			}
 		}
+		if (close_count <= open_count) break; // balanced — the `)` belongs to the reference
+		end--;
+		close_count--;
 	}
 
-	// Return original string if no trimming, otherwise slice once
 	return end === url.length ? url : url.slice(0, end);
 };
 
 /**
+ * End of the URI-char run starting at `start` — where an auto-link scan
+ * stops, before any trailing trim. A path opened by `(` (`paren_opened`,
+ * see `is_path_boundary`) also ends before the `)` that matches that opener:
+ * a `(` inside the path raises the depth, so `(./Foo_(bar))` scans
+ * `./Foo_(bar)`.
+ *
+ * @nodocs
+ */
+export const scan_uri_chars_end = (text: string, start: number, paren_opened: boolean): number => {
+	let i = start;
+	let depth = 0;
+	while (i < text.length) {
+		const c = text.charCodeAt(i);
+		if (!is_valid_path_char(c)) break;
+		if (paren_opened) {
+			if (c === LEFT_PAREN) depth++;
+			else if (c === RIGHT_PAREN) {
+				if (depth === 0) break;
+				depth--;
+			}
+		}
+		i++;
+	}
+	return i;
+};
+
+/**
+ * Whether an internal path reference is only its prefix (`/`, `./`, `../`)
+ * with nothing after it — such a reference never links, since a path is its
+ * prefix plus at least one URI char.
+ *
+ * @nodocs
+ */
+export const is_bare_path_prefix = (reference: string): boolean =>
+	reference === '/' || reference === './' || reference === '../';
+
+// the char code `distance` chars before `index`, or `-1` past the start of input
+const char_code_before = (text: string, index: number, distance: number): number =>
+	index >= distance ? text.charCodeAt(index - distance) : -1;
+
+/**
+ * Whether an auto-detected path (`/…`, `./…`, `../…`) may start after the
+ * given characters: at the start of input, after a space, tab, or newline, or
+ * after an opening `(` that is itself neither glued to a word char nor the
+ * `](` of markdown link syntax. The paren case covers parenthesized
+ * references like `(./foo.md)` and `(see /docs)` — a path opened by `(` ends
+ * at its matching `)` (`scan_uri_chars_end`), and an unbalanced `)` after a
+ * whitespace-opened path is trimmed by `mdz_trim_url_punctuation` — while
+ * call-shaped `foo(./bar)` and a failed link's `[text](./foo bar)` stay
+ * literal. Every other preceding character (word chars, `[`, `{`, quotes,
+ * `*`, `_`, `~`, `/`, `.`) keeps a following path literal.
+ *
+ * @param prev - the char code directly before the path, or `-1` at the start of input
+ * @param before_prev - the char code before `prev`, or `-1` at the start of input
+ * @nodocs
+ */
+export const is_path_boundary = (prev: number, before_prev: number): boolean =>
+	prev === -1 ||
+	prev === SPACE ||
+	prev === NEWLINE ||
+	prev === TAB ||
+	(prev === LEFT_PAREN && before_prev !== RIGHT_BRACKET && !is_word_char(before_prev));
+
+/**
  * Check if position in text is the start of an absolute path (starts with `/`).
- * Must be preceded by whitespace or be at the start of the string.
+ * Must sit at a path boundary (see `is_path_boundary`): start of input,
+ * whitespace, or a `(` not glued to a word or a `]`.
  * Rejects `//` (comments/protocol-relative) and slash followed by whitespace.
  *
  * @nodocs
  */
 export const is_at_absolute_path = (text: string, index: number): boolean => {
 	if (text.charCodeAt(index) !== SLASH) return false;
-	if (index > 0) {
-		const prev_char = text.charCodeAt(index - 1);
-		if (prev_char !== SPACE && prev_char !== NEWLINE && prev_char !== TAB) return false;
+	if (!is_path_boundary(char_code_before(text, index, 1), char_code_before(text, index, 2))) {
+		return false;
 	}
 	if (index + 1 >= text.length) return false;
 	const next_char = text.charCodeAt(index + 1);
@@ -692,16 +760,16 @@ export const is_at_absolute_path = (text: string, index: number): boolean => {
 
 /**
  * Check if position in text is the start of a relative path (`./` or `../`).
- * Must be preceded by whitespace or be at the start of the string.
+ * Must sit at a path boundary (see `is_path_boundary`): start of input,
+ * whitespace, or a `(` not glued to a word or a `]`.
  * Rejects prefix followed by whitespace, slash, or end of string.
  *
  * @nodocs
  */
 export const is_at_relative_path = (text: string, index: number): boolean => {
 	if (text.charCodeAt(index) !== PERIOD) return false;
-	if (index > 0) {
-		const prev_char = text.charCodeAt(index - 1);
-		if (prev_char !== SPACE && prev_char !== NEWLINE && prev_char !== TAB) return false;
+	if (!is_path_boundary(char_code_before(text, index, 1), char_code_before(text, index, 2))) {
+		return false;
 	}
 	const remaining = text.length - index;
 	// Check for ../ (at least 4 chars: ../x)

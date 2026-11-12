@@ -147,10 +147,13 @@ _AutoUrl_ = (`https://` | `http://`) URI_CHAR+
             <preceded by a non-WORD_CHAR or start of input>
 
 _AutoPath_ = _AbsolutePath_ | _RelativePath_
-             <preceded by SPACE, TAB, NEWLINE, or start of input>
+             <preceded by SPACE, TAB, NEWLINE, start of input, or a `(`
+              that is itself preceded by neither a WORD_CHAR nor `]`>
 _AbsolutePath_ = `/` URI_CHAR+        <second character must not be `/` or whitespace>
 _RelativePath_ = (`./` | `../`) URI_CHAR+
                  <character after the prefix must not be `/` or whitespace>
+
+<every auto-link's URI_CHAR+ must stay non-empty after the trailing trim>
 ```
 
 **Markdown links:**
@@ -163,11 +166,22 @@ The scheme match is case-insensitive (RFC 3986 §3.1) — `Https://` from mobile
 
 **Auto-detected paths:**
 
-Must be preceded by whitespace or start of input. `//` is rejected (protocol-relative/comment-like), as is a prefix followed immediately by whitespace.
+Must be preceded by whitespace, start of input, or an opening `(` — so parenthesized references link: `(./grammar)` and `(see /docs)` link the path, with the `(` before it and the closing `)` after it left as text. The `(` counts only when the character before it is neither a WORD_CHAR (an ASCII letter or digit) nor `]`: call-shaped `foo(./bar)` stays literal, and so does the reference of a failed markdown link (`[text](./foo bar)`), whose `](` is link syntax, not prose. No other opener qualifies — `[./a]`, `{./a}`, `"./a"`, and `**./a**` stay literal — and neither does any other preceding character, so a path glued to text (`x./foo`, `a/b`) never links. WORD_CHAR is ASCII-only, so `é(./a)` links while `e(./a)` doesn't; `_` isn't a WORD_CHAR either, so `x_(./a)` links. `//` is rejected (protocol-relative/comment-like), as is a prefix followed immediately by whitespace.
+
+A path opened by `(` ends before the `)` that matches that `(`: the scan tracks paren depth, a `(` inside the path raises it, and the first `)` at depth zero ends the path, so `(./wiki/Foo_(bar))` links `./wiki/Foo_(bar)`, and the `)` and everything after it parse as ordinary inline content (`**(./a)**` is bold around `(`, the link, and `)`; `x (./a)~~b~~` is the link then a strikethrough). A path after whitespace or at the start of input has no matching paren and scans to the first non-URI_CHAR, as URLs do.
+
+URLs use a looser boundary than paths (any non-WORD_CHAR), so `foo(https://fuz.dev)` and a failed link's `](https://…` still link — a scheme is unambiguous where a bare `/` or `.` is not.
 
 **Trailing punctuation trim:**
 
-After scanning, trailing `.` `,` `;` `:` `!` `?` characters are trimmed from the end of the reference (GFM convention), so `See https://fuz.dev.` links the URL without the period. Unbalanced trailing `)` characters are also trimmed, but balanced parentheses are kept: `https://en.wikipedia.org/wiki/Markdown_(markup_language)` keeps its closing paren. The trimmed characters render as ordinary text after the link.
+After scanning, the reference sheds trailing characters that read as surrounding prose rather than the link, repeated until nothing more trims:
+
+- trailing `.` `,` `;` `:` `!` `?` (GFM convention), so `See https://fuz.dev.` links the URL without the period
+- an unbalanced trailing `)` — balanced parentheses are kept, so `https://en.wikipedia.org/wiki/Markdown_(markup_language)` keeps its closing paren
+
+Because the steps repeat, `(see ./a.md.)` links `./a.md` with `.)` as text. The trimmed characters render as ordinary text after the link. Formatting delimiters are URI_CHARs and never trim, so `**see ./a**` links `./a**`. If nothing remains after the prefix (`/`, `./`, `../`, `https://`), no link forms and the text stays literal: `(/)`, `a ./) b`, `see http://)`.
+
+**Closers inside auto-links:** a `**`, `_`, or `~~` opener pairs with the first occurrence of its delimiter after it (see Inline Formatting). When that occurrence falls inside an auto-link and is a valid closer — always for `**` and `~~`, and for `_` when the character after it isn't a WORD_CHAR or `_` — the link runs past it, so the opener stays literal, and so does every span opened inside it: `**see /a**b and c**` and `_x **see ./a_ y**` keep their delimiters literal. An intraword `_` fails italic's closer check, which rejects only the italic opener, so spans inside it still form: `_Draft: **read ./my_notes.md first**` is a literal `_` and a bold. The streaming parser resolves these spans the same way when the link ends.
 
 **Link types and rendering:**
 

@@ -1,0 +1,123 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Bold",
+				"children": [
+					{
+						"type": "Text",
+						"content": "see (",
+						"start": 2,
+						"end": 7
+					},
+					{
+						"type": "Link",
+						"reference": "./grammar",
+						"children": [
+							{
+								"type": "Text",
+								"content": "./grammar",
+								"start": 7,
+								"end": 16
+							}
+						],
+						"link_type": "internal",
+						"start": 7,
+						"end": 16
+					},
+					{
+						"type": "Text",
+						"content": ") here",
+						"start": 16,
+						"end": 22
+					}
+				],
+				"start": 0,
+				"end": 24
+			},
+			{
+				"type": "Text",
+				"content": " and ",
+				"start": 24,
+				"end": 29
+			},
+			{
+				"type": "Italic",
+				"children": [
+					{
+						"type": "Text",
+						"content": "(",
+						"start": 30,
+						"end": 31
+					},
+					{
+						"type": "Link",
+						"reference": "./usage",
+						"children": [
+							{
+								"type": "Text",
+								"content": "./usage",
+								"start": 31,
+								"end": 38
+							}
+						],
+						"link_type": "internal",
+						"start": 31,
+						"end": 38
+					},
+					{
+						"type": "Text",
+						"content": ") here",
+						"start": 38,
+						"end": 44
+					}
+				],
+				"start": 29,
+				"end": 45
+			},
+			{
+				"type": "Text",
+				"content": " and ",
+				"start": 45,
+				"end": 50
+			},
+			{
+				"type": "Strikethrough",
+				"children": [
+					{
+						"type": "Text",
+						"content": "(",
+						"start": 52,
+						"end": 53
+					},
+					{
+						"type": "Link",
+						"reference": "../streaming",
+						"children": [
+							{
+								"type": "Text",
+								"content": "../streaming",
+								"start": 53,
+								"end": 65
+							}
+						],
+						"link_type": "internal",
+						"start": 53,
+						"end": 65
+					},
+					{
+						"type": "Text",
+						"content": ") gone",
+						"start": 65,
+						"end": 71
+					}
+				],
+				"start": 50,
+				"end": 73
+			}
+		],
+		"start": 0,
+		"end": 73
+	}
+]

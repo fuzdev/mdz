@@ -1,0 +1,72 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Link",
+				"reference": "./grammar",
+				"children": [
+					{
+						"type": "Text",
+						"content": "the grammar",
+						"start": 1,
+						"end": 12
+					}
+				],
+				"link_type": "internal",
+				"start": 0,
+				"end": 24
+			},
+			{
+				"type": "Text",
+				"content": " (",
+				"start": 24,
+				"end": 26
+			},
+			{
+				"type": "Link",
+				"reference": "./usage",
+				"children": [
+					{
+						"type": "Text",
+						"content": "./usage",
+						"start": 26,
+						"end": 33
+					}
+				],
+				"link_type": "internal",
+				"start": 26,
+				"end": 33
+			},
+			{
+				"type": "Text",
+				"content": ") ",
+				"start": 33,
+				"end": 35
+			},
+			{
+				"type": "Link",
+				"reference": "../a",
+				"children": [
+					{
+						"type": "Text",
+						"content": "x",
+						"start": 36,
+						"end": 37
+					}
+				],
+				"link_type": "internal",
+				"start": 35,
+				"end": 44
+			},
+			{
+				"type": "Text",
+				"content": " and [text](./b c) fails",
+				"start": 44,
+				"end": 68
+			}
+		],
+		"start": 0,
+		"end": 68
+	}
+]

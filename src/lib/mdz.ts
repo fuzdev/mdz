@@ -14,7 +14,10 @@
  *
  * The dialect supports:
  * - inline formatting: `code`, **bold**, _italic_, ~~strikethrough~~
- * - auto-detected links: external URLs (`https://...`) and internal paths (`/path`)
+ * - auto-detected links: external URLs (`https://...`) at the start of input or
+ *   after any non-word character, and internal paths (`/path`, `./path`, `../path`)
+ *   at the start of input, after whitespace, or after an opening `(` not preceded
+ *   by an ASCII letter, digit, or `]` (such a path ends at its matching `)`)
  * - markdown links: `[text](url)` with custom display text
  * - inline code in backticks (creates `Code` nodes; auto-linking to identifiers/modules
  *   is handled by the rendering layer via `MdzNodeView.svelte`)

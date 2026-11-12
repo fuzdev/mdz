@@ -1,0 +1,36 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "_(",
+				"start": 0,
+				"end": 2
+			},
+			{
+				"type": "Link",
+				"reference": "./my_file.md",
+				"children": [
+					{
+						"type": "Text",
+						"content": "./my_file.md",
+						"start": 2,
+						"end": 14
+					}
+				],
+				"link_type": "internal",
+				"start": 2,
+				"end": 14
+			},
+			{
+				"type": "Text",
+				"content": ")_ ok",
+				"start": 14,
+				"end": 19
+			}
+		],
+		"start": 0,
+		"end": 19
+	}
+]

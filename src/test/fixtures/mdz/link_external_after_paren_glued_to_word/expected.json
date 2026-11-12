@@ -1,0 +1,57 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "Call-shaped foo(",
+				"start": 0,
+				"end": 16
+			},
+			{
+				"type": "Link",
+				"reference": "https://fuz.dev",
+				"children": [
+					{
+						"type": "Text",
+						"content": "https://fuz.dev",
+						"start": 16,
+						"end": 31
+					}
+				],
+				"link_type": "external",
+				"start": 16,
+				"end": 31
+			},
+			{
+				"type": "Text",
+				"content": ") and (",
+				"start": 31,
+				"end": 38
+			},
+			{
+				"type": "Link",
+				"reference": "https://fuz.dev",
+				"children": [
+					{
+						"type": "Text",
+						"content": "https://fuz.dev",
+						"start": 38,
+						"end": 53
+					}
+				],
+				"link_type": "external",
+				"start": 38,
+				"end": 53
+			},
+			{
+				"type": "Text",
+				"content": ").",
+				"start": 53,
+				"end": 55
+			}
+		],
+		"start": 0,
+		"end": 55
+	}
+]

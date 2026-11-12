@@ -1,0 +1,51 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Link",
+				"reference": "./y",
+				"children": [
+					{
+						"type": "Text",
+						"content": "x",
+						"start": 1,
+						"end": 2
+					}
+				],
+				"link_type": "internal",
+				"start": 0,
+				"end": 8
+			},
+			{
+				"type": "Text",
+				"content": "(",
+				"start": 8,
+				"end": 9
+			},
+			{
+				"type": "Link",
+				"reference": "./z",
+				"children": [
+					{
+						"type": "Text",
+						"content": "./z",
+						"start": 9,
+						"end": 12
+					}
+				],
+				"link_type": "internal",
+				"start": 9,
+				"end": 12
+			},
+			{
+				"type": "Text",
+				"content": ")",
+				"start": 12,
+				"end": 13
+			}
+		],
+		"start": 0,
+		"end": 13
+	}
+]

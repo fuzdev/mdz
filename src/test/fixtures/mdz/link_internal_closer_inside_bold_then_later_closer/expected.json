@@ -1,0 +1,36 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "**see ",
+				"start": 0,
+				"end": 6
+			},
+			{
+				"type": "Link",
+				"reference": "/a**b",
+				"children": [
+					{
+						"type": "Text",
+						"content": "/a**b",
+						"start": 6,
+						"end": 11
+					}
+				],
+				"link_type": "internal",
+				"start": 6,
+				"end": 11
+			},
+			{
+				"type": "Text",
+				"content": " and c**",
+				"start": 11,
+				"end": 19
+			}
+		],
+		"start": 0,
+		"end": 19
+	}
+]

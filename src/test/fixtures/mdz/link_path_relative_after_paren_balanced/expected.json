@@ -1,0 +1,36 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "The page (",
+				"start": 0,
+				"end": 10
+			},
+			{
+				"type": "Link",
+				"reference": "./wiki/Foo_(bar)",
+				"children": [
+					{
+						"type": "Text",
+						"content": "./wiki/Foo_(bar)",
+						"start": 10,
+						"end": 26
+					}
+				],
+				"link_type": "internal",
+				"start": 10,
+				"end": 26
+			},
+			{
+				"type": "Text",
+				"content": ") has parens.",
+				"start": 26,
+				"end": 39
+			}
+		],
+		"start": 0,
+		"end": 39
+	}
+]

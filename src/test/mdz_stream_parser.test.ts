@@ -739,6 +739,71 @@ describe('MdzStreamParser opcodes', () => {
 		assert.deepEqual(result, mdz_parse('see ./README.md ok'));
 	});
 
+	test('auto-links after `(` match the one-shot parse at every split', () => {
+		// the `(` ends one text run and the path starts the next dispatch, so the
+		// two-char lookbehind (word char, or the `]` of a failed link's `](`) and
+		// the paren depth must survive feeds and buffer compaction; a link that
+		// swallows an open span's closer must resolve the span like the one-shot
+		// parse however the input is chunked
+		const inputs = [
+			'see (./README.md) ok',
+			'foo(./README.md) ok',
+			'(./a) x(./b)',
+			'[a](./b c) and [d](/e f)',
+			'_(see ./some_doc.md)_',
+			'_(./my_file.md)_ ok',
+			'_(see https://a.b/some_doc)_',
+			'**(./src/**/*.ts)**',
+			'**(/**)**',
+			'_(./a_)_',
+			'x (./a)~~b~~',
+			'(./a)*b*',
+			'**(./a)**',
+			'_(./a)_',
+			'~~(./a)~~',
+			'(./a)**',
+			'(./wiki/Foo_(bar))',
+			'(./a(b)c)d',
+			'(./a',
+			'((./a))',
+			'**see /a**b and c**',
+			'_a **b https://c_d** e_ f',
+			// an italic whose first `_` is intraword inside the link is rejected
+			// alone; inner spans survive
+			'_Draft: **read ./my_notes.md first**',
+			'_x <b>see /a_b</b> y',
+			'_x ~~y ./a_b z~~',
+			// a valid italic closer inside the link leaves inner spans literal
+			'_x **see ./a_ y**',
+			// `**`/`~~` pair with the first occurrence unconditionally, runs included
+			'**a ./b***c d**',
+			'~~a ./b~~~c d~~',
+			'**a ./b** c**',
+			'~~a ./b~~ c~~',
+			'_a **b ./c_d** e',
+			'**a _b ./c_ d** e_'
+		];
+		for (const input of inputs) {
+			const expected = mdz_parse(input);
+			const feeds: Array<Array<string>> = [
+				Array.from({ length: input.length }, (_, i) => input.charAt(i))
+			];
+			for (let split = 1; split < input.length; split++) {
+				feeds.push([input.slice(0, split), input.slice(split)]);
+			}
+			for (const chunks of feeds) {
+				const parser = new MdzStreamParser();
+				for (const chunk of chunks) parser.feed(chunk);
+				parser.finish();
+				assert.deepEqual(
+					mdz_opcodes_to_nodes(parser.take_opcodes()),
+					expected,
+					`${JSON.stringify(chunks)} of ${JSON.stringify(input)}`
+				);
+			}
+		}
+	});
+
 	test('URL at EOF wraps correctly', () => {
 		const result = stream_parse('see https://fuz.dev');
 		assert.deepEqual(result, mdz_parse('see https://fuz.dev'));

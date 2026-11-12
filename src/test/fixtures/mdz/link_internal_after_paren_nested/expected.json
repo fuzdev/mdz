@@ -1,0 +1,36 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "((",
+				"start": 0,
+				"end": 2
+			},
+			{
+				"type": "Link",
+				"reference": "/a",
+				"children": [
+					{
+						"type": "Text",
+						"content": "/a",
+						"start": 2,
+						"end": 4
+					}
+				],
+				"link_type": "internal",
+				"start": 2,
+				"end": 4
+			},
+			{
+				"type": "Text",
+				"content": "))",
+				"start": 4,
+				"end": 6
+			}
+		],
+		"start": 0,
+		"end": 6
+	}
+]

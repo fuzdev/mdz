@@ -6,14 +6,12 @@
 
 import {
 	HTTPS_PREFIX_LENGTH,
-	NEWLINE,
-	SPACE,
-	TAB,
 	TEXT_CLASS_NEWLINE,
 	TEXT_CLASS_PATH,
 	TEXT_CLASS_STOP,
 	TEXT_CLASS_URL,
 	TEXT_SCAN_CLASS,
+	is_path_boundary,
 	is_word_char,
 	match_url_prefix_case_insensitive
 } from './mdz_helpers.ts';
@@ -82,15 +80,24 @@ export const consume_text_run = (state: MdzStreamParserState): void => {
 				break;
 			}
 		} else if ((char_class & TEXT_CLASS_PATH) !== 0) {
-			// path (`/` or `.`): only break at a plausible path start
-			const prev = state.buffer.charCodeAt(state.pos - 1);
-			if (prev === SPACE || prev === NEWLINE || prev === TAB) break;
+			// path (`/` or `.`): only break at a plausible path start — the run
+			// start's lookbehind is the incoming `prev_char`
+			if (
+				is_path_boundary(
+					state.buffer.charCodeAt(state.pos - 1),
+					state.pos - 2 >= start ? state.buffer.charCodeAt(state.pos - 2) : state.prev_char
+				)
+			) {
+				break;
+			}
 		}
 		// backslash (or a non-starting path char) — ordinary text
 		state.pos++;
 	}
 	if (mdz_debug_work.enabled) mdz_debug_work.total += state.pos - start;
 	accumulate_text(state, state.buffer.slice(start, state.pos), offset(state, start));
+	state.before_prev_char =
+		state.pos - 2 >= start ? state.buffer.charCodeAt(state.pos - 2) : state.prev_char;
 	state.prev_char = state.buffer.charCodeAt(state.pos - 1);
 	state.column += state.pos - start;
 };

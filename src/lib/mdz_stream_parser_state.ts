@@ -167,6 +167,12 @@ export interface PendingUrl {
 	/** Prefix match tracking — only used when `!confirmed`. */
 	viable_https: boolean;
 	viable_http: boolean;
+	/**
+	 * Paren depth inside a path opened by `(` — the path ends at a `)` at
+	 * depth zero — or `-1` for every other URL/path, which scan to their
+	 * terminator.
+	 */
+	paren_depth: number;
 }
 
 /**
@@ -185,6 +191,14 @@ export interface MdzStreamParserState {
 	stack: Array<StackEntry>;
 	column: number;
 	prev_char: number;
+	/**
+	 * The char before `prev_char` — the second char of lookbehind the path
+	 * boundary needs (`is_path_boundary`: a `(` opens a path only when not
+	 * glued to a word or a `]`). Only `consume_text_run` maintains it, and it's read only
+	 * when `prev_char` is `(`, which only a text run leaves behind ahead of a
+	 * path-start char; elsewhere it may be stale.
+	 */
+	before_prev_char: number;
 	active_text_id: MdzNodeId | null;
 	accumulated_text: string;
 	accumulated_text_start: number;
@@ -331,6 +345,7 @@ export const create_state = (): MdzStreamParserState => ({
 	stack: [],
 	column: 0,
 	prev_char: -1,
+	before_prev_char: -1,
 	active_text_id: null,
 	accumulated_text: '',
 	accumulated_text_start: 0,
@@ -776,18 +791,24 @@ export const revert_above = (state: MdzStreamParserState, target_idx: number): v
 };
 
 /**
- * Revert an open `Italic` whose first closer candidate failed its boundary
- * check (italic is the only inline with closer-boundary rules). One-shot
- * parsing greedy-rejects the opener at the first invalid closer, so once a
- * failed candidate is seen, the optimistic open is known wrong — reverting
- * immediately (instead of leaving the container open for a later closer)
- * keeps chunked output identical to the one-shot parse.
+ * Revert one open frame, possibly **mid-stack**, without reverting the frames
+ * above it. Two callers:
  *
- * Unlike `revert_above`, this reverts a possibly
- * **mid-stack** entry: containers opened above it (e.g. a Bold inside the
- * failed Italic) stay open — the one-shot parse opens them at top level, and
- * the consumers' revert handlers re-parent them identically (the reverted
- * node is still its parent's last child; see `mdz_opcodes_to_nodes` and
+ * - an open `Italic` whose first closer candidate failed its boundary check
+ *   (italic is the only inline with closer-boundary rules) — one-shot parsing
+ *   greedy-rejects the opener at the first invalid closer, so once a failed
+ *   candidate is seen the optimistic open is known wrong, and reverting
+ *   immediately keeps chunked output identical to the one-shot parse
+ * - the auto-link span resolution (`revert_spans_closed_inside` in
+ *   `mdz_stream_parser_url.ts`), which reverts `Bold`, `Italic`,
+ *   `Strikethrough`, `Element`, and `Component` frames whose span the one-shot
+ *   parse leaves literal, one frame at a time and possibly beneath a `Link`
+ *   frame that stays open
+ *
+ * Containers opened above the reverted frame stay open, and the consumers'
+ * revert handlers re-parent them identically for every frame type — the
+ * reverted node is still its parent's last child, and both handlers work on
+ * node ids and children only (see `mdz_opcodes_to_nodes` and
  * `MdzStreamState`).
  *
  * Bypasses `emit` for the opcode push: `emit`'s heading-segment handling
@@ -813,8 +834,8 @@ export const revert_failed_close = (state: MdzStreamParserState, stack_idx: numb
 		if (remaining === 0) counts.delete(entry.tag_name);
 		else counts.set(entry.tag_name, remaining);
 	}
-	// only ever reverts an Italic today, but keep the depth counter honest if a
-	// Link/Element/Component is ever failed-closed mid-stack
+	// Element/Component frames count toward the link/tag nesting depth (Link
+	// frames are never reverted here today, but keep the counter honest)
 	if (entry.node_type === 'Link' || entry.tag_name !== undefined) state.open_link_tag_depth--;
 	state.opcodes.push({
 		type: 'revert',

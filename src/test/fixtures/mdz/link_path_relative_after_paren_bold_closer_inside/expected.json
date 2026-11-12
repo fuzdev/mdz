@@ -1,0 +1,36 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "**(",
+				"start": 0,
+				"end": 3
+			},
+			{
+				"type": "Link",
+				"reference": "./src/**/*.ts",
+				"children": [
+					{
+						"type": "Text",
+						"content": "./src/**/*.ts",
+						"start": 3,
+						"end": 16
+					}
+				],
+				"link_type": "internal",
+				"start": 3,
+				"end": 16
+			},
+			{
+				"type": "Text",
+				"content": ")**",
+				"start": 16,
+				"end": 19
+			}
+		],
+		"start": 0,
+		"end": 19
+	}
+]

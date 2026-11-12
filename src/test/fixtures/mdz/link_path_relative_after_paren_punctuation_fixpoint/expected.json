@@ -1,0 +1,78 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "(see ",
+				"start": 0,
+				"end": 5
+			},
+			{
+				"type": "Link",
+				"reference": "./a.md",
+				"children": [
+					{
+						"type": "Text",
+						"content": "./a.md",
+						"start": 5,
+						"end": 11
+					}
+				],
+				"link_type": "internal",
+				"start": 5,
+				"end": 11
+			},
+			{
+				"type": "Text",
+				"content": ".) and (",
+				"start": 11,
+				"end": 19
+			},
+			{
+				"type": "Link",
+				"reference": "./b",
+				"children": [
+					{
+						"type": "Text",
+						"content": "./b",
+						"start": 19,
+						"end": 22
+					}
+				],
+				"link_type": "internal",
+				"start": 19,
+				"end": 22
+			},
+			{
+				"type": "Text",
+				"content": ",) and (For details see ",
+				"start": 22,
+				"end": 46
+			},
+			{
+				"type": "Link",
+				"reference": "./grammar.md",
+				"children": [
+					{
+						"type": "Text",
+						"content": "./grammar.md",
+						"start": 46,
+						"end": 58
+					}
+				],
+				"link_type": "internal",
+				"start": 46,
+				"end": 58
+			},
+			{
+				"type": "Text",
+				"content": ".)",
+				"start": 58,
+				"end": 60
+			}
+		],
+		"start": 0,
+		"end": 60
+	}
+]

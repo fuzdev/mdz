@@ -1,0 +1,36 @@
+[
+	{
+		"type": "Paragraph",
+		"children": [
+			{
+				"type": "Text",
+				"content": "(",
+				"start": 0,
+				"end": 1
+			},
+			{
+				"type": "Link",
+				"reference": "./rust-spine.md",
+				"children": [
+					{
+						"type": "Text",
+						"content": "./rust-spine.md",
+						"start": 1,
+						"end": 16
+					}
+				],
+				"link_type": "internal",
+				"start": 1,
+				"end": 16
+			},
+			{
+				"type": "Text",
+				"content": ")",
+				"start": 16,
+				"end": 17
+			}
+		],
+		"start": 0,
+		"end": 17
+	}
+]
