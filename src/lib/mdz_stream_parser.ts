@@ -7,7 +7,7 @@
  * corrections are bounded, explicit opcodes (`revert`, `wrap`, `trim_text`).
  *
  * The design is derived from
- * {@link https://bsky.app/profile/pngwn.at/post/3mi527zntb22n @pngwn.at}'s
+ * [@pngwn.at](https://bsky.app/profile/pngwn.at/post/3mi527zntb22n)'s
  * ideas: restrict the syntax so streaming is tractable, render
  * optimistically and correct when wrong, emit serializable opcodes to avoid
  * re-parsing, and keep the opcodes target-agnostic so any renderer can

@@ -41,8 +41,8 @@ const format_reference = (ref: string): string => (mdz_is_url(ref) ? ref : `\`${
  * mdz_from_tsdoc('https://fuz.dev')
  * // → 'https://fuz.dev'
  *
- * mdz_from_tsdoc('[svelte-docinfo](https://github.com/ryanatkn/svelte-docinfo) for the analysis library')
- * // → '[svelte-docinfo](https://github.com/ryanatkn/svelte-docinfo) for the analysis library'
+ * mdz_from_tsdoc('[svelte-docinfo](https://github.com/fuzdev/svelte-docinfo) for the analysis library')
+ * // → '[svelte-docinfo](https://github.com/fuzdev/svelte-docinfo) for the analysis library'
  *
  * mdz_from_tsdoc('tome.ts for the documentation system')
  * // → '`tome.ts` for the documentation system'

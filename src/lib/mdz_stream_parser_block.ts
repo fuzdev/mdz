@@ -1,8 +1,8 @@
 /**
  * Block-element handlers for the streaming mdz parser.
  *
- * Each `try_*` returns {@link TryResult} so the orchestrator in
- * {@link ./mdz_stream_parser.ts} can fall through or wait for more input.
+ * Each `try_*` returns `TryResult` so the orchestrator in
+ * `mdz_stream_parser.ts` can fall through or wait for more input.
  *
  * @module
  */
