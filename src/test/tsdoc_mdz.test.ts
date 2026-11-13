@@ -1,5 +1,6 @@
 import { test, assert, describe } from 'vitest';
 import { mdz_from_tsdoc } from '#lib/tsdoc_mdz.ts';
+import { mdz_parse } from '#lib/mdz.ts';
 
 describe('mdz_from_tsdoc', () => {
 	test('converts {@link url|text} to markdown link', () => {
@@ -127,5 +128,48 @@ describe('mdz_from_tsdoc', () => {
 			mdz_from_tsdoc('[svelte-docinfo](https://github.com/x/y) for the analysis library'),
 			'[svelte-docinfo](https://github.com/x/y) for the analysis library'
 		);
+	});
+
+	test('passes through a backticked reference', () => {
+		assert.equal(mdz_from_tsdoc('`SomeType`'), '`SomeType`');
+	});
+
+	test('passes through a backticked reference with description', () => {
+		assert.equal(mdz_from_tsdoc('`tome.ts` for the `Tome` type'), '`tome.ts` for the `Tome` type');
+	});
+
+	test('passes through a backticked reference followed by punctuation', () => {
+		assert.equal(mdz_from_tsdoc('`foo`, `bar`'), '`foo`, `bar`');
+	});
+
+	test('a backticked reference renders as a code span', () => {
+		const nodes = mdz_parse(mdz_from_tsdoc('`each_concurrent` for the side-effect variant'));
+		assert.equal(nodes.length, 1);
+		const paragraph = nodes[0]!;
+		assert(paragraph.type === 'Paragraph');
+		assert.deepEqual(
+			paragraph.children.map((n) => n.type),
+			['Code', 'Text']
+		);
+		const code = paragraph.children[0]!;
+		assert(code.type === 'Code');
+		assert.equal(code.content, 'each_concurrent');
+	});
+
+	test('passes through a backticked reference that holds spaces', () => {
+		assert.equal(mdz_from_tsdoc('`a b` for c'), '`a b` for c');
+	});
+
+	test('trims whitespace around a backticked reference', () => {
+		assert.equal(mdz_from_tsdoc('  `a` for b  '), '`a` for b');
+	});
+
+	test('leaves a {@link} inside a backticked reference as code', () => {
+		assert.equal(mdz_from_tsdoc('`{@link Foo}` for bar'), '`{@link Foo}` for bar');
+	});
+
+	// no added backtick can close the span, so the text is returned as the author wrote it
+	test('passes through an unclosed backtick as written', () => {
+		assert.equal(mdz_from_tsdoc('`unclosed for a reason'), '`unclosed for a reason');
 	});
 });

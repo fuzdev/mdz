@@ -20,11 +20,12 @@ const format_reference = (ref: string): string => (mdz_is_url(ref) ? ref : `\`${
  * - `{@link url|text}` → `[text](url)` (markdown link, TSDoc canonical form)
  * - `{@link url text}` → `[text](url)` (TS-lenient space-separated form)
  * - `{@link https://...}` → `https://...` (bare URL, auto-linked by mdz)
- * - `{@link identifier}` → `` `identifier` `` (code formatting)
+ * - `{@link identifier}` → the identifier as a code span
  * - Bare URLs → returned as-is
  * - Bare markdown links (`[text](url)` ...) → returned as-is
+ * - Content that opens with a backtick (a code span, then description text) → returned as-is
  * - Bare identifiers → wrapped in backticks
- * - `identifier description text` → `` `identifier` description text `` (first token is the reference)
+ * - `identifier description text` → the first token wrapped in backticks, the rest as written
  *
  * @param content - raw `@see` tag content in TSDoc format
  * @returns mdz-formatted string ready for `Mdz` component
@@ -45,6 +46,9 @@ const format_reference = (ref: string): string => (mdz_is_url(ref) ? ref : `\`${
  *
  * mdz_from_tsdoc('tome.ts for the documentation system')
  * // → '`tome.ts` for the documentation system'
+ *
+ * mdz_from_tsdoc('`tome.ts` for the `Tome` type')
+ * // → '`tome.ts` for the `Tome` type'
  * ```
  */
 export const mdz_from_tsdoc = (content: string): string => {
@@ -82,6 +86,13 @@ export const mdz_from_tsdoc = (content: string): string => {
 	// Pass through bare markdown links (`[text](url)` optionally followed by description)
 	// so authors can write `@see [text](url) for context` directly.
 	if (trimmed.charCodeAt(0) === 91 /* [ */ && /^\[[^\]]+\]\([^)\s]+\)/.test(trimmed)) {
+		return trimmed;
+	}
+
+	// Pass through content that opens with a backtick: a leading code span is already mdz,
+	// and wrapping it again would leave both spans literal. An unclosed one is returned as
+	// written too, since adding a backtick the author didn't write can't make it a span.
+	if (trimmed.charCodeAt(0) === 96 /* ` */) {
 		return trimmed;
 	}
 
