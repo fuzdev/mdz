@@ -1,5 +1,17 @@
 # @fuzdev/mdz
 
+## 0.10.0
+
+### Minor Changes
+
+- feat: auto-detected paths (`./foo`, `../foo`, `/foo`) link directly after an opening `(` not preceded by an ASCII letter, digit, or `]`, and a path opened by `(` ends at its matching `)`, so `(./foo.md)` and `**(./foo.md)**` link the path with the parens as text while `foo(./bar)` and a failed link's `[a](./b c)` stay literal; the auto-link trailing trim of punctuation and unbalanced `)` repeats to a fixpoint (`(see ./a.md.)` links `./a.md`); a reference with nothing after its prefix or scheme (`(/)`, `a ./) b`, `see http://)`) no longer links; and the streaming parser now matches `mdz_parse` when an auto-link swallows an open span's first closer (`**see /a**b and c**`, `_(./my_file.md)_`), leaving the opener literal ([ac09204](https://github.com/fuzdev/mdz/commit/ac09204))
+- feat: `Mdz` and `MdzNodeView` take an opt-in `source_offsets` prop that puts each node's `start` and `end` on the elements rendered for it as `data-mdz-start` and `data-mdz-end` — blocks, inline formatting, every rendered link, and registered elements — and passes them as props to injected `code` and `codeblock` components (typed `MdzSourceOffsetProps` on `MdzCodeComponent` and `MdzCodeblockComponent`), so a consumer can map rendered output back to its source and match anchors to link nodes by offset; off by default with unchanged output, not inherited by a nested `Mdz`, absent from `MdzStream`, and `svelte_preprocess_mdz` leaves a usage that sets it to the runtime ([c786b94](https://github.com/fuzdev/mdz/commit/c786b94))
+
+### Patch Changes
+
+- fix: declaration maps resolve to the shipped source, so go-to-definition lands in `src/lib` ([52f97c3](https://github.com/fuzdev/mdz/commit/52f97c3))
+- fix: `mdz_from_tsdoc` returns `@see` content that opens with a backtick as written, so `` @see `foo` for bar `` renders `foo` as code instead of wrapping it in a second pair of backticks, which left both spans literal ([1a67f71](https://github.com/fuzdev/mdz/commit/1a67f71))
+
 ## 0.9.0
 
 ### Minor Changes
