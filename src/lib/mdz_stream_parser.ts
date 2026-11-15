@@ -139,9 +139,9 @@ import { consume_delimiter_as_text, consume_text_run } from './mdz_stream_parser
  *   on a failed first closer); see `try_code`'s hold and `code_search_limit`.
  * - **Optimistic inline code unclosed at EOF** — a `` ` `` that opened
  *   optimistically consumes its tail as raw code text, so formatting and
- *   auto-links inside it never form (`` h `x **b** z `` and `` x `(./a.md) y ``
- *   stay flat where one-shot parses the bold and the link); the parser never
- *   re-parses, so the EOF revert can only flatten it to text.
+ *   auto-links inside it never form (`x **b** z` and `(./a.md)` after an
+ *   unclosed backtick stay flat where one-shot parses the bold and the link);
+ *   the parser never re-parses, so the EOF revert can only flatten it to text.
  * - **A span crossing a markdown link's `]`** — the one-shot parse pairs a
  *   `**`/`_`/`~~` opener with the first occurrence of its delimiter even across
  *   a `[text](url)`'s bracket, because markdown links aren't bounded by an
