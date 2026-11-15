@@ -298,6 +298,39 @@ describe('dynamic inline prop', () => {
 	});
 });
 
+// precompiled markup carries no source offsets, so any usage that might want
+// them renders at runtime
+describe('source_offsets prop', () => {
+	test.each([
+		['a bare attribute', 'source_offsets'],
+		['a literal true', 'source_offsets={true}'],
+		['a state variable', '{source_offsets}'],
+		['a quoted string', 'source_offsets="{source_offsets}"']
+	])('preserves %s', async (_label, attribute) => {
+		const input = `<script lang="ts">
+	import Mdz from '@fuzdev/mdz/Mdz.svelte';
+	let source_offsets = $state(true);
+</script>
+
+<Mdz content="**bold**" ${attribute} />`;
+
+		const result = await run_preprocess(input);
+		assert.equal(result, input, 'should be unchanged when source offsets may be on');
+	});
+
+	test('precompiles a literal false and drops it', async () => {
+		const input = `<script lang="ts">
+	import Mdz from '@fuzdev/mdz/Mdz.svelte';
+</script>
+
+<Mdz content="**bold**" class="foo" source_offsets={false} />`;
+
+		const result = await run_preprocess(input);
+		assert.include(result, '<MdzPrecompiled class="foo">');
+		assert.notInclude(result, 'source_offsets');
+	});
+});
+
 describe('excluded files', () => {
 	test('skips excluded files with regex', async () => {
 		const input = `<script lang="ts">

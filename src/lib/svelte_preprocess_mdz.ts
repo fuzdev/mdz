@@ -397,9 +397,17 @@ const find_mdz_usages = (
 			const inline = inline_attr ? extract_static_boolean(inline_attr.value) : false;
 			if (inline === null) return; // dynamic inline — fall back to runtime
 
+			// precompiled markup carries no source offsets, so content that asks for
+			// them renders at runtime; a static `false` asks for nothing and is dropped
+			const source_offsets_attr = find_attribute(node, 'source_offsets');
+			if (source_offsets_attr && extract_static_boolean(source_offsets_attr.value) !== false) {
+				return;
+			}
+
 			// Collect attributes to exclude from precompiled output
 			const exclude_attrs: Set<AST.Attribute> = new Set([content_attr]);
 			if (base_attr) exclude_attrs.add(base_attr);
+			if (source_offsets_attr) exclude_attrs.add(source_offsets_attr);
 
 			// Extract static string value
 			const content_value = extract_static_string(content_attr.value, context.bindings);

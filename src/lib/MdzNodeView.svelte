@@ -22,11 +22,22 @@
 
 	const {
 		node,
-		nodes
-	}:
-		// exactly one of `node`/`nodes` — the array form renders a whole tree
+		nodes,
+		source_offsets = false
+	}: {
+		/**
+		 * Puts each node's source offsets on the elements rendered for it, as
+		 * `data-mdz-start` and `data-mdz-end` — see `Mdz`'s `source_offsets` for
+		 * the contract. A prop rather than a context because offsets index one
+		 * source string, so a nested `Mdz` (inside a registered component, say)
+		 * must not inherit the switch.
+		 *
+		 * @default false
+		 */
+		source_offsets?: boolean;
+	} & // exactly one of `node`/`nodes` — the array form renders a whole tree
 		// through this single component instance (used by `Mdz`)
-		{ node: MdzNode; nodes?: undefined } | { node?: undefined; nodes: Array<MdzNode> } = $props();
+		({ node: MdzNode; nodes?: undefined } | { node?: undefined; nodes: Array<MdzNode> }) = $props();
 
 	const get_components = mdz_components_context.get_maybe();
 	const get_elements = mdz_elements_context.get_maybe();
@@ -65,9 +76,19 @@ tree instead of per node. -->
 			)}
 			{#if mdz_is_void_element(node.name)}
 				<!-- void elements cannot have content — any parsed children are dropped -->
-				<svelte:element this={node.name} {...attrs} />
+				<svelte:element
+					this={node.name}
+					{...attrs}
+					data-mdz-start={source_offsets ? node.start : undefined}
+					data-mdz-end={source_offsets ? node.end : undefined}
+				/>
 			{:else}
-				<svelte:element this={node.name} {...attrs}>
+				<svelte:element
+					this={node.name}
+					{...attrs}
+					data-mdz-start={source_offsets ? node.start : undefined}
+					data-mdz-end={source_offsets ? node.end : undefined}
+				>
 					{#if node.children.length > 0}
 						{@render render_children(node.children)}
 					{/if}
@@ -101,56 +122,128 @@ tree instead of per node. -->
 	{:else if node.type === 'Code'}
 		{@const Code = get_code?.()}
 		{#if Code}
-			<Code reference={node.content} />
+			<Code
+				reference={node.content}
+				data-mdz-start={source_offsets ? node.start : undefined}
+				data-mdz-end={source_offsets ? node.end : undefined}
+			/>
 		{:else}
-			<code>{node.content}</code>
+			<code
+				data-mdz-start={source_offsets ? node.start : undefined}
+				data-mdz-end={source_offsets ? node.end : undefined}
+			>
+				{node.content}
+			</code>
 		{/if}
 	{:else if node.type === 'Bold'}
-		<strong>{@render render_children(node.children)}</strong>
+		<strong
+			data-mdz-start={source_offsets ? node.start : undefined}
+			data-mdz-end={source_offsets ? node.end : undefined}
+		>
+			{@render render_children(node.children)}
+		</strong>
 	{:else if node.type === 'Italic'}
-		<em>{@render render_children(node.children)}</em>
+		<em
+			data-mdz-start={source_offsets ? node.start : undefined}
+			data-mdz-end={source_offsets ? node.end : undefined}
+		>
+			{@render render_children(node.children)}
+		</em>
 	{:else if node.type === 'Strikethrough'}
-		<s>{@render render_children(node.children)}</s>
+		<s
+			data-mdz-start={source_offsets ? node.start : undefined}
+			data-mdz-end={source_offsets ? node.end : undefined}
+		>
+			{@render render_children(node.children)}
+		</s>
 	{:else if node.type === 'Link'}
 		{@const link = mdz_classify_link(node.reference, node.link_type, get_mdz_base?.())}
 		{#if link.kind === 'unsafe'}
 			{@render render_children(node.children)}
 		{:else if link.kind === 'resolve'}
-			<a href={resolve_pathname(link.path)}>{@render render_children(node.children)}</a>
+			<a
+				href={resolve_pathname(link.path)}
+				data-mdz-start={source_offsets ? node.start : undefined}
+				data-mdz-end={source_offsets ? node.end : undefined}
+			>
+				{@render render_children(node.children)}
+			</a>
 		{:else if link.kind === 'external'}
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-			<a href={link.href} target="_blank" rel="noopener">
+			<a
+				href={link.href}
+				target="_blank"
+				rel="noopener"
+				data-mdz-start={source_offsets ? node.start : undefined}
+				data-mdz-end={source_offsets ? node.end : undefined}
+			>
 				{@render render_children(node.children)}
 			</a>
 		{:else}
 			<!-- fragment/query/relative/bare references aren't under the base, so they skip resolve() -->
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-			<a href={link.href}>{@render render_children(node.children)}</a>
+			<a
+				href={link.href}
+				data-mdz-start={source_offsets ? node.start : undefined}
+				data-mdz-end={source_offsets ? node.end : undefined}
+			>
+				{@render render_children(node.children)}
+			</a>
 		{/if}
 	{:else if node.type === 'Paragraph'}
-		<p>{@render render_children(node.children)}</p>
+		<p
+			data-mdz-start={source_offsets ? node.start : undefined}
+			data-mdz-end={source_offsets ? node.end : undefined}
+		>
+			{@render render_children(node.children)}
+		</p>
 	{:else if node.type === 'List'}
 		{#if node.ordered}
-			<ol start={node.start_number === 1 ? undefined : node.start_number}>
+			<ol
+				start={node.start_number === 1 ? undefined : node.start_number}
+				data-mdz-start={source_offsets ? node.start : undefined}
+				data-mdz-end={source_offsets ? node.end : undefined}
+			>
 				{@render render_children(node.children)}
 			</ol>
 		{:else}
-			<ul>{@render render_children(node.children)}</ul>
+			<ul
+				data-mdz-start={source_offsets ? node.start : undefined}
+				data-mdz-end={source_offsets ? node.end : undefined}
+			>
+				{@render render_children(node.children)}
+			</ul>
 		{/if}
 	{:else if node.type === 'ListItem'}
-		<li>{@render render_children(node.children)}</li>
+		<li
+			data-mdz-start={source_offsets ? node.start : undefined}
+			data-mdz-end={source_offsets ? node.end : undefined}
+		>
+			{@render render_children(node.children)}
+		</li>
 	{:else if node.type === 'Blockquote'}
-		<blockquote>{@render render_children(node.children)}</blockquote>
+		<blockquote
+			data-mdz-start={source_offsets ? node.start : undefined}
+			data-mdz-end={source_offsets ? node.end : undefined}
+		>
+			{@render render_children(node.children)}
+		</blockquote>
 	{:else if node.type === 'Table'}
 		<!-- by grammar the header row is always first (and the only one) — read
 		it by index and skip it per-row in the body, rather than filtering
 		twice (matches the streaming view, where a filter would go O(n²)
 		across a streamed table) -->
 		{@const header_row = node.children[0]?.header ? node.children[0] : undefined}
-		<table>
+		<table
+			data-mdz-start={source_offsets ? node.start : undefined}
+			data-mdz-end={source_offsets ? node.end : undefined}
+		>
 			{#if header_row}
 				<thead>
-					<tr>
+					<tr
+						data-mdz-start={source_offsets ? header_row.start : undefined}
+						data-mdz-end={source_offsets ? header_row.end : undefined}
+					>
 						{@render render_cells(header_row, 'th', node.align)}
 					</tr>
 				</thead>
@@ -159,7 +252,10 @@ tree instead of per node. -->
 				<tbody>
 					{#each node.children as row, i (i)}
 						{#if !row.header}
-							<tr>
+							<tr
+								data-mdz-start={source_offsets ? row.start : undefined}
+								data-mdz-end={source_offsets ? row.end : undefined}
+							>
 								{@render render_cells(row, 'td', node.align)}
 							</tr>
 						{/if}
@@ -168,17 +264,32 @@ tree instead of per node. -->
 			{/if}
 		</table>
 	{:else if node.type === 'Hr'}
-		<hr />
+		<hr
+			data-mdz-start={source_offsets ? node.start : undefined}
+			data-mdz-end={source_offsets ? node.end : undefined}
+		/>
 	{:else if node.type === 'Heading'}
-		<svelte:element this={`h${node.level}`} id={node.id || undefined}>
+		<svelte:element
+			this={`h${node.level}`}
+			id={node.id || undefined}
+			data-mdz-start={source_offsets ? node.start : undefined}
+			data-mdz-end={source_offsets ? node.end : undefined}
+		>
 			{@render render_children(node.children)}
 		</svelte:element>
 	{:else if node.type === 'Codeblock'}
 		{@const Codeblock = get_codeblock?.()}
 		{#if Codeblock}
-			<Codeblock lang={node.lang} content={node.content} />
+			<Codeblock
+				lang={node.lang}
+				content={node.content}
+				data-mdz-start={source_offsets ? node.start : undefined}
+				data-mdz-end={source_offsets ? node.end : undefined}
+			/>
 		{:else}
-			<pre><code>{node.content}</code></pre>
+			<pre
+				data-mdz-start={source_offsets ? node.start : undefined}
+				data-mdz-end={source_offsets ? node.end : undefined}><code>{node.content}</code></pre>
 		{/if}
 	{/if}
 {/snippet}
@@ -197,7 +308,12 @@ tree instead of per node. -->
 	<!-- normalize to the column count: pad short rows, ignore extra cells -->
 	{#each align as a, i (i)}
 		{@const cell = row.children[i]}
-		<svelte:element this={tag} style={a ? `text-align:${a}` : undefined}>
+		<svelte:element
+			this={tag}
+			style={a ? `text-align:${a}` : undefined}
+			data-mdz-start={source_offsets && cell ? cell.start : undefined}
+			data-mdz-end={source_offsets && cell ? cell.end : undefined}
+		>
 			{#if cell}{@render render_children(cell.children)}{/if}
 		</svelte:element>
 	{/each}

@@ -82,11 +82,27 @@ export const mdz_elements_context = create_context<() => MdzElements | undefined
 export const mdz_base_context = create_context<() => string | undefined>();
 
 /**
+ * The source offsets an injected `code` or `codeblock` component receives
+ * when `Mdz`'s `source_offsets` is on: its node's `start` and `end` in the
+ * parsed source. Named as the attributes, so a component that spreads rest
+ * props onto its root element (like `fuz_ui`'s `DocsLink` and `fuz_code`'s
+ * `Code`) carries them with no changes; any other can read them as props.
+ * Absent (`undefined`) when `source_offsets` is off.
+ */
+// a type literal, not an interface: the implicit index signature keeps the
+// component types assignable from components whose props have index signatures
+// (any spreading `SvelteHTMLElements` rest props, like `DocsLink` and `Code`)
+export type MdzSourceOffsetProps = {
+	'data-mdz-start'?: number;
+	'data-mdz-end'?: number;
+};
+
+/**
  * Component that renders an inline `` `code` `` span. Receives the raw span
  * content as `reference` — the prop name matches `fuz_ui`'s `DocsLink`, so it
  * can be injected directly to auto-link backticked API identifiers.
  */
-export type MdzCodeComponent = Component<{ reference: string }>;
+export type MdzCodeComponent = Component<{ reference: string } & MdzSourceOffsetProps>;
 
 /**
  * Context for overriding how inline `` `code` `` spans render, via a getter
@@ -99,7 +115,9 @@ export const mdz_code_context = create_context<() => MdzCodeComponent | undefine
  * matching `@fuzdev/fuz_code`'s `Code`, so it can be injected directly for
  * syntax highlighting.
  */
-export type MdzCodeblockComponent = Component<{ lang: string | null; content: string }>;
+export type MdzCodeblockComponent = Component<
+	{ lang: string | null; content: string } & MdzSourceOffsetProps
+>;
 
 /**
  * Context for overriding how fenced code blocks render, via a getter function.

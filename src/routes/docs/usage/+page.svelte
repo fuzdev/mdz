@@ -419,6 +419,48 @@ const nodes = mdz_parse(content);`}
 		</TomeSection>
 
 		<TomeSection>
+			<TomeSectionHeader text="Source offsets" />
+			<p>
+				To map rendered output back to its source — scroll sync with an editor, marking the block
+				under the caret, click-to-source — set <code>source_offsets</code>, and each element mdz
+				renders for a node carries the node's <code>start</code> and <code>end</code> as
+				<code>data-mdz-start</code> and <code>data-mdz-end</code>:
+			</p>
+			<Code content={`<Mdz content="see [docs](/docs)" source_offsets />`} />
+			<Code
+				content={`<div>
+	<p data-mdz-start="0" data-mdz-end="17">
+		see <a href="/docs" data-mdz-start="4" data-mdz-end="17">docs</a>
+	</p>
+</div>`}
+			/>
+			<p>
+				The values are string indices into <code>content</code> (or the string a <code>nodes</code>
+				tree was parsed from), <code>end</code> exclusive — the units of a textarea's
+				<code>selectionStart</code>, given both hold the same string (a textarea's
+				<code>value</code> normalizes CRLF to LF). Blocks, inline formatting, every rendered link,
+				and registered HTML elements carry them; text has no element, and a link whose reference
+				fails the safety check renders as its text. Elements nest, so a paragraph shares its
+				<code>start</code> with a link at its beginning — match by element and both offsets, which
+				also pairs each rendered anchor with its link node without relying on document order.
+			</p>
+			<p>
+				Injected <code>code</code> and <code>codeblock</code> components receive the offsets as
+				props, so one that spreads rest props onto its root element, like fuz_code's
+				<code>Code</code>, carries them unchanged — on whatever root it renders, so an injected
+				<code>code</code> that renders a link puts a code node's offsets on an <code>a</code>.
+				Registered components get none — their props are what they register — but the content inside
+				them carries its own. A nested <code>Mdz</code> has its own switch, since its offsets index
+				a different string.
+			</p>
+			<p>
+				Off by default, and off the output is unchanged. <DeclarationLink name="MdzStream" /> has no
+				offsets to offer — the stream state doesn't track them — and the preprocessor leaves a usage
+				that sets <code>source_offsets</code> to render at runtime.
+			</p>
+		</TomeSection>
+
+		<TomeSection>
 			<TomeSectionHeader text="Compatibility with other markdowns" />
 			<p>
 				mdz takes after CommonMark and GFM — their behavior is the baseline wherever it fits

@@ -197,6 +197,14 @@ marker line (`- | a |` is inline text, like `- ```ts`).
   (for a tree the consumer already holds — see § Pre-computation); pass
   exactly one of `content`/`nodes`
 - `MdzStream.svelte` — render streaming content from an `MdzStreamState`
+- source offsets — `<Mdz source_offsets>` puts each node's `start`/`end` on
+  the elements rendered for it (`data-mdz-start`/`data-mdz-end`) and passes
+  them to injected `code`/`codeblock` components as props, for mapping
+  output back to source (scroll sync, click-to-source, matching anchors to
+  link nodes). A prop on `Mdz` and `MdzNodeView`, not a context, so a nested
+  `Mdz` doesn't inherit it; off, the output is unchanged. `MdzStream` has
+  none (`MdzStreamState` doesn't track offsets), and the preprocessor leaves
+  a usage that sets it to the runtime
 - `MdzNodeView.svelte` / `MdzStreamNodeView.svelte` — recursive node
   renderers; the recursion is **snippet-based** (a `render_node` snippet
   calling itself), so a tree costs one component instance and one set of
@@ -227,9 +235,10 @@ matching surfaces:
   bare or as `{component, props}` naming the attributes passed as props
 - `mdz_elements_context` — allowed HTML elements (`<aside>`)
 - `mdz_base_context` — base path for resolving relative links
-- `mdz_code_context` — component for inline `` `code` `` (receives `reference`)
+- `mdz_code_context` — component for inline `` `code` `` (receives `reference`,
+  plus `MdzSourceOffsetProps` under `source_offsets`)
 - `mdz_codeblock_context` — component for code blocks (receives `lang`,
-  `content`)
+  `content`, plus `MdzSourceOffsetProps` under `source_offsets`)
 
 The `code`/`codeblock` prop contracts match fuz_ui's `DocsLink` (auto-links API
 identifiers) and fuz_code's `Code` (syntax highlighting), so they drop in

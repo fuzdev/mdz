@@ -165,6 +165,10 @@ export default defineConfig({
 				the <code>inline</code> prop is dynamic, because it decides whether a lone paragraph is
 				unwrapped
 			</li>
+			<li>
+				the <code>source_offsets</code> prop is set to anything but a literal <code>false</code>,
+				because precompiled markup carries no source offsets
+			</li>
 			<li>spread attributes are present (<code>{'{'}...props}</code>)</li>
 			<li>content references unconfigured components or elements</li>
 			<li>a ternary branch has dynamic content or unconfigured tags</li>
