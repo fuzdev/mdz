@@ -1,5 +1,14 @@
 # @fuzdev/mdz
 
+## 0.11.0
+
+### Minor Changes
+
+- Update dependencies (BREAKING CHANGES) ([fef964b](https://github.com/fuzdev/mdz/commit/fef964b))
+  
+  Breaking dependency changes:
+  - @fuzdev/fuz_util: 0.81.0 → 0.83.0 (minor)
+
 ## 0.10.0
 
 ### Minor Changes
