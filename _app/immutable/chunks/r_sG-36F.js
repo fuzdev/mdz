@@ -1,0 +1,1 @@
+import{F as e,O as t,P as n,_t as r,rt as i,vt as a}from"./DCty6a5O.js";import{a as o,i as s,n as c,o as l,r as u,t as d}from"./pia2MfBU.js";function f(f,p){a(p,!0),l(d,()=>p.base),l(s,()=>p.components),l(o,()=>p.elements),l(c,()=>p.code),l(u,()=>p.codeblock);var m=e(),h=i(m);t(h,()=>p.children),n(f,m),r()}export{f as t};
